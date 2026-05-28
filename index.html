@@ -278,16 +278,19 @@
 
   /* ── BOTTOM NAV (mobile only) ── */
   .bottom-nav {
-    display:flex; height:var(--bottomnav-h);
+    display:flex; gap:10px; padding:8px 14px; height:var(--bottomnav-h);
     border-top:1px solid var(--border);
     background:var(--surface);
     flex-shrink:0;
-    padding-bottom:env(safe-area-inset-bottom);
+    padding-bottom:max(8px, env(safe-area-inset-bottom));
   }
   @media(min-width:768px){ .bottom-nav { display:none; } }
-  .nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:pointer; border:none; background:transparent; color:var(--text-muted); font-size:9px; font-weight:600; letter-spacing:0.5px; font-family:'DM Sans',sans-serif; transition:color 0.15s; }
-  .nav-btn.active { color:var(--accent); }
-  .nav-btn svg { width:20px; height:20px; }
+  .nav-btn { flex:1; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:8px; cursor:pointer; border:1px solid var(--border); background:var(--surface2); color:var(--text); font-size:12px; font-weight:700; letter-spacing:1px; font-family:'DM Sans',sans-serif; border-radius:10px; transition:all 0.15s; }
+  .nav-btn:active { transform:scale(0.97); }
+  .nav-btn.active { color:var(--accent); border-color:var(--accent); background:var(--accent-dim); }
+  .nav-btn svg { width:18px; height:18px; }
+  #nav-camera { color:var(--accent); border-color:var(--accent); background:var(--accent-dim); }
+  #nav-camera:active { background:var(--accent); color:#000; }
 
   /* ── CHANNEL DOTS (desktop header) ── */
   .channel-dots { display:none; gap:5px; }
@@ -468,21 +471,19 @@
   </div>
 </div>
 
-<!-- BOTTOM NAV (mobile) -->
+<!-- BOTTOM NAV (mobile) — só ações úteis no atendimento -->
 <div class="bottom-nav">
-  <button class="nav-btn active" id="nav-inbox" onclick="navTo('inbox')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-    INBOX
-  </button>
   <button class="nav-btn" id="nav-venda" onclick="navTo('venda')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
     VENDA
   </button>
-  <button class="nav-btn" id="nav-urgente" onclick="setFilter('all',document.querySelector('.filter-btn'));navTo('inbox')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-    URGENTE
+  <button class="nav-btn" id="nav-camera" onclick="openCamera()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    CÂMERA
   </button>
 </div>
+<!-- input de câmera/foto invisível (acionado pelo botão CÂMERA) -->
+<input type="file" id="chat-camera-input" accept="image/*" capture="environment" style="display:none" onchange="handleCameraFile(this)">
 
 <div class="overlay" id="overlay" onclick="closeSalePanel()"></div>
 <div class="sending-toast" id="toast"></div>
@@ -853,7 +854,6 @@ function openConv(conv){
   // mobile: hide sidebar
   if(isMobile()){
     document.getElementById('sidebar').classList.add('hidden-mobile');
-    document.getElementById('nav-inbox').classList.remove('active');
   }
 
   updateSalePanel(conv);
@@ -865,7 +865,6 @@ function goBack(){
   document.getElementById('chat-area').classList.remove('visible');
   closeSalePanel();
   activeConv=null;
-  document.getElementById('nav-inbox').classList.add('active');
   applyFilters();
 }
 
@@ -873,16 +872,51 @@ function goBack(){
 function navTo(tab){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('nav-'+tab)?.classList.add('active');
-  if(tab==='inbox'){
-    if(!activeConv){
-      document.getElementById('sidebar').classList.remove('hidden-mobile');
-      document.getElementById('chat-area').classList.remove('visible');
-    }
-    closeSalePanel();
-  } else if(tab==='venda'){
+  if(tab==='venda'){
     if(activeConv) toggleSalePanel();
     else showToast('⚠️ Abra uma conversa primeiro','#e0b452');
   }
+}
+
+// ─── CÂMERA (envio de foto pelo chat) ────────────────
+function openCamera(){
+  if(!activeConv){
+    showToast('⚠️ Abra uma conversa primeiro','#e0b452');
+    return;
+  }
+  document.getElementById('chat-camera-input').click();
+}
+
+function handleCameraFile(input){
+  const file = input.files?.[0];
+  if(!file || !activeConv) return;
+  // gera URL local pra exibir imediatamente no chat
+  const url = URL.createObjectURL(file);
+  appendPhotoMsg(url, file.name);
+  input.value = ''; // permite reescolher mesma foto depois
+  showToast('📸 Foto enviada via Z-API','#52b88a');
+  // TODO Fase 4 (Z-API): aqui faremos upload pro bucket chat-midia e disparo do envio real
+}
+
+function appendPhotoMsg(url, alt){
+  const area = document.getElementById('messages-area');
+  if(!area) return;
+  const now = new Date();
+  const time = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  const msg = document.createElement('div');
+  msg.className = 'msg outgoing';
+  msg.innerHTML = `
+    <div class="msg-bubble" style="padding:4px;background:transparent;border:none">
+      <img src="${url}" alt="${(alt||'').replace(/"/g,'&quot;')}" style="display:block;max-width:240px;width:100%;border-radius:12px;border:1px solid var(--border);">
+    </div>
+    <div class="msg-time">${time} <span class="msg-status">✓✓</span></div>
+  `;
+  area.appendChild(msg);
+  activeConv.messages.push({type:'outgoing',text:'[📸 Foto]',time,midia_url:url});
+  activeConv.preview = '📸 Foto enviada';
+  activeConv.waitSecs = 0;
+  scrollBottom();
+  applyFilters();
 }
 
 // ─── SEND ──────────────────────────────────────────────
