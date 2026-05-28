@@ -2,8 +2,23 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Shai Inbox</title>
+
+<!-- ====== PWA — instalável como app no celular ====== -->
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0f0f0f">
+<meta name="description" content="Painel unificado de atendimento e vendas da Loja Shai">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+
+<!-- iOS Safari (Add to Home Screen) -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Shai Inbox">
+<link rel="apple-touch-icon" href="/icon.svg">
+
+<!-- Android Chrome (cor da barra de status) -->
+<meta name="mobile-web-app-capable" content="yes">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@600&display=swap');
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -1413,6 +1428,17 @@ updateCounts();
 loadCategorias();
 loadProdutos();
 loadQuickReplies();
+
+// =====================================================================
+// PWA — registra service worker para instalação e cache offline
+// =====================================================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((err) => {
+      console.warn('Service worker não registrou:', err);
+    });
+  });
+}
 </script>
 </body>
 </html>
