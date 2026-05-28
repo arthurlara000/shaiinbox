@@ -1,0 +1,27 @@
+# dependências (caso vire projeto com build)
+node_modules/
+dist/
+.cache/
+
+# variáveis de ambiente
+.env
+.env.local
+.env.*.local
+
+# logs
+*.log
+npm-debug.log*
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# sessão local do Claude Code
+.claude/
+.remote_*
+
+# Netlify
+.netlify/
