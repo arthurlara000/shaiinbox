@@ -50,11 +50,31 @@
     /* mobile: full screen when no conv open */
   }
   @media(min-width:768px){
-    .sidebar { width:290px; border-right:1px solid var(--border); }
+    .sidebar { width:290px; flex-shrink:0; }
   }
   /* mobile: hide sidebar when chat is open */
   .sidebar.hidden-mobile { display:none; }
   @media(min-width:768px){ .sidebar.hidden-mobile { display:flex; } }
+
+  /* ── HANDLE DE REDIMENSIONAMENTO (desktop only) ── */
+  .sidebar-resize-handle { display:none; }
+  @media(min-width:768px){
+    .sidebar-resize-handle {
+      display:block; width:4px; flex-shrink:0;
+      cursor:col-resize; background:var(--border);
+      transition:background 0.15s;
+      position:relative;
+    }
+    .sidebar-resize-handle:hover, .sidebar-resize-handle.dragging {
+      background:var(--accent);
+    }
+    .sidebar-resize-handle::after {
+      content:''; position:absolute; top:0; bottom:0; left:-3px; right:-3px;
+    }
+    body.resizing { cursor:col-resize !important; user-select:none; }
+    body.resizing * { user-select:none; pointer-events:none; }
+    body.resizing .sidebar-resize-handle { pointer-events:auto; }
+  }
 
   .sidebar-filters { display:flex; gap:4px; padding:8px 10px; border-bottom:1px solid var(--border); flex-shrink:0; overflow-x:auto; }
   .sidebar-filters::-webkit-scrollbar { display:none; }
@@ -294,7 +314,62 @@
   .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:49; }
   .overlay.show { display:block; }
   @media(min-width:768px){ .overlay { display:none !important; } }
+
+  /* ── ADMIN MODAL (cadastro de produto) ── */
+  .prod-section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .prod-add-btn { background:var(--accent-dim); color:var(--accent); border:1px solid var(--accent); border-radius:6px; padding:3px 8px; font-size:10px; font-weight:700; letter-spacing:0.5px; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.15s; }
+  .prod-add-btn:hover, .prod-add-btn:active { background:var(--accent); color:#000; }
+
+  /* ── CATEGORIA CHIPS (filtro de catálogo) ── */
+  .cat-chips { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; }
+  .cat-chip { padding:4px 10px; border-radius:12px; font-size:10px; font-weight:600; cursor:pointer; border:1px solid var(--border); background:transparent; color:var(--text-muted); white-space:nowrap; transition:all 0.15s; font-family:'DM Sans',sans-serif; }
+  .cat-chip.active { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
+
+  /* ── GRUPO DE CATEGORIA (lista agrupada) ── */
+  .cat-group-header { font-size:9px; font-weight:700; letter-spacing:1.5px; color:var(--text-muted); text-transform:uppercase; padding:8px 2px 4px; display:flex; align-items:center; gap:6px; }
+  .cat-group-header .cat-count { color:var(--text-soft); font-weight:500; letter-spacing:0; font-size:10px; }
+
+  /* ── EDITAR QUICK REPLIES ── */
+  .qr-edit-btn { padding:4px 9px; border-radius:12px; font-size:11px; background:var(--surface2); border:1px dashed var(--border); color:var(--text-muted); cursor:pointer; white-space:nowrap; font-family:'DM Sans',sans-serif; flex-shrink:0; transition:all 0.15s; }
+  .qr-edit-btn:hover, .qr-edit-btn:active { border-color:var(--accent); border-style:solid; color:var(--accent); }
+  .qr-edit-row { display:flex; gap:6px; align-items:center; margin-bottom:8px; }
+  .qr-edit-row input { flex:1; background:var(--surface2); border:1px solid var(--border); border-radius:7px; padding:8px 10px; color:var(--text); font-size:12px; font-family:'DM Sans',sans-serif; outline:none; }
+  .qr-edit-row input:focus { border-color:var(--accent); }
+  .qr-edit-row .qr-remove { background:transparent; border:none; color:var(--text-muted); cursor:pointer; padding:6px 8px; border-radius:6px; font-size:16px; }
+  .qr-edit-row .qr-remove:hover { color:var(--red); background:var(--red-dim); }
+
+  .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center; padding:14px; }
+  .modal-backdrop.show { display:flex; }
+  .modal { background:var(--surface); border:1px solid var(--border); border-radius:14px; width:100%; max-width:440px; max-height:90vh; overflow-y:auto; }
+  .modal-header { padding:14px 16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:var(--surface); z-index:1; }
+  .modal-title { font-family:'Playfair Display',serif; color:var(--accent); font-size:15px; letter-spacing:1.5px; }
+  .modal-close { background:transparent; border:none; color:var(--text-muted); font-size:20px; cursor:pointer; padding:4px 8px; }
+  .modal-body { padding:14px 16px; }
+  .form-group { margin-bottom:12px; }
+  .form-group label { display:block; font-size:10px; font-weight:700; letter-spacing:1px; color:var(--text-muted); margin-bottom:5px; text-transform:uppercase; }
+  .form-group input, .form-group textarea, .form-group select { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:9px 11px; color:var(--text); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; -webkit-appearance:none; }
+  .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color:var(--accent); }
+  .form-group textarea { resize:vertical; min-height:60px; }
+  .form-row { display:flex; gap:10px; }
+  .form-row > .form-group { flex:1; }
+  .size-chips { display:flex; flex-wrap:wrap; gap:5px; }
+  .size-chip { padding:6px 12px; border-radius:14px; font-size:11px; background:var(--surface2); border:1px solid var(--border); color:var(--text-muted); cursor:pointer; user-select:none; font-weight:600; }
+  .size-chip.selected { background:var(--accent-dim); border-color:var(--accent); color:var(--accent); }
+  .photo-drop { border:2px dashed var(--border); border-radius:10px; padding:18px; text-align:center; cursor:pointer; color:var(--text-muted); font-size:12px; transition:all 0.15s; }
+  .photo-drop:hover { border-color:var(--accent); color:var(--accent); }
+  .photo-drop input { display:none; }
+  .photo-preview { max-width:100%; max-height:160px; border-radius:8px; margin-top:8px; object-fit:cover; }
+  .modal-actions { display:flex; gap:8px; padding:12px 16px; border-top:1px solid var(--border); position:sticky; bottom:0; background:var(--surface); }
+  .modal-btn { flex:1; padding:11px; border-radius:9px; font-size:12px; font-weight:700; cursor:pointer; border:none; font-family:'DM Sans',sans-serif; letter-spacing:0.5px; }
+  .modal-btn.primary { background:var(--accent); color:#000; }
+  .modal-btn.secondary { background:var(--surface2); color:var(--text-muted); border:1px solid var(--border); }
+  .modal-btn:disabled { opacity:0.5; cursor:not-allowed; }
+  .loading-spinner { display:inline-block; width:12px; height:12px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .empty-prod-list { text-align:center; padding:24px 12px; color:var(--text-muted); font-size:11px; }
+  .empty-prod-list .big { font-size:32px; opacity:0.3; margin-bottom:8px; }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -338,6 +413,9 @@
     <div class="conv-list" id="conv-list"></div>
   </div>
 
+  <!-- HANDLE DE REDIMENSIONAMENTO (desktop only) -->
+  <div class="sidebar-resize-handle" id="sidebar-resize-handle" title="Arraste para redimensionar"></div>
+
   <!-- CONTENT -->
   <div class="content-area">
     <div class="chat-area" id="chat-area">
@@ -366,7 +444,11 @@
           </div>
         </div>
         <div class="sale-section">
-          <div class="sale-section-label">Produtos</div>
+          <div class="prod-section-header">
+            <div class="sale-section-label">Produtos</div>
+            <button class="prod-add-btn" onclick="openAdminModal()" title="Cadastrar novo produto">+ Novo</button>
+          </div>
+          <div class="cat-chips" id="cat-chips"></div>
           <input class="prod-search" type="text" placeholder="Buscar produto..." oninput="filterProds(this.value)">
           <div class="prod-list" id="prod-list"></div>
           <div class="sale-summary" id="sale-summary" style="display:none">
@@ -405,7 +487,127 @@
 <div class="overlay" id="overlay" onclick="closeSalePanel()"></div>
 <div class="sending-toast" id="toast"></div>
 
+<!-- MODAL: cadastro de produto -->
+<div class="modal-backdrop" id="admin-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">CADASTRAR PRODUTO</div>
+      <button class="modal-close" onclick="closeAdminModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <form id="produto-form" onsubmit="submitProduto(event)">
+        <div class="form-group">
+          <label>Nome do produto *</label>
+          <input type="text" id="prod-nome" required placeholder="Ex: Vestido Floral Midi">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Categoria *</label>
+            <select id="prod-categoria" required></select>
+          </div>
+          <div class="form-group">
+            <label>Preço (R$) *</label>
+            <input type="number" id="prod-preco" step="0.01" min="0" required placeholder="189,90">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Tamanhos disponíveis</label>
+          <div class="size-chips" id="prod-tamanhos">
+            <div class="size-chip" data-size="PP">PP</div>
+            <div class="size-chip" data-size="P">P</div>
+            <div class="size-chip" data-size="M">M</div>
+            <div class="size-chip" data-size="G">G</div>
+            <div class="size-chip" data-size="GG">GG</div>
+            <div class="size-chip" data-size="36">36</div>
+            <div class="size-chip" data-size="38">38</div>
+            <div class="size-chip" data-size="40">40</div>
+            <div class="size-chip" data-size="42">42</div>
+            <div class="size-chip" data-size="44">44</div>
+            <div class="size-chip" data-size="Único">Único</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Estoque (qtd total)</label>
+            <input type="number" id="prod-estoque" min="0" value="0">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Descrição (opcional)</label>
+          <textarea id="prod-descricao" placeholder="Ex: Vestido midi, tecido viscose, estampa floral"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Foto do produto</label>
+          <label class="photo-drop" id="photo-drop">
+            <span id="photo-drop-text">📷 Toque para escolher foto</span>
+            <input type="file" id="prod-foto" accept="image/*" onchange="previewPhoto(this)">
+          </label>
+          <img id="photo-preview" class="photo-preview" style="display:none">
+        </div>
+      </form>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeAdminModal()">Cancelar</button>
+      <button class="modal-btn primary" id="submit-btn" onclick="document.getElementById('produto-form').requestSubmit()">Salvar produto</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: senha admin (substitui prompt() que é bloqueado em iframes) -->
+<div class="modal-backdrop" id="pwd-modal">
+  <div class="modal" style="max-width:340px">
+    <div class="modal-header">
+      <div class="modal-title">🔒 ACESSO ADMIN</div>
+      <button class="modal-close" onclick="closePwdModal(false)">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px; line-height:1.5">Digite a senha para gerenciar produtos e mensagens prontas.</p>
+      <form id="pwd-form" onsubmit="submitPwd(event)">
+        <div class="form-group">
+          <input type="password" id="pwd-input" placeholder="••••••••" autocomplete="off" required style="font-size:14px; letter-spacing:2px;">
+        </div>
+      </form>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closePwdModal(false)">Cancelar</button>
+      <button class="modal-btn primary" onclick="document.getElementById('pwd-form').requestSubmit()">Entrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: editar mensagens prontas -->
+<div class="modal-backdrop" id="qr-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">MENSAGENS PRONTAS</div>
+      <button class="modal-close" onclick="closeQrModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px; line-height:1.5">Edite, adicione ou remova as mensagens que a equipe usa com 1 clique no chat.</p>
+      <div id="qr-edit-list"></div>
+      <button class="modal-btn secondary" style="margin-top:10px" onclick="addQrRow('')">+ Adicionar mensagem</button>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeQrModal()">Cancelar</button>
+      <button class="modal-btn primary" id="qr-save-btn" onclick="saveQuickReplies()">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <script>
+// =====================================================================
+// CONFIGURAÇÃO SUPABASE
+// =====================================================================
+const SUPABASE_URL = 'https://ofoljmhfnohxwswskplx.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_uIh8f9-3idI_Y1v1Wg9qiw_7PpXUC4P';
+const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ⚠️ SENHA TEMPORÁRIA — TROCAR ANTES DE DIVULGAR A URL DO PAINEL
+// Esta senha protege apenas casualmente o cadastro de produtos.
+// Será substituída por login real (Supabase Auth) na Fase 3.
+const ADMIN_PASSWORD = 'shai2026';
+const ADMIN_SESSION_KEY = 'shai_admin_ok';
+
 const URGENCY_GREEN = 5*60, URGENCY_YELLOW = 15*60;
 
 function calcUrgency(s,resolved){ if(resolved)return'resolved'; if(s<URGENCY_GREEN)return'green'; if(s<URGENCY_YELLOW)return'yellow'; return'red'; }
@@ -459,18 +661,80 @@ const convs = [
   ]},
 ];
 
-const produtos = [
-  {id:1,emoji:'👗',name:'Vestido Floral',price:189.90,stock:'P, M, G'},
-  {id:2,emoji:'👖',name:'Calça Jeans C.A.',price:159.90,stock:'36–42'},
-  {id:3,emoji:'👚',name:'Blusa Básica',price:79.90,stock:'P, M, G, GG'},
-  {id:4,emoji:'🧥',name:'Blazer Alfaiataria',price:299.90,stock:'P, M, G'},
-  {id:5,emoji:'👘',name:'Saia Midi',price:129.90,stock:'P, M, G'},
-  {id:6,emoji:'🩱',name:'Body Decote V',price:99.90,stock:'P, M'},
-  {id:7,emoji:'🧣',name:'Lenço Estampado',price:59.90,stock:'Único'},
-  {id:8,emoji:'👠',name:'Mule Salto Bloco',price:219.90,stock:'35–39'},
-];
+// Catálogo lido do Supabase. Estrutura mantida compatível com o resto do código:
+//   { id, emoji, name, price, stock, descricao, foto_url, categoria_id, tamanhos[] }
+// O `emoji` é gerado por categoria (fallback) até termos foto na linha de catálogo.
+let produtos = [];
+let categorias = [];
+const EMOJI_POR_CATEGORIA = {
+  'Vestidos':'👗', 'Calças':'👖', 'Blusas':'👚', 'Blazers':'🧥',
+  'Saias':'👘', 'Acessórios':'🧣', 'Calçados':'👠'
+};
 
-const quickReplies = ['Olá! 😊','Um momento...','Temos! Qual tamanho?','Vou enviar o orçamento','Qual o endereço?'];
+async function loadCategorias(){
+  const { data, error } = await supa.from('categorias').select('*').order('ordem');
+  if(error){ console.error('Erro ao carregar categorias:', error); return; }
+  categorias = data || [];
+  // popular dropdown de cadastro
+  const sel = document.getElementById('prod-categoria');
+  if(sel){
+    sel.innerHTML = '<option value="">Selecione...</option>' +
+      categorias.map(c=>`<option value="${c.id}">${c.emoji||''} ${c.nome}</option>`).join('');
+  }
+}
+
+async function loadProdutos(){
+  const { data, error } = await supa
+    .from('produtos')
+    .select('id, nome, descricao, preco, categoria_id, tamanhos, estoque, ativo, produto_fotos(url, principal, ordem), categorias(nome, emoji)')
+    .eq('ativo', true)
+    .order('created_at', { ascending:false });
+  if(error){ console.error('Erro ao carregar produtos:', error); return; }
+  produtos = (data || []).map(p => {
+    const fotoPrincipal = (p.produto_fotos||[]).sort((a,b)=>(b.principal-a.principal)||(a.ordem-b.ordem))[0];
+    const catNome = p.categorias?.nome || '';
+    return {
+      id: p.id,
+      name: p.nome,
+      price: Number(p.preco),
+      stock: (p.tamanhos||[]).join(', ') || '—',
+      descricao: p.descricao || '',
+      foto_url: fotoPrincipal?.url || null,
+      categoria_id: p.categoria_id,
+      categoria_nome: catNome,
+      tamanhos: p.tamanhos || [],
+      estoque: p.estoque ?? 0,
+      emoji: p.categorias?.emoji || EMOJI_POR_CATEGORIA[catNome] || '🏷️'
+    };
+  });
+  // se houver painel de venda aberto, re-renderizar chips + lista
+  renderCatChips();
+  if(activeConv) applyProdFilter();
+}
+
+// Mensagens prontas — carregadas do Supabase, editáveis pelo modal "✏️"
+let quickReplies = ['Olá! 😊','Um momento...','Temos! Qual tamanho?','Vou enviar o orçamento','Qual o endereço?'];
+
+async function loadQuickReplies(){
+  const { data, error } = await supa
+    .from('respostas_rapidas')
+    .select('id, texto, ordem')
+    .eq('ativo', true)
+    .order('ordem');
+  if(error){ console.error('Erro ao carregar respostas rápidas:', error); return; }
+  if(data && data.length){
+    quickReplies = data.map(r => r.texto);
+    // se chat aberto, re-renderizar os chips
+    if(activeConv) renderQuickRepliesInChat();
+  }
+}
+
+function renderQuickRepliesInChat(){
+  const wrap = document.querySelector('.quick-replies');
+  if(!wrap) return;
+  wrap.innerHTML = quickReplies.map(qr=>`<button class="qr-btn" onclick="useQR(this)">${qr}</button>`).join('')
+    + `<button class="qr-edit-btn" onclick="openQrModal()" title="Editar mensagens prontas">✏️ Editar</button>`;
+}
 
 let activeConv = null, activeFilter = 'all';
 const isMobile = () => window.innerWidth < 768;
@@ -574,7 +838,7 @@ function openConv(conv){
       `).join('')}
     </div>
     <div class="input-area">
-      <div class="quick-replies">${quickReplies.map(qr=>`<button class="qr-btn" onclick="useQR(this)">${qr}</button>`).join('')}</div>
+      <div class="quick-replies">${quickReplies.map(qr=>`<button class="qr-btn" onclick="useQR(this)">${qr}</button>`).join('')}<button class="qr-edit-btn" onclick="openQrModal()" title="Editar mensagens prontas">✏️ Editar</button></div>
       <div class="input-row">
         <textarea class="msg-input" id="msg-input" placeholder="Mensagem... (Enter envia)" rows="1"
           onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
@@ -664,7 +928,8 @@ function updateSalePanel(conv){
   document.getElementById('sp-client').textContent=conv.name;
   document.querySelectorAll('.funnel-step').forEach(s=>s.classList.remove('active'));
   document.querySelector('.s-'+conv.funnel)?.classList.add('active');
-  renderProdList(produtos);
+  renderCatChips();
+  applyProdFilter();
   renderSummary(conv);
 }
 
@@ -692,19 +957,94 @@ function setFunnel(el,step){
   showToast('📊 '+el.querySelector('.step-label').textContent,'#7b8cde');
 }
 
-function renderProdList(list){
-  const el=document.getElementById('prod-list'); if(!el)return; el.innerHTML='';
-  list.forEach(p=>{
-    const sel=activeConv&&activeConv.selectedProds.includes(p.id);
-    const d=document.createElement('div');
-    d.className='prod-item'+(sel?' selected':'');
-    d.innerHTML=`<div class="prod-emoji">${p.emoji}</div><div class="prod-details"><div class="prod-n">${p.name}</div><div class="prod-p">R$ ${p.price.toFixed(2).replace('.',',')}</div><div class="prod-s">${p.stock}</div></div><div class="prod-add">${sel?'✓':'+'}</div>`;
-    d.onclick=()=>toggleProd(p.id);
-    el.appendChild(d);
-  });
+// estado do filtro de catálogo
+let activeCategoria = null;          // null = todas; senão, uuid da categoria
+let prodSearchQuery = '';            // texto da busca
+
+function renderCatChips(){
+  const el = document.getElementById('cat-chips');
+  if(!el) return;
+  // só mostra chips de categorias que TEM produto no catálogo
+  const idsComProduto = new Set(produtos.map(p=>p.categoria_id).filter(Boolean));
+  const catsAtivas = categorias.filter(c => idsComProduto.has(c.id));
+  const chips = [
+    `<button class="cat-chip ${activeCategoria===null?'active':''}" onclick="setCategoria(null)">TODAS</button>`,
+    ...catsAtivas.map(c=>`<button class="cat-chip ${activeCategoria===c.id?'active':''}" onclick="setCategoria('${c.id}')">${c.emoji||''} ${c.nome.toUpperCase()}</button>`)
+  ];
+  el.innerHTML = chips.join('');
 }
 
-function filterProds(q){ renderProdList(q?produtos.filter(p=>p.name.toLowerCase().includes(q.toLowerCase())):produtos); }
+function setCategoria(catId){
+  activeCategoria = catId;
+  renderCatChips();
+  applyProdFilter();
+}
+
+function applyProdFilter(){
+  // filtro combinado: categoria + busca textual
+  let list = produtos;
+  if(activeCategoria) list = list.filter(p => p.categoria_id === activeCategoria);
+  if(prodSearchQuery){
+    const q = prodSearchQuery.toLowerCase();
+    list = list.filter(p => p.name.toLowerCase().includes(q) || (p.descricao||'').toLowerCase().includes(q));
+  }
+  // se busca por texto ou categoria específica → lista flat
+  // se "Todas" sem busca → lista agrupada por categoria
+  const groupar = !activeCategoria && !prodSearchQuery;
+  renderProdList(list, groupar);
+}
+
+function filterProds(q){
+  prodSearchQuery = (q||'').trim();
+  applyProdFilter();
+}
+
+function prodItemHtml(p){
+  const sel = activeConv && activeConv.selectedProds.includes(p.id);
+  const visual = p.foto_url
+    ? `<img src="${p.foto_url}" alt="" style="width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0">`
+    : `<div class="prod-emoji">${p.emoji}</div>`;
+  return `<div class="prod-item${sel?' selected':''}" data-prod-id="${p.id}">${visual}<div class="prod-details"><div class="prod-n">${p.name}</div><div class="prod-p">R$ ${p.price.toFixed(2).replace('.',',')}</div><div class="prod-s">${p.stock}</div></div><div class="prod-add">${sel?'✓':'+'}</div></div>`;
+}
+
+function renderProdList(list, groupar){
+  const el = document.getElementById('prod-list');
+  if(!el) return;
+  if(!produtos.length){
+    el.innerHTML = `<div class="empty-prod-list"><div class="big">📦</div>Nenhum produto cadastrado ainda.<br><br>Toque em <b>+ Novo</b> acima para cadastrar.</div>`;
+    return;
+  }
+  if(!list.length){
+    el.innerHTML = `<div class="empty-prod-list"><div class="big">🔍</div>Nenhum produto encontrado<br>nesse filtro</div>`;
+    return;
+  }
+  if(groupar){
+    // agrupa por categoria, preservando ordem das categorias
+    const grupos = {};
+    list.forEach(p => {
+      const k = p.categoria_id || '__sem__';
+      if(!grupos[k]) grupos[k] = [];
+      grupos[k].push(p);
+    });
+    const ordemCats = [...categorias.map(c=>c.id), '__sem__'];
+    let html = '';
+    ordemCats.forEach(catId => {
+      const items = grupos[catId];
+      if(!items?.length) return;
+      const cat = categorias.find(c=>c.id===catId);
+      const titulo = cat ? `${cat.emoji||''} ${cat.nome}` : 'Outros';
+      html += `<div class="cat-group-header">${titulo}<span class="cat-count">${items.length}</span></div>`;
+      html += items.map(prodItemHtml).join('');
+    });
+    el.innerHTML = html;
+  } else {
+    el.innerHTML = list.map(prodItemHtml).join('');
+  }
+  // bind clicks (delegation)
+  el.querySelectorAll('.prod-item').forEach(it=>{
+    it.onclick = () => toggleProd(it.dataset.prodId);
+  });
+}
 
 function toggleProd(id){
   if(!activeConv)return;
@@ -766,7 +1106,273 @@ function showToast(msg,color){
   t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500);
 }
 
-applyFilters(); updateCounts();
+// =====================================================================
+// MODAL DE CADASTRO DE PRODUTO (admin)
+// =====================================================================
+// =====================================================================
+// MODAL DE SENHA ADMIN (substitui prompt() — funciona em iframes)
+// =====================================================================
+let _pwdPendingAction = null;
+
+function requireAdmin(onSuccess){
+  // se já autenticado nessa sessão, executa direto
+  if(sessionStorage.getItem(ADMIN_SESSION_KEY) === '1'){
+    onSuccess();
+    return;
+  }
+  _pwdPendingAction = onSuccess;
+  document.getElementById('pwd-input').value = '';
+  document.getElementById('pwd-modal').classList.add('show');
+  setTimeout(()=>document.getElementById('pwd-input').focus(), 50);
+}
+
+function closePwdModal(success){
+  document.getElementById('pwd-modal').classList.remove('show');
+  if(!success) _pwdPendingAction = null;
+}
+
+function submitPwd(ev){
+  ev.preventDefault();
+  const pwd = document.getElementById('pwd-input').value;
+  if(pwd !== ADMIN_PASSWORD){
+    showToast('🔒 Senha incorreta', '#e05252');
+    document.getElementById('pwd-input').value = '';
+    return;
+  }
+  sessionStorage.setItem(ADMIN_SESSION_KEY, '1');
+  const action = _pwdPendingAction;
+  closePwdModal(true);
+  if(action) action();
+}
+
+function openAdminModal(){
+  requireAdmin(() => {
+    if(!categorias.length) loadCategorias();
+    document.getElementById('admin-modal').classList.add('show');
+  });
+}
+
+function closeAdminModal(){
+  document.getElementById('admin-modal').classList.remove('show');
+  document.getElementById('produto-form').reset();
+  document.querySelectorAll('#prod-tamanhos .size-chip').forEach(c=>c.classList.remove('selected'));
+  const prev=document.getElementById('photo-preview');
+  prev.style.display='none'; prev.src='';
+  document.getElementById('photo-drop-text').textContent='📷 Toque para escolher foto';
+}
+
+function previewPhoto(input){
+  const file = input.files?.[0];
+  if(!file) return;
+  const url = URL.createObjectURL(file);
+  const prev = document.getElementById('photo-preview');
+  prev.src = url; prev.style.display = 'block';
+  document.getElementById('photo-drop-text').textContent = '✓ '+file.name;
+}
+
+// chips de tamanho — toggle de seleção
+document.querySelectorAll('#prod-tamanhos .size-chip').forEach(chip=>{
+  chip.addEventListener('click', ()=> chip.classList.toggle('selected'));
+});
+
+async function uploadProdutoFoto(file, produtoId){
+  const ext = file.name.split('.').pop().toLowerCase();
+  const path = `${produtoId}/${Date.now()}.${ext}`;
+  const { error: upErr } = await supa.storage.from('produto-fotos').upload(path, file, {
+    cacheControl: '3600', upsert: false, contentType: file.type
+  });
+  if(upErr) throw upErr;
+  const { data: pub } = supa.storage.from('produto-fotos').getPublicUrl(path);
+  return pub.publicUrl;
+}
+
+async function submitProduto(ev){
+  ev.preventDefault();
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.innerHTML = '<span class="loading-spinner"></span> Salvando…';
+
+  try {
+    const nome = document.getElementById('prod-nome').value.trim();
+    const categoria_id = document.getElementById('prod-categoria').value || null;
+    const preco = parseFloat(document.getElementById('prod-preco').value);
+    const estoque = parseInt(document.getElementById('prod-estoque').value || '0', 10);
+    const descricao = document.getElementById('prod-descricao').value.trim() || null;
+    const tamanhos = Array.from(document.querySelectorAll('#prod-tamanhos .size-chip.selected')).map(c=>c.dataset.size);
+    const fotoFile = document.getElementById('prod-foto').files?.[0];
+
+    // 1. inserir produto
+    const { data: prodInsert, error: prodErr } = await supa.from('produtos').insert({
+      nome, descricao, preco, categoria_id,
+      tamanhos: tamanhos.length ? tamanhos : null,
+      estoque, ativo: true
+    }).select().single();
+    if(prodErr) throw prodErr;
+
+    // 2. upload e registrar foto (se houver)
+    if(fotoFile){
+      const url = await uploadProdutoFoto(fotoFile, prodInsert.id);
+      const { error: fotoErr } = await supa.from('produto_fotos').insert({
+        produto_id: prodInsert.id, url, principal: true, ordem: 0
+      });
+      if(fotoErr) throw fotoErr;
+    }
+
+    showToast('✅ Produto cadastrado!', '#52b88a');
+    closeAdminModal();
+    await loadProdutos();
+  } catch(err){
+    console.error('Erro ao cadastrar produto:', err);
+    showToast('❌ Erro: '+(err.message||'falha ao salvar'), '#e05252');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
+// =====================================================================
+// MODAL DE MENSAGENS PRONTAS (editar quick replies)
+// =====================================================================
+function openQrModal(){
+  requireAdmin(() => {
+    const list = document.getElementById('qr-edit-list');
+    list.innerHTML = '';
+    quickReplies.forEach(texto => addQrRow(texto));
+    if(!quickReplies.length) addQrRow('');
+    document.getElementById('qr-modal').classList.add('show');
+  });
+}
+
+function closeQrModal(){
+  document.getElementById('qr-modal').classList.remove('show');
+}
+
+function addQrRow(texto){
+  const list = document.getElementById('qr-edit-list');
+  const row = document.createElement('div');
+  row.className = 'qr-edit-row';
+  row.innerHTML = `
+    <input type="text" value="${(texto||'').replace(/"/g,'&quot;')}" placeholder="Ex: Temos! Qual tamanho?" maxlength="200">
+    <button class="qr-remove" onclick="this.parentElement.remove()" title="Remover">🗑</button>
+  `;
+  list.appendChild(row);
+  // foca em linha nova vazia
+  if(!texto) row.querySelector('input').focus();
+}
+
+async function saveQuickReplies(){
+  const btn = document.getElementById('qr-save-btn');
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.innerHTML = '<span class="loading-spinner"></span> Salvando…';
+
+  try {
+    // pega textos não-vazios na ordem visual
+    const textos = Array.from(document.querySelectorAll('#qr-edit-list input'))
+      .map(i => i.value.trim())
+      .filter(t => t.length > 0);
+
+    if(!textos.length){
+      showToast('⚠️ Adicione ao menos 1 mensagem', '#e0b452');
+      btn.disabled = false; btn.textContent = originalLabel;
+      return;
+    }
+
+    // estratégia simples: apaga tudo e re-insere na ordem.
+    // como volume é pequeno (5-20 mensagens), funciona bem.
+    const { error: delErr } = await supa.from('respostas_rapidas').delete().gte('ordem', 0);
+    if(delErr) throw delErr;
+
+    const rows = textos.map((texto, i) => ({ texto, ordem: i + 1, ativo: true }));
+    const { error: insErr } = await supa.from('respostas_rapidas').insert(rows);
+    if(insErr) throw insErr;
+
+    quickReplies = textos;
+    renderQuickRepliesInChat();
+    showToast('✅ Mensagens atualizadas!', '#52b88a');
+    closeQrModal();
+  } catch(err){
+    console.error('Erro ao salvar mensagens prontas:', err);
+    showToast('❌ Erro: '+(err.message||'falha ao salvar'), '#e05252');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
+// =====================================================================
+// SIDEBAR REDIMENSIONÁVEL (desktop)
+// =====================================================================
+const SIDEBAR_MIN = 220;
+const SIDEBAR_MAX = 480;
+const SIDEBAR_DEFAULT = 290;
+const SIDEBAR_WIDTH_KEY = 'shai_sidebar_width';
+
+function applySidebarWidth(px){
+  const w = Math.max(SIDEBAR_MIN, Math.min(SIDEBAR_MAX, px));
+  document.getElementById('sidebar').style.width = w + 'px';
+  return w;
+}
+
+function restoreSidebarWidth(){
+  const saved = parseInt(localStorage.getItem(SIDEBAR_WIDTH_KEY) || '', 10);
+  if(saved && !isNaN(saved)) applySidebarWidth(saved);
+}
+
+(function initSidebarResize(){
+  const handle = document.getElementById('sidebar-resize-handle');
+  if(!handle) return;
+  let dragging = false;
+
+  function onPointerDown(e){
+    // só desktop
+    if(window.innerWidth < 768) return;
+    dragging = true;
+    handle.classList.add('dragging');
+    document.body.classList.add('resizing');
+    handle.setPointerCapture?.(e.pointerId);
+    e.preventDefault();
+  }
+  function onPointerMove(e){
+    if(!dragging) return;
+    applySidebarWidth(e.clientX);
+  }
+  function onPointerUp(e){
+    if(!dragging) return;
+    dragging = false;
+    handle.classList.remove('dragging');
+    document.body.classList.remove('resizing');
+    handle.releasePointerCapture?.(e.pointerId);
+    // persistir
+    const w = parseInt(document.getElementById('sidebar').style.width, 10);
+    if(w) localStorage.setItem(SIDEBAR_WIDTH_KEY, String(w));
+  }
+  // duplo-clique reseta pra largura padrão
+  function onDoubleClick(){
+    if(window.innerWidth < 768) return;
+    applySidebarWidth(SIDEBAR_DEFAULT);
+    localStorage.setItem(SIDEBAR_WIDTH_KEY, String(SIDEBAR_DEFAULT));
+  }
+  handle.addEventListener('pointerdown', onPointerDown);
+  document.addEventListener('pointermove', onPointerMove);
+  document.addEventListener('pointerup', onPointerUp);
+  document.addEventListener('pointercancel', onPointerUp);
+  handle.addEventListener('dblclick', onDoubleClick);
+})();
+
+// =====================================================================
+// BOOT
+// =====================================================================
+// limpa selectedProds mockados (os ids antigos eram numéricos; agora são uuid)
+convs.forEach(c => { c.selectedProds = []; });
+
+restoreSidebarWidth();
+applyFilters();
+updateCounts();
+loadCategorias();
+loadProdutos();
+loadQuickReplies();
 </script>
 </body>
 </html>
