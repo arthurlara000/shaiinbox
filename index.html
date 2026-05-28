@@ -232,9 +232,12 @@
   .sale-drag-handle div { width:36px; height:4px; background:var(--border); border-radius:2px; }
   @media(min-width:768px){ .sale-drag-handle { display:none; } }
 
-  .sale-panel-header { padding:10px 14px 10px; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .sale-panel-header { padding:10px 14px 10px; border-bottom:1px solid var(--border); flex-shrink:0; display:flex; align-items:center; gap:10px; }
   .sale-panel-title { font-size:11px; font-weight:700; letter-spacing:1px; color:var(--accent); }
-  .sale-panel-sub { font-size:10px; color:var(--text-muted); margin-top:1px; }
+  .sale-panel-sub { font-size:10px; color:var(--text-muted); margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sale-panel-close { display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; background:var(--surface2); border:1px solid var(--border); color:var(--text); font-size:22px; line-height:1; cursor:pointer; flex-shrink:0; font-family:'DM Sans',sans-serif; font-weight:300; }
+  .sale-panel-close:active { background:var(--red-dim); color:var(--red); border-color:var(--red); }
+  @media(min-width:768px){ .sale-panel-close { display:none; } }
   .sale-body { overflow-y:auto; flex:1; -webkit-overflow-scrolling:touch; }
   .sale-section { padding:10px 12px; border-bottom:1px solid var(--border); }
   .sale-section-label { font-size:9px; font-weight:700; letter-spacing:1px; color:var(--text-muted); margin-bottom:8px; text-transform:uppercase; }
@@ -432,8 +435,11 @@
     <div class="sale-panel" id="sale-panel">
       <div class="sale-drag-handle"><div></div></div>
       <div class="sale-panel-header">
-        <div class="sale-panel-title">💰 PAINEL DE VENDA</div>
-        <div class="sale-panel-sub" id="sp-client">—</div>
+        <div style="flex:1; min-width:0">
+          <div class="sale-panel-title">💰 PAINEL DE VENDA</div>
+          <div class="sale-panel-sub" id="sp-client">—</div>
+        </div>
+        <button class="sale-panel-close" onclick="closeSalePanel()" title="Fechar painel">×</button>
       </div>
       <div class="sale-body">
         <div class="sale-section">
