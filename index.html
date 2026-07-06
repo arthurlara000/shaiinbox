@@ -495,12 +495,43 @@ tr:hover td { background: var(--surface2); }
     </div>
 
     <div class="tab-pills" style="margin-bottom:20px">
-      <button class="tab-pill active" onclick="setHistView('semanal',this)">Por Semana</button>
+      <button class="tab-pill active" onclick="setHistView('diario',this)">Por Dia</button>
+      <button class="tab-pill" onclick="setHistView('semanal',this)">Por Semana</button>
       <button class="tab-pill" onclick="setHistView('mensal',this)">Por Mês</button>
     </div>
 
+    <!-- HISTÓRICO DIÁRIO -->
+    <div id="hist-diario-view">
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Loja</label>
+            <select class="form-select" id="hist-dia-loja" onchange="loadHistDiario()" style="width:140px">
+              <option value="">Todas</option><option>Loja 1</option><option>Loja 2</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Mês</label>
+            <select class="form-select" id="hist-dia-mes" onchange="loadHistDiario()" style="width:140px"></select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Ano</label>
+            <select class="form-select" id="hist-dia-ano" onchange="loadHistDiario()" style="width:100px"></select>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Data</th><th>Loja</th><th>Vendas</th><th>Faturamento</th><th>Ticket Médio</th></tr></thead>
+            <tbody id="hist-dia-tbody"><tr><td colspan="5" class="empty">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- HISTÓRICO SEMANAL -->
-    <div id="hist-semanal-view">
+    <div id="hist-semanal-view" style="display:none">
       <div class="card" style="margin-bottom:16px">
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
           <div class="form-group" style="margin:0">
@@ -526,7 +557,7 @@ tr:hover td { background: var(--surface2); }
     </div>
 
     <!-- HISTÓRICO MENSAL -->
-    <div id="hist-mensal-view" style="display:none">
+    <div id="hist-mensal-view" style="display:none;">
       <div class="card" style="margin-bottom:16px">
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
           <div class="form-group" style="margin:0">
@@ -826,7 +857,7 @@ function showTab(name, btn) {
   if (name === 'dashboard') loadDashboard();
   if (name === 'vendas') { loadFuncionarias(); loadVendas(); }
   if (name === 'metas') loadMetasSemanal();
-  if (name === 'historico') { initHistFilters(); loadHistSemanal(); }
+  if (name === 'historico') { initHistFilters(); loadHistDiario(); }
   if (name === 'comissoes') loadComissoes();
   if (name === 'lista') loadLista();
   if (name === 'config') loadConfig();
@@ -1411,25 +1442,78 @@ async function deleteMetaMen(id) {
 }
 
 // ===== HISTÓRICO =====
-let histView = 'semanal';
+let histView = 'diario';
 
 function setHistView(v, btn) {
   histView = v;
   document.querySelectorAll('#tab-historico .tab-pill').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  document.getElementById('hist-diario-view').style.display  = v === 'diario'  ? '' : 'none';
   document.getElementById('hist-semanal-view').style.display = v === 'semanal' ? '' : 'none';
   document.getElementById('hist-mensal-view').style.display  = v === 'mensal'  ? '' : 'none';
+  if (v === 'diario')  loadHistDiario();
   if (v === 'semanal') loadHistSemanal();
-  else loadHistMensal();
+  if (v === 'mensal')  loadHistMensal();
 }
 
 function initHistFilters() {
   const anoAtual = new Date().getFullYear();
+  const mesAtual = new Date().getMonth() + 1;
   const anos = Array.from({ length: 5 }, (_, i) => anoAtual - i);
-  ['hist-sem-ano','hist-men-ano'].forEach(id => {
+
+  ['hist-sem-ano','hist-men-ano','hist-dia-ano'].forEach(id => {
     const sel = document.getElementById(id);
+    if (!sel) return;
     sel.innerHTML = anos.map(a => `<option value="${a}" ${a === anoAtual ? 'selected' : ''}>${a}</option>`).join('');
   });
+
+  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const selMes = document.getElementById('hist-dia-mes');
+  if (selMes) selMes.innerHTML = meses.map((m,i) => `<option value="${i+1}" ${i+1===mesAtual?'selected':''}>${m}</option>`).join('');
+}
+
+async function loadHistDiario() {
+  const loja = document.getElementById('hist-dia-loja').value;
+  const mes  = parseInt(document.getElementById('hist-dia-mes').value);
+  const ano  = parseInt(document.getElementById('hist-dia-ano').value);
+  const start = `${ano}-${String(mes).padStart(2,'0')}-01`;
+  const end   = new Date(ano, mes, 0).toISOString().split('T')[0];
+
+  let q = sb.from('vendas').select('*').gte('data_venda', start).lte('data_venda', end);
+  if (loja) q = q.eq('loja', loja);
+  const { data: vendas } = await q;
+
+  // Agrupa por data + loja
+  const map = {};
+  (vendas || []).forEach(v => {
+    const key = `${v.data_venda}__${v.loja}`;
+    if (!map[key]) map[key] = { data: v.data_venda, loja: v.loja, count: 0, total: 0 };
+    map[key].count++;
+    map[key].total += v.valor;
+  });
+
+  const rows = Object.values(map).sort((a,b) => b.data.localeCompare(a.data) || a.loja.localeCompare(b.loja));
+  const tbody = document.getElementById('hist-dia-tbody');
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Nenhum dado no período</td></tr>'; return; }
+
+  // Totalizador
+  const totalGeral = rows.reduce((s,r) => s + r.total, 0);
+  const countGeral = rows.reduce((s,r) => s + r.count, 0);
+
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td style="white-space:nowrap">${new Date(r.data+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'})}</td>
+      <td><span class="badge badge-${r.loja==='Loja 1'?'loja1':'loja2'}">${r.loja}</span></td>
+      <td>${r.count}</td>
+      <td style="font-weight:600;color:var(--accent)">${fmt(r.total)}</td>
+      <td style="color:var(--text-muted)">${fmt(r.count ? r.total/r.count : 0)}</td>
+    </tr>`).join('') +
+    `<tr style="border-top:2px solid var(--border)">
+      <td colspan="2" style="font-weight:600;color:var(--text-muted)">Total do período</td>
+      <td style="font-weight:600">${countGeral}</td>
+      <td style="font-weight:700;color:var(--accent)">${fmt(totalGeral)}</td>
+      <td style="color:var(--text-muted)">${fmt(countGeral ? totalGeral/countGeral : 0)}</td>
+    </tr>`;
 }
 
 async function loadHistSemanal() {
