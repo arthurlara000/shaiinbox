@@ -18,53 +18,26 @@
   --text: #f0ede8;
   --text-muted: #888;
   --accent: #c9a96e;
-  --accent-dim: rgba(201,169,110,0.12);
   --red: #e05252;
   --green: #52b88a;
   --yellow: #e0b452;
+  --purple: #a78bde;
   --loja1: #7b8cde;
   --loja2: #de7bb8;
+  /* tiers */
+  --meta-color: #52b88a;
+  --super-color: #e0b452;
+  --mega-color: #c9a96e;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
 
-.header {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 0 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 60px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
+.header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 100; }
 .logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--accent); letter-spacing: 0.05em; }
 .logo span { color: var(--text-muted); font-size: 0.75rem; font-family: 'DM Sans', sans-serif; margin-left: 8px; font-weight: 300; }
 
-.nav-tabs {
-  display: flex;
-  gap: 4px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 0 24px;
-  overflow-x: auto;
-}
-.nav-tab {
-  padding: 14px 20px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  white-space: nowrap;
-  transition: all 0.2s;
-  background: none;
-  border-top: none;
-  border-left: none;
-  border-right: none;
-}
+.nav-tabs { display: flex; gap: 4px; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; overflow-x: auto; }
+.nav-tab { padding: 14px 20px; font-size: 0.875rem; font-weight: 500; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; background: none; border-top: none; border-left: none; border-right: none; }
 .nav-tab:hover { color: var(--text); }
 .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
@@ -76,44 +49,48 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .card-title { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; }
 
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 
 .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
 .stat-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; }
-.stat-value { font-size: 1.75rem; font-weight: 600; color: var(--text); }
+.stat-value { font-size: 1.75rem; font-weight: 600; }
 .stat-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
-.stat-accent { color: var(--accent); }
 
-.progress-wrap { margin-top: 8px; }
-.progress-label { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; }
-.progress-bar { height: 6px; background: var(--surface3); border-radius: 99px; overflow: hidden; }
-.progress-fill { height: 100%; border-radius: 99px; background: var(--accent); transition: width 0.5s; }
-.progress-fill.green { background: var(--green); }
+/* TIER BADGES */
+.tier-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 99px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; }
+.tier-none   { background: rgba(136,136,136,0.12); color: var(--text-muted); }
+.tier-meta   { background: rgba(82,184,138,0.15);  color: var(--meta-color); }
+.tier-super  { background: rgba(224,180,82,0.15);  color: var(--super-color); }
+.tier-mega   { background: rgba(201,169,110,0.2);  color: var(--mega-color); }
+
+/* PROGRESS 3 TIERS */
+.tier-progress { margin-top: 8px; }
+.tier-bar-wrap { position: relative; height: 8px; background: var(--surface3); border-radius: 99px; overflow: visible; margin-bottom: 4px; }
+.tier-bar-fill { height: 100%; border-radius: 99px; transition: width 0.5s; position: relative; }
+.tier-bar-fill.meta-fill  { background: var(--meta-color); }
+.tier-bar-fill.super-fill { background: var(--super-color); }
+.tier-bar-fill.mega-fill  { background: var(--mega-color); }
+/* tier markers */
+.tier-marker { position: absolute; top: -4px; width: 2px; height: 16px; background: var(--border); border-radius: 1px; }
+.tier-labels { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-muted); margin-top: 6px; }
+.tier-label-item { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.tier-label-name { font-weight: 600; }
 
 .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 0.7rem; font-weight: 600; }
 .badge-loja1 { background: rgba(123,140,222,0.15); color: var(--loja1); }
 .badge-loja2 { background: rgba(222,123,184,0.15); color: var(--loja2); }
 .badge-green { background: rgba(82,184,138,0.15); color: var(--green); }
-.badge-yellow { background: rgba(224,180,82,0.15); color: var(--yellow); }
-.badge-red { background: rgba(224,82,82,0.15); color: var(--red); }
+.badge-red   { background: rgba(224,82,82,0.15);  color: var(--red); }
+.badge-muted { background: var(--surface3); color: var(--text-muted); }
 
 .form-group { margin-bottom: 14px; }
 .form-label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
-.form-input, .form-select {
-  width: 100%;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 12px;
-  color: var(--text);
-  font-size: 0.875rem;
-  font-family: 'DM Sans', sans-serif;
-  outline: none;
-  transition: border-color 0.2s;
-}
+.form-input, .form-select { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: var(--text); font-size: 0.875rem; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.2s; }
 .form-input:focus, .form-select:focus { border-color: var(--accent); }
 .form-select option { background: var(--surface2); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
 
 .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
 .btn-primary { background: var(--accent); color: #0f0f0f; }
@@ -126,24 +103,22 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-th { text-align: left; padding: 10px 12px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+th { text-align: left; padding: 10px 12px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
 td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text); }
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: var(--surface2); }
 
-.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
 .section-title { font-size: 1.1rem; font-weight: 600; }
 
 .ranking-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
 .ranking-item:last-child { border-bottom: none; }
 .ranking-pos { width: 24px; height: 24px; border-radius: 50%; background: var(--surface3); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); flex-shrink: 0; }
-.ranking-pos.gold { background: rgba(201,169,110,0.2); color: var(--accent); }
+.ranking-pos.gold   { background: rgba(201,169,110,0.2); color: var(--accent); }
 .ranking-pos.silver { background: rgba(180,180,180,0.15); color: #bbb; }
 .ranking-pos.bronze { background: rgba(180,120,60,0.15); color: #b8865a; }
-.ranking-name { flex: 1; font-weight: 500; }
-.ranking-valor { font-weight: 600; color: var(--accent); }
 
-.check-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--surface2); border-radius: 8px; margin-bottom: 8px; transition: opacity 0.2s; }
+.check-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--surface2); border-radius: 8px; margin-bottom: 8px; }
 .check-item.done { opacity: 0.45; }
 .check-item.done .check-text { text-decoration: line-through; color: var(--text-muted); }
 .check-box { width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--border); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
@@ -151,31 +126,37 @@ tr:hover td { background: var(--surface2); }
 .check-box.checked::after { content: '✓'; font-size: 12px; color: #0f0f0f; font-weight: 700; }
 .check-text { flex: 1; font-size: 0.875rem; }
 .check-qty { font-size: 0.75rem; color: var(--text-muted); }
-.check-del { cursor: pointer; color: var(--text-muted); font-size: 16px; opacity: 0; transition: opacity 0.2s; background: none; border: none; color: var(--red); }
+.check-del { cursor: pointer; color: var(--red); font-size: 16px; opacity: 0; transition: opacity 0.2s; background: none; border: none; }
 .check-item:hover .check-del { opacity: 1; }
 
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 24px; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 24px; }
 .modal-overlay.open { display: flex; }
-.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; width: 100%; max-width: 480px; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
 .modal-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; }
 .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
 
-#toast { position: fixed; bottom: 28px; right: 28px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; font-size: 0.875rem; z-index: 9999; transform: translateY(80px); opacity: 0; transition: all 0.3s; }
+#toast { position: fixed; bottom: 28px; right: 28px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; font-size: 0.875rem; z-index: 9999; transform: translateY(80px); opacity: 0; transition: all 0.3s; pointer-events: none; }
 #toast.show { transform: translateY(0); opacity: 1; }
 #toast.success { border-color: var(--green); color: var(--green); }
 #toast.error { border-color: var(--red); color: var(--red); }
 
-.week-nav { display: flex; align-items: center; gap: 12px; }
+.week-nav { display: flex; align-items: center; gap: 10px; }
 .week-nav button { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 1rem; }
 .week-nav button:hover { border-color: var(--accent); }
-.week-label { font-size: 0.875rem; color: var(--text-muted); min-width: 170px; text-align: center; }
+.week-label { font-size: 0.875rem; color: var(--text-muted); min-width: 180px; text-align: center; }
 
+.tab-pills { display: flex; gap: 6px; margin-bottom: 20px; }
+.tab-pill { padding: 6px 16px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text-muted); transition: all 0.2s; }
+.tab-pill.active { background: var(--accent); color: #0f0f0f; border-color: var(--accent); }
+
+.divider { height: 1px; background: var(--border); margin: 24px 0; }
 .empty { text-align: center; padding: 32px; color: var(--text-muted); font-size: 0.875rem; }
+.info-box { background: var(--accent-dim, rgba(201,169,110,0.08)); border: 1px solid rgba(201,169,110,0.2); border-radius: 8px; padding: 12px 16px; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; }
 
 @media (max-width: 700px) {
   .content { padding: 16px; }
-  .grid-2, .grid-4 { grid-template-columns: 1fr; }
-  .form-row { grid-template-columns: 1fr; }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .form-row, .form-row-3 { grid-template-columns: 1fr; }
   .header { padding: 0 16px; }
   .nav-tabs { padding: 0 8px; }
   .nav-tab { padding: 12px 14px; font-size: 0.8rem; }
@@ -186,91 +167,140 @@ tr:hover td { background: var(--surface2); }
 
 <div class="header">
   <div class="logo">Shai <span>Manager</span></div>
-  <div id="semana-label" style="font-size:0.8rem;color:var(--text-muted)"></div>
+  <div id="header-semana" style="font-size:0.8rem;color:var(--text-muted)"></div>
 </div>
 
 <div class="nav-tabs">
-  <button class="nav-tab active" onclick="showTab('dashboard', this)">📊 Dashboard</button>
-  <button class="nav-tab" onclick="showTab('vendas', this)">💰 Vendas</button>
-  <button class="nav-tab" onclick="showTab('comissoes', this)">👥 Comissões</button>
-  <button class="nav-tab" onclick="showTab('lista', this)">🛒 Lista de Compras</button>
-  <button class="nav-tab" onclick="showTab('config', this)">⚙️ Configurações</button>
+  <button class="nav-tab active" onclick="showTab('dashboard',this)">📊 Dashboard</button>
+  <button class="nav-tab" onclick="showTab('vendas',this)">💰 Vendas</button>
+  <button class="nav-tab" onclick="showTab('comissoes',this)">👥 Comissões</button>
+  <button class="nav-tab" onclick="showTab('lista',this)">🛒 Lista de Compras</button>
+  <button class="nav-tab" onclick="showTab('config',this)">⚙️ Configurações</button>
 </div>
 
 <div class="content">
 
-  <!-- DASHBOARD -->
+  <!-- ===== DASHBOARD ===== -->
   <div class="tab-panel active" id="tab-dashboard">
-    <div class="section-header">
-      <div class="section-title">Dashboard</div>
-      <div class="week-nav">
-        <button onclick="dashWeek(-1)">‹</button>
-        <span class="week-label" id="dash-week-label">—</span>
-        <button onclick="dashWeek(1)">›</button>
+    <div class="tab-pills">
+      <button class="tab-pill active" onclick="setDashView('semanal',this)">Semanal</button>
+      <button class="tab-pill" onclick="setDashView('mensal',this)">Mensal</button>
+    </div>
+
+    <div id="dash-semanal">
+      <div class="section-header">
+        <div class="section-title">Dashboard Semanal</div>
+        <div class="week-nav">
+          <button onclick="dashWeek(-1)">‹</button>
+          <span class="week-label" id="dash-week-label">—</span>
+          <button onclick="dashWeek(1)">›</button>
+        </div>
+      </div>
+
+      <div class="grid-4" style="margin-bottom:16px">
+        <div class="stat-card">
+          <div class="stat-label">Total da Semana</div>
+          <div class="stat-value" id="d-total" style="color:var(--accent)">R$ 0</div>
+          <div class="stat-sub" id="d-count">0 vendas</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Loja 1</div>
+          <div class="stat-value" id="d-l1" style="color:var(--loja1)">R$ 0</div>
+          <div class="stat-sub" id="d-l1-tier"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Loja 2</div>
+          <div class="stat-value" id="d-l2" style="color:var(--loja2)">R$ 0</div>
+          <div class="stat-sub" id="d-l2-tier"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Ticket Médio</div>
+          <div class="stat-value" id="d-ticket" style="color:var(--text)">R$ 0</div>
+          <div class="stat-sub">por venda</div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-title">Progresso da Meta — Loja 1</div>
+          <div id="meta-prog-l1"><div class="empty" style="padding:12px">Sem meta definida</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Progresso da Meta — Loja 2</div>
+          <div id="meta-prog-l2"><div class="empty" style="padding:12px">Sem meta definida</div></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Ranking da Semana</div>
+          <div id="ranking-list"><div class="empty">Nenhuma venda registrada</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Vendas por Dia</div>
+          <canvas id="chart-dias" height="200"></canvas>
+        </div>
       </div>
     </div>
 
-    <div class="grid-4" style="margin-bottom:16px">
-      <div class="stat-card">
-        <div class="stat-label">Total da Semana</div>
-        <div class="stat-value stat-accent" id="d-total">R$ 0</div>
-        <div class="stat-sub" id="d-vendas-count">0 vendas</div>
+    <div id="dash-mensal" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Dashboard Mensal</div>
+        <div class="week-nav">
+          <button onclick="dashMonth(-1)">‹</button>
+          <span class="week-label" id="dash-month-label">—</span>
+          <button onclick="dashMonth(1)">›</button>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-label">Loja 1</div>
-        <div class="stat-value" id="d-loja1" style="color:var(--loja1)">R$ 0</div>
-        <div class="stat-sub" id="d-l1-sub"></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Loja 2</div>
-        <div class="stat-value" id="d-loja2" style="color:var(--loja2)">R$ 0</div>
-        <div class="stat-sub" id="d-l2-sub"></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Ticket Médio</div>
-        <div class="stat-value" id="d-ticket">R$ 0</div>
-        <div class="stat-sub">por venda</div>
-      </div>
-    </div>
 
-    <div class="grid-2" style="margin-bottom:16px">
-      <div class="card">
-        <div class="card-title">Meta Loja 1</div>
-        <div id="meta-loja1-wrap"><div class="empty" style="padding:16px">Sem meta definida</div></div>
+      <div class="grid-4" style="margin-bottom:16px">
+        <div class="stat-card">
+          <div class="stat-label">Total do Mês</div>
+          <div class="stat-value" id="dm-total" style="color:var(--accent)">R$ 0</div>
+          <div class="stat-sub" id="dm-count">0 vendas</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Loja 1</div>
+          <div class="stat-value" id="dm-l1" style="color:var(--loja1)">R$ 0</div>
+          <div class="stat-sub" id="dm-l1-tier"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Loja 2</div>
+          <div class="stat-value" id="dm-l2" style="color:var(--loja2)">R$ 0</div>
+          <div class="stat-sub" id="dm-l2-tier"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Ticket Médio</div>
+          <div class="stat-value" id="dm-ticket" style="color:var(--text)">R$ 0</div>
+          <div class="stat-sub">por venda</div>
+        </div>
       </div>
-      <div class="card">
-        <div class="card-title">Meta Loja 2</div>
-        <div id="meta-loja2-wrap"><div class="empty" style="padding:16px">Sem meta definida</div></div>
-      </div>
-    </div>
 
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">Ranking da Semana</div>
-        <div id="ranking-list"><div class="empty">Nenhuma venda registrada</div></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Vendas por Dia</div>
-        <canvas id="chart-dias" height="200"></canvas>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Progresso da Meta — Loja 1</div>
+          <div id="meta-prog-mensal-l1"><div class="empty" style="padding:12px">Sem meta definida</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Progresso da Meta — Loja 2</div>
+          <div id="meta-prog-mensal-l2"><div class="empty" style="padding:12px">Sem meta definida</div></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- VENDAS -->
+  <!-- ===== VENDAS ===== -->
   <div class="tab-panel" id="tab-vendas">
     <div class="section-header">
       <div class="section-title">Vendas</div>
       <button class="btn btn-primary" onclick="openModal('modal-venda')">+ Nova Venda</button>
     </div>
-
     <div class="card" style="margin-bottom:16px">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:flex-end">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
         <div class="form-group" style="margin:0">
           <label class="form-label">Loja</label>
           <select class="form-select" id="filtro-loja" onchange="loadVendas()">
-            <option value="">Todas</option>
-            <option>Loja 1</option>
-            <option>Loja 2</option>
+            <option value="">Todas</option><option>Loja 1</option><option>Loja 2</option>
           </select>
         </div>
         <div class="form-group" style="margin:0">
@@ -283,21 +313,20 @@ tr:hover td { background: var(--surface2); }
         </div>
       </div>
     </div>
-
     <div class="card">
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Data</th><th>Funcionária</th><th>Loja</th><th>Descrição</th><th>Valor</th><th></th></tr></thead>
-          <tbody id="vendas-tbody"><tr><td colspan="6" class="empty">Carregando...</td></tr></tbody>
+          <thead><tr><th>Data</th><th>Funcionária</th><th>Cargo</th><th>Loja</th><th>Descrição</th><th>Valor</th><th></th></tr></thead>
+          <tbody id="vendas-tbody"><tr><td colspan="7" class="empty">Carregando...</td></tr></tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- COMISSÕES -->
+  <!-- ===== COMISSÕES ===== -->
   <div class="tab-panel" id="tab-comissoes">
     <div class="section-header">
-      <div class="section-title">Comissões</div>
+      <div class="section-title">Comissões Semanais</div>
       <div class="week-nav">
         <button onclick="comWeek(-1)">‹</button>
         <span class="week-label" id="com-week-label">—</span>
@@ -305,9 +334,17 @@ tr:hover td { background: var(--surface2); }
       </div>
     </div>
 
-    <div class="card" style="margin-bottom:20px" id="comissoes-resumo">
-      <div class="empty">Selecione a semana para calcular</div>
+    <div class="info-box">
+      <strong style="color:var(--text)">Tabela de comissões:</strong><br>
+      Gerente → Meta: 1% + R$80 | Super: 1,5% + R$100 | Mega: 2% + R$150 (sobre total da loja)<br>
+      Vendedora → Meta: 1% + R$35 | Super: 1,5% + R$50 | Mega: 2% + R$65 (sobre vendas individuais)
     </div>
+
+    <div class="card" style="margin-bottom:20px" id="comissoes-resumo">
+      <div class="empty">Calculando...</div>
+    </div>
+
+    <div class="divider"></div>
 
     <div class="section-header">
       <div style="font-size:0.9rem;font-weight:600;color:var(--text-muted)">Funcionárias</div>
@@ -316,14 +353,14 @@ tr:hover td { background: var(--surface2); }
     <div class="card">
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Nome</th><th>Loja</th><th>Comissão %</th><th>Status</th><th></th></tr></thead>
+          <thead><tr><th>Nome</th><th>Cargo</th><th>Loja</th><th>Status</th><th></th></tr></thead>
           <tbody id="func-tbody"><tr><td colspan="5" class="empty">Carregando...</td></tr></tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- LISTA DE COMPRAS -->
+  <!-- ===== LISTA ===== -->
   <div class="tab-panel" id="tab-lista">
     <div class="section-header">
       <div class="section-title">Lista de Compras</div>
@@ -341,38 +378,92 @@ tr:hover td { background: var(--surface2); }
     </div>
   </div>
 
-  <!-- CONFIG -->
+  <!-- ===== CONFIG ===== -->
   <div class="tab-panel" id="tab-config">
-    <div class="section-title" style="margin-bottom:20px">Configurações — Meta da Semana Atual</div>
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">Loja 1</div>
-        <div class="form-group">
-          <label class="form-label">Valor da meta (R$)</label>
-          <input type="number" class="form-input" id="meta-l1-valor" placeholder="Ex: 15000">
+    <div class="section-title" style="margin-bottom:8px">Configurações de Metas</div>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:20px">Defina os valores de faturamento necessários para atingir cada nível (Meta / Super / Mega) em cada loja.</p>
+
+    <div class="tab-pills">
+      <button class="tab-pill active" onclick="setConfigView('semanal',this)">Meta Semanal</button>
+      <button class="tab-pill" onclick="setConfigView('mensal',this)">Meta Mensal</button>
+    </div>
+
+    <div id="config-semanal">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Loja 1 — Semana Atual</div>
+          <div class="form-group">
+            <label class="form-label">🟢 Meta (R$)</label>
+            <input type="number" class="form-input" id="sl1-meta" placeholder="Ex: 8000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">🟡 Super (R$)</label>
+            <input type="number" class="form-input" id="sl1-super" placeholder="Ex: 10000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">🏆 Mega (R$)</label>
+            <input type="number" class="form-input" id="sl1-mega" placeholder="Ex: 12000">
+          </div>
+          <button class="btn btn-primary" onclick="saveMetaSemanal('Loja 1')">Salvar Loja 1</button>
         </div>
-        <div class="form-group">
-          <label class="form-label">Bônus se bater meta (%)</label>
-          <input type="number" class="form-input" id="meta-l1-bonus" placeholder="Ex: 2">
+        <div class="card">
+          <div class="card-title">Loja 2 — Semana Atual</div>
+          <div class="form-group">
+            <label class="form-label">🟢 Meta (R$)</label>
+            <input type="number" class="form-input" id="sl2-meta" placeholder="Ex: 8000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">🟡 Super (R$)</label>
+            <input type="number" class="form-input" id="sl2-super" placeholder="Ex: 10000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">🏆 Mega (R$)</label>
+            <input type="number" class="form-input" id="sl2-mega" placeholder="Ex: 12000">
+          </div>
+          <button class="btn btn-primary" onclick="saveMetaSemanal('Loja 2')">Salvar Loja 2</button>
         </div>
-        <button class="btn btn-primary" onclick="saveMeta('Loja 1')">Salvar Meta Loja 1</button>
       </div>
-      <div class="card">
-        <div class="card-title">Loja 2</div>
-        <div class="form-group">
-          <label class="form-label">Valor da meta (R$)</label>
-          <input type="number" class="form-input" id="meta-l2-valor" placeholder="Ex: 12000">
+    </div>
+
+    <div id="config-mensal" style="display:none">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Loja 1 — Mês Atual</div>
+          <div class="form-group">
+            <label class="form-label">🟢 Meta (R$)</label>
+            <input type="number" class="form-input" id="ml1-meta" placeholder="Ex: 35000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">🟡 Super (R$)</label>
+            <input type="number" class="form-input" id="ml1-super" placeholder="Ex: 42000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">🏆 Mega (R$)</label>
+            <input type="number" class="form-input" id="ml1-mega" placeholder="Ex: 50000">
+          </div>
+          <button class="btn btn-primary" onclick="saveMetaMensal('Loja 1')">Salvar Loja 1</button>
         </div>
-        <div class="form-group">
-          <label class="form-label">Bônus se bater meta (%)</label>
-          <input type="number" class="form-input" id="meta-l2-bonus" placeholder="Ex: 2">
+        <div class="card">
+          <div class="card-title">Loja 2 — Mês Atual</div>
+          <div class="form-group">
+            <label class="form-label">🟢 Meta (R$)</label>
+            <input type="number" class="form-input" id="ml2-meta" placeholder="Ex: 35000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">🟡 Super (R$)</label>
+            <input type="number" class="form-input" id="ml2-super" placeholder="Ex: 42000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">🏆 Mega (R$)</label>
+            <input type="number" class="form-input" id="ml2-mega" placeholder="Ex: 50000">
+          </div>
+          <button class="btn btn-primary" onclick="saveMetaMensal('Loja 2')">Salvar Loja 2</button>
         </div>
-        <button class="btn btn-primary" onclick="saveMeta('Loja 2')">Salvar Meta Loja 2</button>
       </div>
     </div>
   </div>
 
-</div>
+</div><!-- /content -->
 
 <!-- MODAL VENDA -->
 <div class="modal-overlay" id="modal-venda">
@@ -380,7 +471,7 @@ tr:hover td { background: var(--surface2); }
     <div class="modal-title">Nova Venda</div>
     <div class="form-group">
       <label class="form-label">Funcionária</label>
-      <select class="form-select" id="v-func"></select>
+      <select class="form-select" id="v-func" onchange="syncLojaFromFunc()"></select>
     </div>
     <div class="form-row">
       <div class="form-group">
@@ -417,12 +508,12 @@ tr:hover td { background: var(--surface2); }
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">Loja</label>
-        <select class="form-select" id="f-loja"><option>Loja 1</option><option>Loja 2</option></select>
+        <label class="form-label">Cargo</label>
+        <select class="form-select" id="f-cargo"><option>Vendedora</option><option>Gerente</option></select>
       </div>
       <div class="form-group">
-        <label class="form-label">Comissão (%)</label>
-        <input type="number" class="form-input" id="f-pct" placeholder="Ex: 3" step="0.1">
+        <label class="form-label">Loja</label>
+        <select class="form-select" id="f-loja"><option>Loja 1</option><option>Loja 2</option></select>
       </div>
     </div>
     <div class="modal-footer">
@@ -432,7 +523,7 @@ tr:hover td { background: var(--surface2); }
   </div>
 </div>
 
-<!-- MODAL ITEM LISTA -->
+<!-- MODAL ITEM -->
 <div class="modal-overlay" id="modal-item">
   <div class="modal">
     <div class="modal-title">Adicionar Item</div>
@@ -460,11 +551,25 @@ tr:hover td { background: var(--surface2); }
 <div id="toast"></div>
 
 <script>
-const SUPABASE_URL = 'https://ofoljmhfnohxwswskplx.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mb2xqbWhmbm9oeHdzd3NrcGx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3NjA4MTgsImV4cCI6MjA2MTMzNjgxOH0.hpTHV-HR-D7SJpRrRzmP79VZdkJNZxNaJJBJclIkNKs';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SB_URL = 'https://ofoljmhfnohxwswskplx.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mb2xqbWhmbm9oeHdzd3NrcGx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3NjA4MTgsImV4cCI6MjA2MTMzNjgxOH0.hpTHV-HR-D7SJpRrRzmP79VZdkJNZxNaJJBJclIkNKs';
+const sb = supabase.createClient(SB_URL, SB_KEY);
 
-// UTILS
+// ===== TABELA DE COMISSÕES (fixo) =====
+const COMISSAO = {
+  Gerente: {
+    Meta:  { pct: 1.0, bonus: 80  },
+    Super: { pct: 1.5, bonus: 100 },
+    Mega:  { pct: 2.0, bonus: 150 },
+  },
+  Vendedora: {
+    Meta:  { pct: 1.0, bonus: 35 },
+    Super: { pct: 1.5, bonus: 50 },
+    Mega:  { pct: 2.0, bonus: 65 },
+  }
+};
+
+// ===== UTILS =====
 const fmt = v => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0);
 const fmtDate = d => new Date(d + 'T12:00:00').toLocaleDateString('pt-BR');
 
@@ -479,13 +584,33 @@ function getSunday(monday) {
   d.setDate(d.getDate() + 6);
   return d.toISOString().split('T')[0];
 }
-function weekLabel(monday) {
-  return fmtDate(monday) + ' – ' + fmtDate(getSunday(monday));
-}
+function weekLabel(monday) { return fmtDate(monday) + ' – ' + fmtDate(getSunday(monday)); }
 function currentMonday(offset = 0) {
   const d = new Date();
   d.setDate(d.getDate() + offset * 7);
   return getMonday(d.toISOString().split('T')[0]);
+}
+function monthLabel(year, month) {
+  return new Date(year, month - 1, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+}
+function getCurrentMonthYear(offset = 0) {
+  const d = new Date();
+  d.setMonth(d.getMonth() + offset);
+  return { mes: d.getMonth() + 1, ano: d.getFullYear() };
+}
+
+function calcTier(realizado, meta) {
+  if (!meta) return 'Nenhum';
+  if (realizado >= meta.valor_mega) return 'Mega';
+  if (realizado >= meta.valor_super) return 'Super';
+  if (realizado >= meta.valor_meta) return 'Meta';
+  return 'Nenhum';
+}
+
+function tierBadgeHtml(tier) {
+  const map = { Meta: 'tier-meta', Super: 'tier-super', Mega: 'tier-mega', Nenhum: 'tier-none' };
+  const icons = { Meta: '🟢', Super: '🟡', Mega: '🏆', Nenhum: '—' };
+  return `<span class="tier-badge ${map[tier] || 'tier-none'}">${icons[tier] || ''} ${tier}</span>`;
 }
 
 function showToast(msg, type = 'success') {
@@ -500,7 +625,7 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
 });
 
-// TABS
+// ===== TABS =====
 function showTab(name, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -513,128 +638,194 @@ function showTab(name, btn) {
   if (name === 'config') loadConfig();
 }
 
-// SEMANAS
-let dashOffset = 0, comOffset = 0;
-function dashWeek(d) { dashOffset += d; loadDashboard(); }
-function comWeek(d) { comOffset += d; loadComissoes(); }
+let dashView = 'semanal';
+function setDashView(v, btn) {
+  dashView = v;
+  document.querySelectorAll('#tab-dashboard .tab-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('dash-semanal').style.display = v === 'semanal' ? '' : 'none';
+  document.getElementById('dash-mensal').style.display  = v === 'mensal'  ? '' : 'none';
+  loadDashboard();
+}
 
-// DASHBOARD
+function setConfigView(v, btn) {
+  document.querySelectorAll('#tab-config .tab-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('config-semanal').style.display = v === 'semanal' ? '' : 'none';
+  document.getElementById('config-mensal').style.display  = v === 'mensal'  ? '' : 'none';
+}
+
+// ===== WEEK / MONTH OFFSETS =====
+let dashOffset = 0, dashMonthOffset = 0, comOffset = 0;
+function dashWeek(d) { dashOffset += d; loadDashboard(); }
+function dashMonth(d) { dashMonthOffset += d; loadDashboard(); }
+
+// ===== TIER PROGRESS BLOCK =====
+function renderTierProgress(realizado, meta, lojaColor) {
+  if (!meta) return '<div class="empty" style="padding:12px">Sem meta definida</div>';
+  const top = meta.valor_mega * 1.05;
+  const pctMeta  = Math.min((realizado / top) * 100, 100);
+  const mPct = (meta.valor_meta / top * 100).toFixed(1);
+  const sPct = (meta.valor_super / top * 100).toFixed(1);
+
+  const tier = calcTier(realizado, meta);
+  const fillClass = tier === 'Mega' ? 'mega-fill' : tier === 'Super' ? 'super-fill' : tier === 'Meta' ? 'meta-fill' : '';
+  const fillColor = tier === 'Mega' ? 'var(--mega-color)' : tier === 'Super' ? 'var(--super-color)' : tier === 'Meta' ? 'var(--meta-color)' : 'var(--border)';
+
+  const faltaMeta  = realizado < meta.valor_meta  ? fmt(meta.valor_meta  - realizado) + ' p/ Meta'  : null;
+  const faltaSuper = realizado < meta.valor_super ? fmt(meta.valor_super - realizado) + ' p/ Super' : null;
+  const faltaMega  = realizado < meta.valor_mega  ? fmt(meta.valor_mega  - realizado) + ' p/ Mega'  : null;
+  const falta = faltaMega || faltaSuper || faltaMeta || '🏆 Mega atingida!';
+
+  return `
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px">
+      <div style="font-size:1.5rem;font-weight:700;color:${lojaColor}">${fmt(realizado)}</div>
+      ${tierBadgeHtml(tier)}
+    </div>
+    <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:10px">${falta}</div>
+    <div class="tier-progress">
+      <div class="tier-bar-wrap">
+        <div class="tier-bar-fill ${fillClass}" style="width:${pctMeta}%;background:${fillColor}"></div>
+        <div class="tier-marker" style="left:${mPct}%"></div>
+        <div class="tier-marker" style="left:${sPct}%"></div>
+      </div>
+      <div class="tier-labels">
+        <div class="tier-label-item"><span class="tier-label-name" style="color:var(--meta-color)">🟢 Meta</span><span>${fmt(meta.valor_meta)}</span></div>
+        <div class="tier-label-item"><span class="tier-label-name" style="color:var(--super-color)">🟡 Super</span><span>${fmt(meta.valor_super)}</span></div>
+        <div class="tier-label-item"><span class="tier-label-name" style="color:var(--mega-color)">🏆 Mega</span><span>${fmt(meta.valor_mega)}</span></div>
+      </div>
+    </div>`;
+}
+
+// ===== DASHBOARD =====
 let chartDias = null;
 async function loadDashboard() {
+  if (dashView === 'semanal') await loadDashSemanal();
+  else await loadDashMensal();
+}
+
+async function loadDashSemanal() {
   const monday = currentMonday(dashOffset);
   const sunday = getSunday(monday);
   document.getElementById('dash-week-label').textContent = weekLabel(monday);
-  document.getElementById('semana-label').textContent = weekLabel(monday);
+  document.getElementById('header-semana').textContent = weekLabel(monday);
 
   const { data: vendas } = await sb.from('vendas')
-    .select('*, funcionarias(nome)')
-    .gte('data_venda', monday)
-    .lte('data_venda', sunday)
-    .order('data_venda');
+    .select('*, funcionarias(nome,cargo,loja)')
+    .gte('data_venda', monday).lte('data_venda', sunday).order('data_venda');
 
-  const total = (vendas || []).reduce((s, v) => s + v.valor, 0);
-  const l1 = (vendas || []).filter(v => v.loja === 'Loja 1').reduce((s, v) => s + v.valor, 0);
-  const l2 = (vendas || []).filter(v => v.loja === 'Loja 2').reduce((s, v) => s + v.valor, 0);
-  const n = vendas?.length || 0;
+  const total = (vendas||[]).reduce((s,v)=>s+v.valor,0);
+  const l1 = (vendas||[]).filter(v=>v.loja==='Loja 1').reduce((s,v)=>s+v.valor,0);
+  const l2 = (vendas||[]).filter(v=>v.loja==='Loja 2').reduce((s,v)=>s+v.valor,0);
+  const n = vendas?.length||0;
 
   document.getElementById('d-total').textContent = fmt(total);
-  document.getElementById('d-vendas-count').textContent = n + ' venda' + (n !== 1 ? 's' : '');
-  document.getElementById('d-loja1').textContent = fmt(l1);
-  document.getElementById('d-loja2').textContent = fmt(l2);
-  document.getElementById('d-l1-sub').textContent = (vendas || []).filter(v => v.loja === 'Loja 1').length + ' vendas';
-  document.getElementById('d-l2-sub').textContent = (vendas || []).filter(v => v.loja === 'Loja 2').length + ' vendas';
-  document.getElementById('d-ticket').textContent = fmt(n ? total / n : 0);
+  document.getElementById('d-count').textContent = n + ' venda' + (n!==1?'s':'');
+  document.getElementById('d-l1').textContent = fmt(l1);
+  document.getElementById('d-l2').textContent = fmt(l2);
+  document.getElementById('d-ticket').textContent = fmt(n ? total/n : 0);
 
-  // Metas
   const { data: metas } = await sb.from('metas_semanais').select('*').eq('semana_inicio', monday);
-  renderMetaBlock('meta-loja1-wrap', metas?.find(m => m.loja === 'Loja 1'), l1, 'loja1');
-  renderMetaBlock('meta-loja2-wrap', metas?.find(m => m.loja === 'Loja 2'), l2, 'loja2');
+  const ml1 = metas?.find(m=>m.loja==='Loja 1');
+  const ml2 = metas?.find(m=>m.loja==='Loja 2');
+
+  document.getElementById('d-l1-tier').innerHTML = tierBadgeHtml(calcTier(l1, ml1));
+  document.getElementById('d-l2-tier').innerHTML = tierBadgeHtml(calcTier(l2, ml2));
+  document.getElementById('meta-prog-l1').innerHTML = renderTierProgress(l1, ml1, 'var(--loja1)');
+  document.getElementById('meta-prog-l2').innerHTML = renderTierProgress(l2, ml2, 'var(--loja2)');
 
   // Ranking
   const rankMap = {};
-  (vendas || []).forEach(v => {
+  (vendas||[]).forEach(v => {
     const key = v.funcionaria_id || '__sem__';
-    if (!rankMap[key]) rankMap[key] = { nome: v.funcionarias?.nome || 'Sem atribuição', loja: v.loja, total: 0 };
+    if (!rankMap[key]) rankMap[key] = { nome: v.funcionarias?.nome||'Sem atribuição', loja: v.loja, total: 0 };
     rankMap[key].total += v.valor;
   });
-  const rank = Object.values(rankMap).sort((a, b) => b.total - a.total);
+  const rank = Object.values(rankMap).sort((a,b)=>b.total-a.total);
   const rankEl = document.getElementById('ranking-list');
   if (!rank.length) { rankEl.innerHTML = '<div class="empty">Nenhuma venda registrada</div>'; }
   else {
-    const medals = ['gold', 'silver', 'bronze'];
-    rankEl.innerHTML = rank.map((r, i) => `
+    const medals = ['gold','silver','bronze'];
+    rankEl.innerHTML = rank.map((r,i) => `
       <div class="ranking-item">
-        <div class="ranking-pos ${medals[i] || ''}">${i + 1}</div>
+        <div class="ranking-pos ${medals[i]||''}">${i+1}</div>
         <div style="flex:1">
-          <div class="ranking-name">${r.nome}</div>
-          <span class="badge badge-${r.loja === 'Loja 1' ? 'loja1' : 'loja2'}" style="margin-top:2px">${r.loja}</span>
+          <div style="font-weight:500">${r.nome}</div>
+          <span class="badge badge-${r.loja==='Loja 1'?'loja1':'loja2'}" style="margin-top:2px">${r.loja}</span>
         </div>
-        <div class="ranking-valor">${fmt(r.total)}</div>
+        <div style="font-weight:600;color:var(--accent)">${fmt(r.total)}</div>
       </div>`).join('');
   }
 
   // Chart
-  const days = Array.from({length: 7}, (_, i) => {
-    const d = new Date(monday + 'T00:00:00');
-    d.setDate(d.getDate() + i);
+  const days = Array.from({length:7},(_,i)=>{
+    const d = new Date(monday+'T00:00:00'); d.setDate(d.getDate()+i);
     return d.toISOString().split('T')[0];
   });
-  const labels = days.map(d => new Date(d + 'T12:00:00').toLocaleDateString('pt-BR', {weekday:'short', day:'2-digit'}));
-  const vals = days.map(d => (vendas || []).filter(v => v.data_venda === d).reduce((s, v) => s + v.valor, 0));
+  const labels = days.map(d=>new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit'}));
+  const vals = days.map(d=>(vendas||[]).filter(v=>v.data_venda===d).reduce((s,v)=>s+v.valor,0));
 
   if (chartDias) chartDias.destroy();
   chartDias = new Chart(document.getElementById('chart-dias').getContext('2d'), {
     type: 'bar',
-    data: {
-      labels,
-      datasets: [{ data: vals, backgroundColor: 'rgba(201,169,110,0.35)', borderColor: '#c9a96e', borderWidth: 1.5, borderRadius: 6 }]
-    },
-    options: {
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { color: '#888', font: { size: 11 } }, grid: { color: '#2e2e2e' } },
-        y: { ticks: { color: '#888', font: { size: 11 }, callback: v => 'R$' + v.toLocaleString('pt-BR') }, grid: { color: '#2e2e2e' } }
-      }
-    }
+    data: { labels, datasets:[{ data:vals, backgroundColor:'rgba(201,169,110,0.35)', borderColor:'#c9a96e', borderWidth:1.5, borderRadius:6 }] },
+    options: { plugins:{legend:{display:false}}, scales: {
+      x:{ticks:{color:'#888',font:{size:11}},grid:{color:'#2e2e2e'}},
+      y:{ticks:{color:'#888',font:{size:11},callback:v=>'R$'+v.toLocaleString('pt-BR')},grid:{color:'#2e2e2e'}}
+    }}
   });
 }
 
-function renderMetaBlock(elId, meta, realizado, cls) {
-  const el = document.getElementById(elId);
-  if (!meta) { el.innerHTML = '<div class="empty" style="padding:16px">Sem meta definida</div>'; return; }
-  const pct = Math.min((realizado / meta.valor_meta) * 100, 100);
-  const bateu = realizado >= meta.valor_meta;
-  el.innerHTML = `
-    <div style="font-size:1.4rem;font-weight:700;color:var(--${cls})">${fmt(realizado)}</div>
-    <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px">de ${fmt(meta.valor_meta)}</div>
-    <div class="progress-wrap">
-      <div class="progress-label">
-        <span>${pct.toFixed(0)}%</span>
-        <span>${bateu ? '🎉 Meta atingida!' : fmt(meta.valor_meta - realizado) + ' restante'}</span>
-      </div>
-      <div class="progress-bar"><div class="progress-fill ${bateu ? 'green' : ''}" style="width:${pct}%"></div></div>
-    </div>
-    ${meta.bonus_pct > 0 ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-top:8px">Bônus ao bater: +${meta.bonus_pct}%</div>` : ''}`;
+async function loadDashMensal() {
+  const { mes, ano } = getCurrentMonthYear(dashMonthOffset);
+  document.getElementById('dash-month-label').textContent = monthLabel(ano, mes);
+
+  const start = `${ano}-${String(mes).padStart(2,'0')}-01`;
+  const end = new Date(ano, mes, 0).toISOString().split('T')[0];
+
+  const { data: vendas } = await sb.from('vendas')
+    .select('*').gte('data_venda', start).lte('data_venda', end);
+
+  const total = (vendas||[]).reduce((s,v)=>s+v.valor,0);
+  const l1 = (vendas||[]).filter(v=>v.loja==='Loja 1').reduce((s,v)=>s+v.valor,0);
+  const l2 = (vendas||[]).filter(v=>v.loja==='Loja 2').reduce((s,v)=>s+v.valor,0);
+  const n = vendas?.length||0;
+
+  document.getElementById('dm-total').textContent = fmt(total);
+  document.getElementById('dm-count').textContent = n + ' venda'+(n!==1?'s':'');
+  document.getElementById('dm-l1').textContent = fmt(l1);
+  document.getElementById('dm-l2').textContent = fmt(l2);
+  document.getElementById('dm-ticket').textContent = fmt(n?total/n:0);
+
+  const { data: metas } = await sb.from('metas_mensais').select('*').eq('mes',mes).eq('ano',ano);
+  const ml1 = metas?.find(m=>m.loja==='Loja 1');
+  const ml2 = metas?.find(m=>m.loja==='Loja 2');
+
+  document.getElementById('dm-l1-tier').innerHTML = tierBadgeHtml(calcTier(l1,ml1));
+  document.getElementById('dm-l2-tier').innerHTML = tierBadgeHtml(calcTier(l2,ml2));
+  document.getElementById('meta-prog-mensal-l1').innerHTML = renderTierProgress(l1, ml1, 'var(--loja1)');
+  document.getElementById('meta-prog-mensal-l2').innerHTML = renderTierProgress(l2, ml2, 'var(--loja2)');
 }
 
-// VENDAS
+// ===== VENDAS =====
 async function loadVendas() {
   const loja = document.getElementById('filtro-loja').value;
   const ini = document.getElementById('filtro-ini').value;
   const fim = document.getElementById('filtro-fim').value;
-  let q = sb.from('vendas').select('*, funcionarias(nome)').order('data_venda', { ascending: false });
+  let q = sb.from('vendas').select('*, funcionarias(nome,cargo)').order('data_venda',{ascending:false});
   if (loja) q = q.eq('loja', loja);
   if (ini) q = q.gte('data_venda', ini);
   if (fim) q = q.lte('data_venda', fim);
   const { data } = await q;
   const tbody = document.getElementById('vendas-tbody');
-  if (!data?.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Nenhuma venda</td></tr>'; return; }
-  tbody.innerHTML = data.map(v => `
+  if (!data?.length) { tbody.innerHTML='<tr><td colspan="7" class="empty">Nenhuma venda</td></tr>'; return; }
+  tbody.innerHTML = data.map(v=>`
     <tr>
       <td>${fmtDate(v.data_venda)}</td>
-      <td>${v.funcionarias?.nome || '—'}</td>
-      <td><span class="badge badge-${v.loja === 'Loja 1' ? 'loja1' : 'loja2'}">${v.loja}</span></td>
-      <td style="color:var(--text-muted)">${v.descricao || '—'}</td>
+      <td>${v.funcionarias?.nome||'—'}</td>
+      <td><span class="badge badge-muted">${v.funcionarias?.cargo||'—'}</span></td>
+      <td><span class="badge badge-${v.loja==='Loja 1'?'loja1':'loja2'}">${v.loja}</span></td>
+      <td style="color:var(--text-muted)">${v.descricao||'—'}</td>
       <td style="font-weight:600;color:var(--accent)">${fmt(v.valor)}</td>
       <td><button class="btn btn-danger btn-sm" onclick="deleteVenda('${v.id}')">✕</button></td>
     </tr>`).join('');
@@ -646,41 +837,47 @@ async function saveVenda() {
   const data_venda = document.getElementById('v-data').value;
   const valor = parseFloat(document.getElementById('v-valor').value);
   const descricao = document.getElementById('v-desc').value;
-  if (!data_venda || !valor) { showToast('Preencha data e valor', 'error'); return; }
-  const { error } = await sb.from('vendas').insert({ funcionaria_id: func_id || null, loja, data_venda, valor, descricao: descricao || null });
-  if (error) { showToast('Erro ao salvar', 'error'); return; }
+  if (!data_venda || !valor) { showToast('Preencha data e valor','error'); return; }
+  const { error } = await sb.from('vendas').insert({ funcionaria_id: func_id||null, loja, data_venda, valor, descricao: descricao||null });
+  if (error) { showToast('Erro ao salvar','error'); return; }
   showToast('Venda registrada!');
   closeModal('modal-venda');
-  document.getElementById('v-valor').value = '';
-  document.getElementById('v-desc').value = '';
+  document.getElementById('v-valor').value='';
+  document.getElementById('v-desc').value='';
   loadVendas();
 }
 
 async function deleteVenda(id) {
   if (!confirm('Excluir esta venda?')) return;
-  await sb.from('vendas').delete().eq('id', id);
+  await sb.from('vendas').delete().eq('id',id);
   showToast('Venda removida');
   loadVendas();
 }
 
-// FUNCIONÁRIAS
+function syncLojaFromFunc() {
+  const sel = document.getElementById('v-func');
+  const opt = sel.options[sel.selectedIndex];
+  if (opt && opt.dataset.loja) document.getElementById('v-loja').value = opt.dataset.loja;
+}
+
+// ===== FUNCIONÁRIAS =====
 let funcionarias = [];
 async function loadFuncionarias() {
   const { data } = await sb.from('funcionarias').select('*').order('nome');
   funcionarias = data || [];
   const sel = document.getElementById('v-func');
   sel.innerHTML = '<option value="">— Sem atribuição —</option>' +
-    funcionarias.map(f => `<option value="${f.id}">${f.nome} (${f.loja})</option>`).join('');
+    funcionarias.map(f=>`<option value="${f.id}" data-loja="${f.loja}">${f.nome} (${f.cargo} · ${f.loja})</option>`).join('');
   const tbody = document.getElementById('func-tbody');
-  if (!funcionarias.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Nenhuma funcionária</td></tr>'; return; }
-  tbody.innerHTML = funcionarias.map(f => `
+  if (!funcionarias.length) { tbody.innerHTML='<tr><td colspan="5" class="empty">Nenhuma funcionária</td></tr>'; return; }
+  tbody.innerHTML = funcionarias.map(f=>`
     <tr>
       <td>${f.nome}</td>
-      <td><span class="badge badge-${f.loja === 'Loja 1' ? 'loja1' : 'loja2'}">${f.loja}</span></td>
-      <td>${f.comissao_pct}%</td>
-      <td><span class="badge ${f.ativa ? 'badge-green' : 'badge-red'}">${f.ativa ? 'Ativa' : 'Inativa'}</span></td>
+      <td><span class="badge badge-muted">${f.cargo}</span></td>
+      <td><span class="badge badge-${f.loja==='Loja 1'?'loja1':'loja2'}">${f.loja}</span></td>
+      <td><span class="badge ${f.ativa?'badge-green':'badge-red'}">${f.ativa?'Ativa':'Inativa'}</span></td>
       <td style="display:flex;gap:6px">
-        <button class="btn btn-ghost btn-sm" onclick="toggleFunc('${f.id}',${f.ativa})">${f.ativa ? 'Desativar' : 'Ativar'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleFunc('${f.id}',${f.ativa})">${f.ativa?'Desativar':'Ativar'}</button>
         <button class="btn btn-danger btn-sm" onclick="deleteFunc('${f.id}')">✕</button>
       </td>
     </tr>`).join('');
@@ -688,30 +885,28 @@ async function loadFuncionarias() {
 
 async function saveFunc() {
   const nome = document.getElementById('f-nome').value.trim();
+  const cargo = document.getElementById('f-cargo').value;
   const loja = document.getElementById('f-loja').value;
-  const pct = parseFloat(document.getElementById('f-pct').value);
-  if (!nome || isNaN(pct)) { showToast('Preencha nome e comissão', 'error'); return; }
-  const { error } = await sb.from('funcionarias').insert({ nome, loja, comissao_pct: pct });
-  if (error) { showToast('Erro ao salvar', 'error'); return; }
+  if (!nome) { showToast('Digite o nome','error'); return; }
+  const { error } = await sb.from('funcionarias').insert({ nome, cargo, loja });
+  if (error) { showToast('Erro ao salvar','error'); return; }
   showToast('Funcionária cadastrada!');
   closeModal('modal-func');
-  document.getElementById('f-nome').value = '';
-  document.getElementById('f-pct').value = '';
+  document.getElementById('f-nome').value='';
   loadFuncionarias();
 }
 
 async function toggleFunc(id, ativa) {
-  await sb.from('funcionarias').update({ ativa: !ativa }).eq('id', id);
+  await sb.from('funcionarias').update({ ativa: !ativa }).eq('id',id);
   loadFuncionarias();
 }
-
 async function deleteFunc(id) {
   if (!confirm('Excluir funcionária?')) return;
-  await sb.from('funcionarias').delete().eq('id', id);
+  await sb.from('funcionarias').delete().eq('id',id);
   loadFuncionarias();
 }
 
-// COMISSÕES
+// ===== COMISSÕES =====
 async function loadComissoes() {
   await loadFuncionarias();
   const monday = currentMonday(comOffset);
@@ -719,37 +914,56 @@ async function loadComissoes() {
   document.getElementById('com-week-label').textContent = weekLabel(monday);
 
   const { data: vendas } = await sb.from('vendas')
-    .select('*').gte('data_venda', monday).lte('data_venda', sunday);
+    .select('*').gte('data_venda',monday).lte('data_venda',sunday);
+  const { data: metas } = await sb.from('metas_semanais').select('*').eq('semana_inicio',monday);
 
-  const { data: metas } = await sb.from('metas_semanais').select('*').eq('semana_inicio', monday);
+  // Total por loja
+  const totalLoja = { 'Loja 1': 0, 'Loja 2': 0 };
+  (vendas||[]).forEach(v => totalLoja[v.loja] = (totalLoja[v.loja]||0) + v.valor);
 
-  const metaBonusPct = {};
-  ['Loja 1', 'Loja 2'].forEach(l => {
-    const meta = metas?.find(m => m.loja === l);
-    const totalLoja = (vendas || []).filter(v => v.loja === l).reduce((s, v) => s + v.valor, 0);
-    metaBonusPct[l] = (meta && totalLoja >= meta.valor_meta) ? meta.bonus_pct : 0;
+  // Tier de cada loja
+  const tierLoja = {};
+  ['Loja 1','Loja 2'].forEach(l => {
+    const meta = metas?.find(m=>m.loja===l);
+    tierLoja[l] = calcTier(totalLoja[l], meta);
   });
 
-  const ativas = funcionarias.filter(f => f.ativa);
+  const ativas = funcionarias.filter(f=>f.ativa);
   const resumoEl = document.getElementById('comissoes-resumo');
-  if (!ativas.length) { resumoEl.innerHTML = '<div class="empty">Nenhuma funcionária ativa</div>'; return; }
+  if (!ativas.length) { resumoEl.innerHTML='<div class="empty">Nenhuma funcionária ativa</div>'; return; }
 
   let totalPagar = 0;
   const rows = ativas.map(f => {
-    const vendido = (vendas || []).filter(v => v.funcionaria_id === f.id).reduce((s, v) => s + v.valor, 0);
-    const comissao = vendido * (f.comissao_pct / 100);
-    const bonusPct = metaBonusPct[f.loja] || 0;
-    const bonus = vendido * (bonusPct / 100);
-    const total = comissao + bonus;
+    const tier = tierLoja[f.loja];
+
+    let vendido, baseCalculo;
+    if (f.cargo === 'Gerente') {
+      // Gerente recebe sobre o total da loja
+      vendido = totalLoja[f.loja] || 0;
+      baseCalculo = vendido;
+    } else {
+      // Vendedora recebe sobre as próprias vendas
+      vendido = (vendas||[]).filter(v=>v.funcionaria_id===f.id).reduce((s,v)=>s+v.valor,0);
+      baseCalculo = vendido;
+    }
+
+    const tabela = COMISSAO[f.cargo] || COMISSAO.Vendedora;
+    const regra = tabela[tier] || { pct: 0, bonus: 0 };
+    const comissao = baseCalculo * (regra.pct / 100);
+    const bonus = regra.bonus;
+    const total = tier === 'Nenhum' ? 0 : comissao + bonus;
     totalPagar += total;
+
     return `<tr>
       <td>${f.nome}</td>
-      <td><span class="badge badge-${f.loja === 'Loja 1' ? 'loja1' : 'loja2'}">${f.loja}</span></td>
+      <td><span class="badge badge-muted">${f.cargo}</span></td>
+      <td><span class="badge badge-${f.loja==='Loja 1'?'loja1':'loja2'}">${f.loja}</span></td>
+      <td>${tierBadgeHtml(tier)}</td>
       <td>${fmt(vendido)}</td>
-      <td>${f.comissao_pct}%</td>
-      <td>${fmt(comissao)}</td>
-      <td>${bonusPct > 0 ? `<span class="badge badge-green">+${bonusPct}%</span> ${fmt(bonus)}` : '—'}</td>
-      <td style="font-weight:700;color:var(--accent)">${fmt(total)}</td>
+      <td>${tier!=='Nenhum'?regra.pct+'%':'—'}</td>
+      <td>${tier!=='Nenhum'?fmt(comissao):'—'}</td>
+      <td>${tier!=='Nenhum'?fmt(bonus):'—'}</td>
+      <td style="font-weight:700;color:var(--accent)">${tier!=='Nenhum'?fmt(total):'—'}</td>
     </tr>`;
   }).join('');
 
@@ -758,110 +972,132 @@ async function loadComissoes() {
       <div>
         <div class="card-title">Resumo de Comissões</div>
         <div style="font-size:1.4rem;font-weight:700;color:var(--accent)">Total a pagar: ${fmt(totalPagar)}</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px">
+          Loja 1 ${tierBadgeHtml(tierLoja['Loja 1'])} &nbsp; Loja 2 ${tierBadgeHtml(tierLoja['Loja 2'])}
+        </div>
       </div>
       <button class="btn btn-primary" onclick="fecharComissoes('${monday}','${sunday}')">✓ Fechar Semana</button>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Funcionária</th><th>Loja</th><th>Total Vendido</th><th>%</th><th>Comissão</th><th>Bônus</th><th>A Pagar</th></tr></thead>
+        <thead><tr><th>Funcionária</th><th>Cargo</th><th>Loja</th><th>Tier</th><th>Base Cálculo</th><th>%</th><th>Comissão</th><th>Bônus Fixo</th><th>Total</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
 }
 
 async function fecharComissoes(monday, sunday) {
-  if (!confirm('Fechar comissões desta semana e registrar para pagamento?')) return;
-  const { data: vendas } = await sb.from('vendas').select('*').gte('data_venda', monday).lte('data_venda', sunday);
-  const { data: metas } = await sb.from('metas_semanais').select('*').eq('semana_inicio', monday);
+  if (!confirm('Fechar comissões desta semana?')) return;
+  const { data: vendas } = await sb.from('vendas').select('*').gte('data_venda',monday).lte('data_venda',sunday);
+  const { data: metas } = await sb.from('metas_semanais').select('*').eq('semana_inicio',monday);
 
-  const metaBonusPct = {};
-  ['Loja 1', 'Loja 2'].forEach(l => {
-    const meta = metas?.find(m => m.loja === l);
-    const totalLoja = (vendas || []).filter(v => v.loja === l).reduce((s, v) => s + v.valor, 0);
-    metaBonusPct[l] = (meta && totalLoja >= meta.valor_meta) ? meta.bonus_pct : 0;
+  const totalLoja = { 'Loja 1': 0, 'Loja 2': 0 };
+  (vendas||[]).forEach(v => totalLoja[v.loja] = (totalLoja[v.loja]||0) + v.valor);
+  const tierLoja = {};
+  ['Loja 1','Loja 2'].forEach(l => {
+    tierLoja[l] = calcTier(totalLoja[l], metas?.find(m=>m.loja===l));
   });
 
-  for (const f of funcionarias.filter(f => f.ativa)) {
-    const total_vendido = (vendas || []).filter(v => v.funcionaria_id === f.id).reduce((s, v) => s + v.valor, 0);
-    const valor_comissao = total_vendido * (f.comissao_pct / 100);
-    const bonus = total_vendido * ((metaBonusPct[f.loja] || 0) / 100);
+  for (const f of funcionarias.filter(f=>f.ativa)) {
+    const tier = tierLoja[f.loja];
+    const total_vendido = f.cargo === 'Gerente'
+      ? totalLoja[f.loja]||0
+      : (vendas||[]).filter(v=>v.funcionaria_id===f.id).reduce((s,v)=>s+v.valor,0);
+    const tabela = COMISSAO[f.cargo]||COMISSAO.Vendedora;
+    const regra = tabela[tier]||{pct:0,bonus:0};
+    const valor_comissao = tier==='Nenhum' ? 0 : total_vendido*(regra.pct/100);
+    const bonus_fixo = tier==='Nenhum' ? 0 : regra.bonus;
     await sb.from('comissao_fechamento').upsert({
       funcionaria_id: f.id, semana_inicio: monday, semana_fim: sunday,
-      total_vendido, valor_comissao, bonus, total_a_pagar: valor_comissao + bonus
+      total_vendido, tier_atingido: tier, comissao_pct: regra.pct,
+      valor_comissao, bonus_fixo, total_a_pagar: valor_comissao + bonus_fixo
     }, { onConflict: 'funcionaria_id,semana_inicio' });
   }
   showToast('Semana fechada e registrada!');
 }
 
-// LISTA
+// ===== LISTA =====
 async function loadLista() {
-  const { data } = await sb.from('lista_compras').select('*').order('feito').order('criado_em', { ascending: false });
-  renderChecklist('lista-estoque', (data || []).filter(i => i.categoria === 'Estoque'));
-  renderChecklist('lista-insumos', (data || []).filter(i => i.categoria === 'Insumos'));
+  const { data } = await sb.from('lista_compras').select('*').order('feito').order('criado_em',{ascending:false});
+  renderChecklist('lista-estoque', (data||[]).filter(i=>i.categoria==='Estoque'));
+  renderChecklist('lista-insumos', (data||[]).filter(i=>i.categoria==='Insumos'));
 }
-
 function renderChecklist(elId, items) {
   const el = document.getElementById(elId);
-  if (!items.length) { el.innerHTML = '<div class="empty">Nenhum item</div>'; return; }
-  el.innerHTML = items.map(i => `
-    <div class="check-item ${i.feito ? 'done' : ''}">
-      <div class="check-box ${i.feito ? 'checked' : ''}" onclick="toggleItem('${i.id}',${i.feito})"></div>
+  if (!items.length) { el.innerHTML='<div class="empty">Nenhum item</div>'; return; }
+  el.innerHTML = items.map(i=>`
+    <div class="check-item ${i.feito?'done':''}">
+      <div class="check-box ${i.feito?'checked':''}" onclick="toggleItem('${i.id}',${i.feito})"></div>
       <div class="check-text">${i.item}</div>
-      ${i.quantidade ? `<div class="check-qty">${i.quantidade}</div>` : ''}
+      ${i.quantidade?`<div class="check-qty">${i.quantidade}</div>`:''}
       <button class="check-del" onclick="deleteItem('${i.id}')">✕</button>
     </div>`).join('');
 }
-
-async function toggleItem(id, feito) {
-  await sb.from('lista_compras').update({ feito: !feito }).eq('id', id);
-  loadLista();
-}
-
+async function toggleItem(id, feito) { await sb.from('lista_compras').update({feito:!feito}).eq('id',id); loadLista(); }
 async function saveItem() {
   const item = document.getElementById('i-nome').value.trim();
   const categoria = document.getElementById('i-cat').value;
   const quantidade = document.getElementById('i-qty').value.trim();
-  if (!item) { showToast('Digite o item', 'error'); return; }
-  const { error } = await sb.from('lista_compras').insert({ item, categoria, quantidade: quantidade || null });
-  if (error) { showToast('Erro ao salvar', 'error'); return; }
+  if (!item) { showToast('Digite o item','error'); return; }
+  const { error } = await sb.from('lista_compras').insert({ item, categoria, quantidade: quantidade||null });
+  if (error) { showToast('Erro ao salvar','error'); return; }
   showToast('Item adicionado!');
   closeModal('modal-item');
-  document.getElementById('i-nome').value = '';
-  document.getElementById('i-qty').value = '';
+  document.getElementById('i-nome').value='';
+  document.getElementById('i-qty').value='';
   loadLista();
 }
+async function deleteItem(id) { await sb.from('lista_compras').delete().eq('id',id); loadLista(); }
 
-async function deleteItem(id) {
-  await sb.from('lista_compras').delete().eq('id', id);
-  loadLista();
-}
-
-// CONFIG
+// ===== CONFIG =====
 async function loadConfig() {
   const monday = currentMonday(0);
-  const { data } = await sb.from('metas_semanais').select('*').eq('semana_inicio', monday);
-  const m1 = data?.find(m => m.loja === 'Loja 1');
-  const m2 = data?.find(m => m.loja === 'Loja 2');
-  if (m1) { document.getElementById('meta-l1-valor').value = m1.valor_meta; document.getElementById('meta-l1-bonus').value = m1.bonus_pct; }
-  if (m2) { document.getElementById('meta-l2-valor').value = m2.valor_meta; document.getElementById('meta-l2-bonus').value = m2.bonus_pct; }
+  const { data: sem } = await sb.from('metas_semanais').select('*').eq('semana_inicio',monday);
+  const sl1 = sem?.find(m=>m.loja==='Loja 1');
+  const sl2 = sem?.find(m=>m.loja==='Loja 2');
+  if (sl1) { document.getElementById('sl1-meta').value=sl1.valor_meta; document.getElementById('sl1-super').value=sl1.valor_super; document.getElementById('sl1-mega').value=sl1.valor_mega; }
+  if (sl2) { document.getElementById('sl2-meta').value=sl2.valor_meta; document.getElementById('sl2-super').value=sl2.valor_super; document.getElementById('sl2-mega').value=sl2.valor_mega; }
+
+  const { mes, ano } = getCurrentMonthYear(0);
+  const { data: men } = await sb.from('metas_mensais').select('*').eq('mes',mes).eq('ano',ano);
+  const ml1 = men?.find(m=>m.loja==='Loja 1');
+  const ml2 = men?.find(m=>m.loja==='Loja 2');
+  if (ml1) { document.getElementById('ml1-meta').value=ml1.valor_meta; document.getElementById('ml1-super').value=ml1.valor_super; document.getElementById('ml1-mega').value=ml1.valor_mega; }
+  if (ml2) { document.getElementById('ml2-meta').value=ml2.valor_meta; document.getElementById('ml2-super').value=ml2.valor_super; document.getElementById('ml2-mega').value=ml2.valor_mega; }
 }
 
-async function saveMeta(loja) {
+async function saveMetaSemanal(loja) {
   const monday = currentMonday(0);
   const sunday = getSunday(monday);
-  const suf = loja === 'Loja 1' ? 'l1' : 'l2';
-  const valor_meta = parseFloat(document.getElementById(`meta-${suf}-valor`).value);
-  const bonus_pct = parseFloat(document.getElementById(`meta-${suf}-bonus`).value) || 0;
-  if (!valor_meta) { showToast('Digite o valor da meta', 'error'); return; }
+  const suf = loja==='Loja 1'?'l1':'l2';
+  const valor_meta  = parseFloat(document.getElementById(`sl${suf.slice(1)}-meta`).value);
+  const valor_super = parseFloat(document.getElementById(`sl${suf.slice(1)}-super`).value);
+  const valor_mega  = parseFloat(document.getElementById(`sl${suf.slice(1)}-mega`).value);
+  if (!valor_meta||!valor_super||!valor_mega) { showToast('Preencha os 3 valores','error'); return; }
   const { error } = await sb.from('metas_semanais').upsert(
-    { loja, semana_inicio: monday, semana_fim: sunday, valor_meta, bonus_pct },
-    { onConflict: 'loja,semana_inicio' }
+    { loja, semana_inicio:monday, semana_fim:sunday, valor_meta, valor_super, valor_mega },
+    { onConflict:'loja,semana_inicio' }
   );
-  if (error) { showToast('Erro ao salvar', 'error'); return; }
-  showToast(`Meta da ${loja} salva!`);
+  if (error) { showToast('Erro ao salvar','error'); return; }
+  showToast(`Meta semanal da ${loja} salva!`);
 }
 
-// INIT
+async function saveMetaMensal(loja) {
+  const { mes, ano } = getCurrentMonthYear(0);
+  const suf = loja==='Loja 1'?'1':'2';
+  const valor_meta  = parseFloat(document.getElementById(`ml${suf}-meta`).value);
+  const valor_super = parseFloat(document.getElementById(`ml${suf}-super`).value);
+  const valor_mega  = parseFloat(document.getElementById(`ml${suf}-mega`).value);
+  if (!valor_meta||!valor_super||!valor_mega) { showToast('Preencha os 3 valores','error'); return; }
+  const { error } = await sb.from('metas_mensais').upsert(
+    { loja, mes, ano, valor_meta, valor_super, valor_mega },
+    { onConflict:'loja,mes,ano' }
+  );
+  if (error) { showToast('Erro ao salvar','error'); return; }
+  showToast(`Meta mensal da ${loja} salva!`);
+}
+
+// ===== INIT =====
 async function init() {
   document.getElementById('v-data').value = new Date().toISOString().split('T')[0];
   await loadFuncionarias();
