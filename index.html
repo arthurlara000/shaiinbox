@@ -624,11 +624,17 @@ tr:hover td { background: var(--surface2); }
     <div class="tab-pills">
       <button class="tab-pill active" onclick="setConfigView('semanal',this)">📅 Meta Semanal</button>
       <button class="tab-pill" onclick="setConfigView('mensal',this)">🗓️ Meta Mensal</button>
+      <button class="tab-pill" onclick="setConfigView('mes-completo',this)">📆 Mês Completo</button>
     </div>
 
     <div id="config-semanal">
-      <div class="info-box" id="config-sem-label" style="margin-bottom:16px">
-        Semana atual: <strong id="cfg-semana-label" style="color:var(--text)">—</strong>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:16px">
+        <button class="week-nav" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="cfgWeek(-1)">‹</button>
+        <div style="text-align:center">
+          <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Semana</div>
+          <strong id="cfg-semana-label" style="color:var(--text);font-size:0.9rem">—</strong>
+        </div>
+        <button class="week-nav" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="cfgWeek(1)">›</button>
       </div>
       <div class="grid-2">
         <div class="card">
@@ -667,8 +673,13 @@ tr:hover td { background: var(--surface2); }
     </div>
 
     <div id="config-mensal" style="display:none">
-      <div class="info-box" style="margin-bottom:16px">
-        Mês atual: <strong id="cfg-mes-label" style="color:var(--text)">—</strong>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:16px">
+        <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="cfgMonth(-1)">‹</button>
+        <div style="text-align:center">
+          <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Mês</div>
+          <strong id="cfg-mes-label" style="color:var(--text);font-size:0.9rem">—</strong>
+        </div>
+        <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="cfgMonth(1)">›</button>
       </div>
       <div class="grid-2">
         <div class="card">
@@ -1264,28 +1275,41 @@ async function saveItem() {
 async function deleteItem(id) { await sb.from('lista_compras').delete().eq('id',id); loadLista(); }
 
 // ===== CONFIG =====
-async function loadConfig() {
-  const monday = currentMonday(0);
-  document.getElementById('cfg-semana-label').textContent = weekLabel(monday);
+let cfgWeekOffset = 0, cfgMonthOffset = 0;
+function cfgWeek(d) { cfgWeekOffset += d; loadConfigSemanal(); }
+function cfgMonth(d) { cfgMonthOffset += d; loadConfigMensal(); }
 
+async function loadConfig() {
+  await loadConfigSemanal();
+  await loadConfigMensal();
+}
+
+async function loadConfigSemanal() {
+  const monday = currentMonday(cfgWeekOffset);
+  document.getElementById('cfg-semana-label').textContent = weekLabel(monday);
   const { data: sem } = await sb.from('metas_semanais').select('*').eq('semana_inicio',monday);
   const sl1 = sem?.find(m=>m.loja==='Loja 1');
   const sl2 = sem?.find(m=>m.loja==='Loja 2');
+  ['sl1-meta','sl1-super','sl1-mega'].forEach(id => document.getElementById(id).value = '');
+  ['sl2-meta','sl2-super','sl2-mega'].forEach(id => document.getElementById(id).value = '');
   if (sl1) { document.getElementById('sl1-meta').value=sl1.valor_meta; document.getElementById('sl1-super').value=sl1.valor_super; document.getElementById('sl1-mega').value=sl1.valor_mega; }
   if (sl2) { document.getElementById('sl2-meta').value=sl2.valor_meta; document.getElementById('sl2-super').value=sl2.valor_super; document.getElementById('sl2-mega').value=sl2.valor_mega; }
+}
 
-  const { mes, ano } = getCurrentMonthYear(0);
+async function loadConfigMensal() {
+  const { mes, ano } = getCurrentMonthYear(cfgMonthOffset);
   document.getElementById('cfg-mes-label').textContent = monthLabel(ano, mes);
-
   const { data: men } = await sb.from('metas_mensais').select('*').eq('mes',mes).eq('ano',ano);
   const ml1 = men?.find(m=>m.loja==='Loja 1');
   const ml2 = men?.find(m=>m.loja==='Loja 2');
+  ['ml1-meta','ml1-super','ml1-mega'].forEach(id => document.getElementById(id).value = '');
+  ['ml2-meta','ml2-super','ml2-mega'].forEach(id => document.getElementById(id).value = '');
   if (ml1) { document.getElementById('ml1-meta').value=ml1.valor_meta; document.getElementById('ml1-super').value=ml1.valor_super; document.getElementById('ml1-mega').value=ml1.valor_mega; }
   if (ml2) { document.getElementById('ml2-meta').value=ml2.valor_meta; document.getElementById('ml2-super').value=ml2.valor_super; document.getElementById('ml2-mega').value=ml2.valor_mega; }
 }
 
 async function saveMetaSemanal(loja) {
-  const monday = currentMonday(0);
+  const monday = currentMonday(cfgWeekOffset);
   const sunday = getSunday(monday);
   const suf = loja==='Loja 1'?'l1':'l2';
   const valor_meta  = parseFloat(document.getElementById(`sl${suf.slice(1)}-meta`).value);
@@ -1301,7 +1325,7 @@ async function saveMetaSemanal(loja) {
 }
 
 async function saveMetaMensal(loja) {
-  const { mes, ano } = getCurrentMonthYear(0);
+  const { mes, ano } = getCurrentMonthYear(cfgMonthOffset);
   const suf = loja==='Loja 1'?'1':'2';
   const valor_meta  = parseFloat(document.getElementById(`ml${suf}-meta`).value);
   const valor_super = parseFloat(document.getElementById(`ml${suf}-super`).value);
