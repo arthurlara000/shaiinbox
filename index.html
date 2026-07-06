@@ -617,18 +617,22 @@ tr:hover td { background: var(--surface2); }
 
   <!-- ===== CONFIG ===== -->
   <div class="tab-panel" id="tab-config">
-    <div class="section-title" style="margin-bottom:8px">Configurações de Metas</div>
-    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:20px">Defina os valores de faturamento necessários para atingir cada nível (Meta / Super / Mega) em cada loja.</p>
+    <div class="section-header">
+      <div class="section-title">Configurações</div>
+    </div>
 
     <div class="tab-pills">
-      <button class="tab-pill active" onclick="setConfigView('semanal',this)">Meta Semanal</button>
-      <button class="tab-pill" onclick="setConfigView('mensal',this)">Meta Mensal</button>
+      <button class="tab-pill active" onclick="setConfigView('semanal',this)">📅 Meta Semanal</button>
+      <button class="tab-pill" onclick="setConfigView('mensal',this)">🗓️ Meta Mensal</button>
     </div>
 
     <div id="config-semanal">
+      <div class="info-box" id="config-sem-label" style="margin-bottom:16px">
+        Semana atual: <strong id="cfg-semana-label" style="color:var(--text)">—</strong>
+      </div>
       <div class="grid-2">
         <div class="card">
-          <div class="card-title">Loja 1 — Semana Atual</div>
+          <div class="card-title">Loja 1</div>
           <div class="form-group">
             <label class="form-label">🟢 Meta (R$)</label>
             <input type="number" class="form-input" id="sl1-meta" placeholder="Ex: 8000">
@@ -644,7 +648,7 @@ tr:hover td { background: var(--surface2); }
           <button class="btn btn-primary" onclick="saveMetaSemanal('Loja 1')">Salvar Loja 1</button>
         </div>
         <div class="card">
-          <div class="card-title">Loja 2 — Semana Atual</div>
+          <div class="card-title">Loja 2</div>
           <div class="form-group">
             <label class="form-label">🟢 Meta (R$)</label>
             <input type="number" class="form-input" id="sl2-meta" placeholder="Ex: 8000">
@@ -663,9 +667,12 @@ tr:hover td { background: var(--surface2); }
     </div>
 
     <div id="config-mensal" style="display:none">
+      <div class="info-box" style="margin-bottom:16px">
+        Mês atual: <strong id="cfg-mes-label" style="color:var(--text)">—</strong>
+      </div>
       <div class="grid-2">
         <div class="card">
-          <div class="card-title">Loja 1 — Mês Atual</div>
+          <div class="card-title">Loja 1</div>
           <div class="form-group">
             <label class="form-label">🟢 Meta (R$)</label>
             <input type="number" class="form-input" id="ml1-meta" placeholder="Ex: 35000">
@@ -1259,6 +1266,8 @@ async function deleteItem(id) { await sb.from('lista_compras').delete().eq('id',
 // ===== CONFIG =====
 async function loadConfig() {
   const monday = currentMonday(0);
+  document.getElementById('cfg-semana-label').textContent = weekLabel(monday);
+
   const { data: sem } = await sb.from('metas_semanais').select('*').eq('semana_inicio',monday);
   const sl1 = sem?.find(m=>m.loja==='Loja 1');
   const sl2 = sem?.find(m=>m.loja==='Loja 2');
@@ -1266,6 +1275,8 @@ async function loadConfig() {
   if (sl2) { document.getElementById('sl2-meta').value=sl2.valor_meta; document.getElementById('sl2-super').value=sl2.valor_super; document.getElementById('sl2-mega').value=sl2.valor_mega; }
 
   const { mes, ano } = getCurrentMonthYear(0);
+  document.getElementById('cfg-mes-label').textContent = monthLabel(ano, mes);
+
   const { data: men } = await sb.from('metas_mensais').select('*').eq('mes',mes).eq('ano',ano);
   const ml1 = men?.find(m=>m.loja==='Loja 1');
   const ml2 = men?.find(m=>m.loja==='Loja 2');
