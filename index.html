@@ -172,7 +172,6 @@ tr:hover td { background: var(--surface2); }
 
 <div class="nav-tabs">
   <button class="nav-tab active" onclick="showTab('dashboard',this)">📊 Dashboard</button>
-  <button class="nav-tab" onclick="showTab('vendas',this)">💰 Vendas</button>
   <button class="nav-tab" onclick="showTab('metas',this)">🎯 Metas</button>
   <button class="nav-tab" onclick="showTab('historico',this)">📁 Histórico</button>
   <button class="nav-tab" onclick="showTab('comissoes',this)">👥 Comissões</button>
@@ -291,39 +290,6 @@ tr:hover td { background: var(--surface2); }
     </div>
   </div>
 
-  <!-- ===== VENDAS ===== -->
-  <div class="tab-panel" id="tab-vendas">
-    <div class="section-header">
-      <div class="section-title">Vendas</div>
-      <button class="btn btn-primary" onclick="openModal('modal-venda')">+ Nova Venda</button>
-    </div>
-    <div class="card" style="margin-bottom:16px">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
-        <div class="form-group" style="margin:0">
-          <label class="form-label">Loja</label>
-          <select class="form-select" id="filtro-loja" onchange="loadVendas()">
-            <option value="">Todas</option><option>Loja 1</option><option>Loja 2</option>
-          </select>
-        </div>
-        <div class="form-group" style="margin:0">
-          <label class="form-label">Data início</label>
-          <input type="date" class="form-input" id="filtro-ini" onchange="loadVendas()">
-        </div>
-        <div class="form-group" style="margin:0">
-          <label class="form-label">Data fim</label>
-          <input type="date" class="form-input" id="filtro-fim" onchange="loadVendas()">
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Data</th><th>Funcionária</th><th>Cargo</th><th>Loja</th><th>Descrição</th><th>Valor</th><th></th></tr></thead>
-          <tbody id="vendas-tbody"><tr><td colspan="7" class="empty">Carregando...</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
 
   <!-- ===== COMISSÕES ===== -->
   <div class="tab-panel" id="tab-comissoes">
@@ -736,38 +702,6 @@ tr:hover td { background: var(--surface2); }
 
 </div><!-- /content -->
 
-<!-- MODAL VENDA -->
-<div class="modal-overlay" id="modal-venda">
-  <div class="modal">
-    <div class="modal-title">Nova Venda</div>
-    <div class="form-group">
-      <label class="form-label">Funcionária</label>
-      <select class="form-select" id="v-func" onchange="syncLojaFromFunc()"></select>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Loja</label>
-        <select class="form-select" id="v-loja"><option>Loja 1</option><option>Loja 2</option></select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Data</label>
-        <input type="date" class="form-input" id="v-data">
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Valor (R$)</label>
-      <input type="number" class="form-input" id="v-valor" placeholder="0,00" step="0.01">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Descrição (opcional)</label>
-      <input type="text" class="form-input" id="v-desc" placeholder="Ex: Vestido floral G">
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-venda')">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveVenda()">Salvar</button>
-    </div>
-  </div>
-</div>
 
 <!-- MODAL FUNCIONÁRIA -->
 <div class="modal-overlay" id="modal-func">

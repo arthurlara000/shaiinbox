@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Shai — Loja</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg: #0f0f0f;
+  --surface: #1a1a1a;
+  --surface2: #222;
+  --border: #2e2e2e;
+  --text: #f0ede8;
+  --text-muted: #888;
+  --accent: #c9a96e;
+  --green: #52b88a;
+  --red: #e05252;
+  --loja1: #7b8cde;
+  --loja2: #de7bb8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; padding-bottom: env(safe-area-inset-bottom, 24px); }
+
+/* SETUP SCREEN */
+#setup-screen {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 32px 24px; text-align: center; gap: 24px;
+}
+.setup-logo { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--accent); }
+.setup-title { font-size: 1rem; color: var(--text-muted); }
+.loja-btn {
+  width: 100%; padding: 20px; border-radius: 16px; border: 2px solid var(--border);
+  background: var(--surface); color: var(--text); font-size: 1.1rem; font-weight: 600;
+  cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+}
+.loja-btn:hover, .loja-btn:active { border-color: var(--accent); color: var(--accent); }
+
+/* MAIN APP */
+#app { display: none; }
+
+/* HEADER */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50;
+}
+.header-left { display: flex; flex-direction: column; gap: 2px; }
+.header-logo { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--accent); }
+.header-loja { font-size: 0.75rem; color: var(--text-muted); }
+.header-date { font-size: 0.8rem; color: var(--text-muted); text-align: right; }
+.change-loja-btn { font-size: 0.7rem; color: var(--text-muted); background: none; border: none; cursor: pointer; text-decoration: underline; }
+
+/* CONTENT */
+.content { padding: 20px 16px; max-width: 480px; margin: 0 auto; }
+
+/* SECTION */
+.section { margin-bottom: 28px; }
+.section-title {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px;
+}
+
+/* CARD */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; }
+
+/* FORM */
+.form-group { margin-bottom: 14px; }
+.form-label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
+.form-input, .form-select {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px; color: var(--text);
+  font-size: 1rem; font-family: 'DM Sans', sans-serif; outline: none;
+  transition: border-color 0.2s; -webkit-appearance: none;
+}
+.form-input:focus, .form-select:focus { border-color: var(--accent); }
+.form-select option { background: var(--surface2); }
+.form-input.big { font-size: 1.4rem; font-weight: 600; text-align: center; letter-spacing: 0.02em; }
+
+/* VENDEDORA ROW */
+.vend-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface2); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
+}
+.vend-name { flex: 1; font-size: 0.9rem; font-weight: 500; }
+.vend-input {
+  width: 120px; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 10px; color: var(--accent); font-size: 1rem;
+  font-weight: 600; text-align: right; font-family: 'DM Sans', sans-serif;
+  outline: none;
+}
+.vend-input:focus { border-color: var(--accent); }
+
+/* DESPESA ITEM */
+.despesa-item {
+  background: var(--surface2); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 10px;
+}
+.despesa-info { flex: 1; }
+.despesa-desc { font-size: 0.9rem; font-weight: 500; }
+.despesa-cat { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+.despesa-valor { font-weight: 700; color: var(--red); white-space: nowrap; }
+.despesa-foto { font-size: 1.2rem; cursor: pointer; }
+.del-btn { background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; padding: 4px; }
+
+/* PHOTO UPLOAD */
+.foto-label {
+  display: flex; align-items: center; gap: 8px; padding: 12px 14px;
+  background: var(--surface2); border: 1.5px dashed var(--border); border-radius: 10px;
+  cursor: pointer; color: var(--text-muted); font-size: 0.875rem; transition: all 0.2s;
+}
+.foto-label:active { border-color: var(--accent); color: var(--accent); }
+.foto-preview { width: 100%; border-radius: 10px; max-height: 200px; object-fit: cover; display: none; margin-top: 8px; }
+#foto-input { display: none; }
+
+/* BTN */
+.btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 16px; border-radius: 12px; font-size: 1rem;
+  font-weight: 700; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s; -webkit-tap-highlight-color: transparent;
+}
+.btn-primary { background: var(--accent); color: #0f0f0f; }
+.btn-primary:active { background: #dbbe85; transform: scale(0.98); }
+.btn-ghost { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
+.btn-ghost:active { background: var(--border); }
+.btn-sm { padding: 10px 16px; font-size: 0.875rem; width: auto; border-radius: 8px; }
+.btn-danger-sm { padding: 8px 14px; font-size: 0.8rem; width: auto; border-radius: 8px; background: rgba(224,82,82,0.12); color: var(--red); border: 1px solid rgba(224,82,82,0.2); }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border-radius: 24px 24px 0 0; padding: 24px 20px; width: 100%; max-width: 480px; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 99px; margin: 0 auto 20px; }
+.modal-title { font-size: 1rem; font-weight: 700; margin-bottom: 18px; }
+
+/* RESUMO */
+.resumo-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.resumo-row:last-child { border-bottom: none; }
+.resumo-label { font-size: 0.85rem; color: var(--text-muted); }
+.resumo-valor { font-size: 0.95rem; font-weight: 600; }
+
+/* BADGE */
+.badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 0.7rem; font-weight: 600; }
+.badge-cat { background: rgba(201,169,110,0.12); color: var(--accent); }
+
+/* STATUS BAR */
+.status-bar {
+  position: sticky; bottom: 0; left: 0; right: 0;
+  background: var(--surface); border-top: 1px solid var(--border);
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  display: flex; gap: 10px; max-width: 480px; margin: 0 auto;
+}
+
+/* TOAST */
+#toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 18px; font-size: 0.875rem; z-index: 9999; opacity: 0; transition: all 0.3s; white-space: nowrap; }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.success { border-color: var(--green); color: var(--green); }
+#toast.error { border-color: var(--red); color: var(--red); }
+
+.dot-ok { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--green); margin-right: 6px; }
+.dot-pend { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-right: 6px; }
+
+.empty { text-align: center; padding: 24px 0; color: var(--text-muted); font-size: 0.875rem; }
+</style>
+</head>
+<body>
+
+<!-- TELA DE SELEÇÃO DE LOJA -->
+<div id="setup-screen">
+  <div>
+    <div class="setup-logo">Shai</div>
+    <div class="setup-title">Selecione esta loja</div>
+  </div>
+  <div style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px">
+    <button class="loja-btn" onclick="setLoja('Loja 1')" style="border-color:var(--loja1);color:var(--loja1)">📍 Loja 1</button>
+    <button class="loja-btn" onclick="setLoja('Loja 2')" style="border-color:var(--loja2);color:var(--loja2)">📍 Loja 2</button>
+  </div>
+  <div style="font-size:0.75rem;color:var(--text-muted)">Essa escolha fica salva neste celular</div>
+</div>
+
+<!-- APP PRINCIPAL -->
+<div id="app">
+  <div class="header">
+    <div class="header-left">
+      <div class="header-logo">Shai</div>
+      <div class="header-loja" id="h-loja">—</div>
+    </div>
+    <div style="text-align:right">
+      <div class="header-date" id="h-date">—</div>
+      <button class="change-loja-btn" onclick="changeLoja()">trocar loja</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- VENDAS DO DIA -->
+    <div class="section">
+      <div class="section-title">💰 Vendas do Dia</div>
+      <div class="card">
+        <div class="form-group">
+          <label class="form-label">Total da loja (R$)</label>
+          <input type="number" class="form-input big" id="total-loja" placeholder="0,00" step="0.01" inputmode="decimal" onchange="calcDiff()">
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div class="form-label" style="margin:0">Por vendedora</div>
+            <div id="diff-badge" style="font-size:0.75rem;color:var(--text-muted)"></div>
+          </div>
+          <div id="vendedoras-list"><div class="empty">Carregando...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESPESAS -->
+    <div class="section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="section-title" style="margin:0">🧾 Despesas</div>
+        <button class="btn btn-ghost btn-sm" onclick="openModal('modal-despesa')">+ Adicionar</button>
+      </div>
+      <div id="despesas-list"><div class="empty">Nenhuma despesa hoje</div></div>
+    </div>
+
+    <div style="height:80px"></div>
+  </div>
+
+  <!-- BARRA INFERIOR -->
+  <div class="status-bar">
+    <button class="btn btn-ghost" style="flex:1" onclick="verResumo()">📋 Resumo</button>
+    <button class="btn btn-primary" style="flex:2" onclick="salvarDia()">✓ Salvar Dia</button>
+  </div>
+</div>
+
+<!-- MODAL DESPESA -->
+<div class="modal-overlay" id="modal-despesa">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Nova Despesa</div>
+    <div class="form-group">
+      <label class="form-label">O que foi comprado</label>
+      <input type="text" class="form-input" id="d-desc" placeholder="Ex: Sacolas, Cabides...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Categoria</label>
+      <select class="form-select" id="d-cat">
+        <option>Embalagem</option>
+        <option>Limpeza</option>
+        <option>Alimentação</option>
+        <option>Transporte</option>
+        <option>Manutenção</option>
+        <option>Outros</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Valor (R$)</label>
+      <input type="number" class="form-input" id="d-valor" placeholder="0,00" step="0.01" inputmode="decimal">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Foto da nota (opcional)</label>
+      <label class="foto-label" for="foto-input">
+        📷 <span id="foto-label-text">Tirar foto ou escolher da galeria</span>
+      </label>
+      <input type="file" id="foto-input" accept="image/*" capture="environment" onchange="previewFoto(this)">
+      <img id="foto-preview" class="foto-preview" alt="preview">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn btn-ghost btn-sm" style="flex:1" onclick="closeModal('modal-despesa')">Cancelar</button>
+      <button class="btn btn-primary btn-sm" style="flex:2" onclick="addDespesa()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RESUMO -->
+<div class="modal-overlay" id="modal-resumo">
+  <div class="modal" style="max-height:80vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📋 Resumo do Dia</div>
+    <div id="resumo-content"></div>
+    <div style="margin-top:16px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-resumo')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SB_URL = 'https://ofoljmhfnohxwswskplx.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mb2xqbWhmbm9oeHdzd3NrcGx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3NjA4MTgsImV4cCI6MjA2MTMzNjgxOH0.hpTHV-HR-D7SJpRrRzmP79VZdkJNZxNaJJBJclIkNKs';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+const fmt = v => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0);
+const today = new Date().toISOString().split('T')[0];
+const todayLabel = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+
+let lojaAtual = null;
+let funcionarias = [];
+let despesasTemp = []; // despesas ainda não salvas
+let fotoFile = null;
+
+// ===== SETUP LOJA =====
+function setLoja(loja) {
+  localStorage.setItem('shai_loja', loja);
+  iniciarApp(loja);
+}
+function changeLoja() {
+  if (!confirm('Trocar de loja? Dados não salvos serão perdidos.')) return;
+  localStorage.removeItem('shai_loja');
+  document.getElementById('setup-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+// ===== INIT APP =====
+async function iniciarApp(loja) {
+  lojaAtual = loja;
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('h-loja').textContent = loja;
+  document.getElementById('h-date').textContent = todayLabel;
+
+  await loadFuncionarias();
+  await loadDespesasHoje();
+  await loadVendasHoje();
+}
+
+async function loadFuncionarias() {
+  const { data } = await sb.from('funcionarias').select('*').eq('loja', lojaAtual).eq('ativa', true).order('nome');
+  funcionarias = data || [];
+  renderVendedoras();
+}
+
+function renderVendedoras() {
+  const el = document.getElementById('vendedoras-list');
+  if (!funcionarias.length) {
+    el.innerHTML = '<div class="empty">Nenhuma vendedora cadastrada nesta loja</div>';
+    return;
+  }
+  el.innerHTML = funcionarias.map(f => `
+    <div class="vend-row">
+      <div class="vend-name">${f.nome}</div>
+      <input class="vend-input" type="number" inputmode="decimal" step="0.01"
+        id="vend-${f.id}" placeholder="R$ 0" onchange="calcDiff()">
+    </div>`).join('');
+}
+
+function calcDiff() {
+  const total = parseFloat(document.getElementById('total-loja').value) || 0;
+  const somaVend = funcionarias.reduce((s, f) => {
+    return s + (parseFloat(document.getElementById(`vend-${f.id}`)?.value) || 0);
+  }, 0);
+  const diff = total - somaVend;
+  const badge = document.getElementById('diff-badge');
+  if (total === 0) { badge.textContent = ''; return; }
+  if (Math.abs(diff) < 0.01) {
+    badge.innerHTML = '<span style="color:var(--green)">✓ Valores conferem</span>';
+  } else {
+    badge.innerHTML = `<span style="color:var(--accent)">${diff > 0 ? '+' : ''}${fmt(diff)} de diferença</span>`;
+  }
+}
+
+// ===== DESPESAS =====
+async function loadDespesasHoje() {
+  const { data } = await sb.from('despesas')
+    .select('*').eq('loja', lojaAtual).eq('data_despesa', today).order('criado_em', { ascending: false });
+  // Junta com temporárias
+  renderDespesas([...(data || []), ...despesasTemp]);
+}
+
+function renderDespesas(lista) {
+  const el = document.getElementById('despesas-list');
+  if (!lista.length) { el.innerHTML = '<div class="empty">Nenhuma despesa hoje</div>'; return; }
+  const total = lista.reduce((s, d) => s + d.valor, 0);
+  el.innerHTML = lista.map((d, i) => `
+    <div class="despesa-item">
+      <div class="despesa-info">
+        <div class="despesa-desc">${d.descricao}</div>
+        <div class="despesa-cat"><span class="badge badge-cat">${d.categoria}</span></div>
+      </div>
+      ${d.foto_url ? `<span class="despesa-foto" onclick="verFoto('${d.foto_url}')">🖼️</span>` : ''}
+      <div class="despesa-valor">${fmt(d.valor)}</div>
+      ${!d.id || d._temp ? `<button class="del-btn" onclick="removeDespesaTemp(${i})">✕</button>` : ''}
+    </div>`).join('') +
+    `<div style="padding:10px 0;text-align:right;font-size:0.85rem;color:var(--text-muted)">
+      Total despesas: <strong style="color:var(--red)">${fmt(total)}</strong>
+    </div>`;
+}
+
+function previewFoto(input) {
+  fotoFile = input.files[0];
+  if (!fotoFile) return;
+  const preview = document.getElementById('foto-preview');
+  preview.src = URL.createObjectURL(fotoFile);
+  preview.style.display = 'block';
+  document.getElementById('foto-label-text').textContent = fotoFile.name;
+}
+
+function addDespesa() {
+  const desc  = document.getElementById('d-desc').value.trim();
+  const cat   = document.getElementById('d-cat').value;
+  const valor = parseFloat(document.getElementById('d-valor').value);
+  if (!desc || !valor) { showToast('Preencha descrição e valor', 'error'); return; }
+
+  // Adiciona temporariamente (a foto será enviada no salvar)
+  despesasTemp.push({ descricao: desc, categoria: cat, valor, _foto: fotoFile, _temp: true });
+
+  closeModal('modal-despesa');
+  document.getElementById('d-desc').value = '';
+  document.getElementById('d-valor').value = '';
+  document.getElementById('foto-preview').style.display = 'none';
+  document.getElementById('foto-label-text').textContent = 'Tirar foto ou escolher da galeria';
+  fotoFile = null;
+  document.getElementById('foto-input').value = '';
+
+  loadDespesasHoje();
+  showToast('Despesa adicionada!');
+}
+
+function removeDespesaTemp(idx) {
+  // idx é relativo à lista combinada (salvas + temp)
+  // mas só removemos as temp, então precisamos ajustar
+  despesasTemp = [];
+  loadDespesasHoje();
+}
+
+function verFoto(url) {
+  window.open(url, '_blank');
+}
+
+// ===== CARREGAR DADOS JÁ SALVOS HOJE =====
+async function loadVendasHoje() {
+  // Carrega fechamento do dia se já existir
+  const { data: fech } = await sb.from('fechamento_dia')
+    .select('*, fechamento_vendedoras(*, funcionarias(nome))')
+    .eq('loja', lojaAtual).eq('data_fechamento', today).single();
+
+  if (fech) {
+    document.getElementById('total-loja').value = fech.total_loja;
+    (fech.fechamento_vendedoras || []).forEach(fv => {
+      const el = document.getElementById(`vend-${fv.funcionaria_id}`);
+      if (el) el.value = fv.valor;
+    });
+    calcDiff();
+  }
+}
+
+// ===== SALVAR DIA =====
+async function salvarDia() {
+  const total = parseFloat(document.getElementById('total-loja').value) || 0;
+  if (!total) { showToast('Informe o total da loja', 'error'); return; }
+
+  const btn = document.querySelector('.status-bar .btn-primary');
+  btn.textContent = 'Salvando...';
+  btn.disabled = true;
+
+  try {
+    // 1. Salva fechamento do dia
+    const { data: fech, error: fechErr } = await sb.from('fechamento_dia').upsert(
+      { loja: lojaAtual, data_fechamento: today, total_loja: total },
+      { onConflict: 'loja,data_fechamento' }
+    ).select().single();
+    if (fechErr) throw fechErr;
+
+    // 2. Salva por vendedora (apaga antigas e reinsere)
+    await sb.from('fechamento_vendedoras').delete().eq('fechamento_id', fech.id);
+    const vendRows = funcionarias
+      .map(f => ({ fechamento_id: fech.id, funcionaria_id: f.id, valor: parseFloat(document.getElementById(`vend-${f.id}`)?.value) || 0 }))
+      .filter(r => r.valor > 0);
+    if (vendRows.length) await sb.from('fechamento_vendedoras').insert(vendRows);
+
+    // 3. Também insere em vendas (tabela principal) para o dashboard funcionar
+    await sb.from('vendas').delete().eq('loja', lojaAtual).eq('data_venda', today);
+    const vendasRows = vendRows.map(r => ({ funcionaria_id: r.funcionaria_id, loja: lojaAtual, data_venda: today, valor: r.valor }));
+    if (vendasRows.length) await sb.from('vendas').insert(vendasRows);
+    // Venda sem funcionária = diferença
+    const somaVend = vendRows.reduce((s, r) => s + r.valor, 0);
+    const restante = total - somaVend;
+    if (restante > 0.01) {
+      await sb.from('vendas').insert({ funcionaria_id: null, loja: lojaAtual, data_venda: today, valor: restante, descricao: 'Sem atribuição' });
+    }
+
+    // 4. Salva despesas temporárias com upload de foto
+    for (const d of despesasTemp) {
+      let foto_url = null;
+      if (d._foto) {
+        const ext = d._foto.name.split('.').pop();
+        const path = `${lojaAtual}/${today}/${Date.now()}.${ext}`;
+        const { data: up } = await sb.storage.from('notas-despesas').upload(path, d._foto, { upsert: true });
+        if (up) {
+          const { data: pub } = sb.storage.from('notas-despesas').getPublicUrl(path);
+          foto_url = pub?.publicUrl || null;
+        }
+      }
+      await sb.from('despesas').insert({ loja: lojaAtual, data_despesa: today, descricao: d.descricao, categoria: d.categoria, valor: d.valor, foto_url });
+    }
+    despesasTemp = [];
+
+    showToast('Dia salvo com sucesso! ✓', 'success');
+    loadDespesasHoje();
+  } catch (e) {
+    console.error(e);
+    showToast('Erro ao salvar. Tente novamente.', 'error');
+  } finally {
+    btn.textContent = '✓ Salvar Dia';
+    btn.disabled = false;
+  }
+}
+
+// ===== RESUMO =====
+async function verResumo() {
+  const total = parseFloat(document.getElementById('total-loja').value) || 0;
+  const { data: desp } = await sb.from('despesas').select('*').eq('loja', lojaAtual).eq('data_despesa', today);
+  const totalDesp = [...(desp || []), ...despesasTemp].reduce((s, d) => s + d.valor, 0);
+  const liquido = total - totalDesp;
+
+  const vendRows = funcionarias.map(f => {
+    const val = parseFloat(document.getElementById(`vend-${f.id}`)?.value) || 0;
+    return { nome: f.nome, val };
+  }).filter(r => r.val > 0);
+
+  document.getElementById('resumo-content').innerHTML = `
+    <div class="resumo-row"><span class="resumo-label">📅 Data</span><span class="resumo-valor">${todayLabel}</span></div>
+    <div class="resumo-row"><span class="resumo-label">📍 Loja</span><span class="resumo-valor">${lojaAtual}</span></div>
+    <div style="height:8px"></div>
+    <div class="resumo-row"><span class="resumo-label" style="font-weight:600">💰 Total Bruto</span><span class="resumo-valor" style="color:var(--accent);font-size:1.1rem">${fmt(total)}</span></div>
+    ${vendRows.map(r => `<div class="resumo-row" style="padding-left:12px"><span class="resumo-label">↳ ${r.nome}</span><span class="resumo-valor">${fmt(r.val)}</span></div>`).join('')}
+    <div style="height:8px"></div>
+    <div class="resumo-row"><span class="resumo-label">🧾 Total Despesas</span><span class="resumo-valor" style="color:var(--red)">${fmt(totalDesp)}</span></div>
+    <div class="resumo-row" style="padding-top:12px"><span class="resumo-label" style="font-weight:700">✨ Líquido do Dia</span><span class="resumo-valor" style="color:var(--green);font-size:1.1rem">${fmt(liquido)}</span></div>
+  `;
+  openModal('modal-resumo');
+}
+
+// ===== UTILS =====
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  setTimeout(() => t.className = '', 3000);
+}
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ===== BOOT =====
+const lojaGuardada = localStorage.getItem('shai_loja');
+if (lojaGuardada) iniciarApp(lojaGuardada);
+</script>
+</body>
+</html>
