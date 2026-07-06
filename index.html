@@ -173,6 +173,8 @@ tr:hover td { background: var(--surface2); }
 <div class="nav-tabs">
   <button class="nav-tab active" onclick="showTab('dashboard',this)">📊 Dashboard</button>
   <button class="nav-tab" onclick="showTab('vendas',this)">💰 Vendas</button>
+  <button class="nav-tab" onclick="showTab('metas',this)">🎯 Metas</button>
+  <button class="nav-tab" onclick="showTab('historico',this)">📁 Histórico</button>
   <button class="nav-tab" onclick="showTab('comissoes',this)">👥 Comissões</button>
   <button class="nav-tab" onclick="showTab('lista',this)">🛒 Lista de Compras</button>
   <button class="nav-tab" onclick="showTab('config',this)">⚙️ Configurações</button>
@@ -356,6 +358,196 @@ tr:hover td { background: var(--surface2); }
           <thead><tr><th>Nome</th><th>Cargo</th><th>Loja</th><th>Status</th><th></th></tr></thead>
           <tbody id="func-tbody"><tr><td colspan="5" class="empty">Carregando...</td></tr></tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== METAS ===== -->
+  <div class="tab-panel" id="tab-metas">
+    <div class="section-header">
+      <div class="section-title">Metas</div>
+    </div>
+
+    <div class="tab-pills" style="margin-bottom:20px">
+      <button class="tab-pill active" onclick="setMetasView('semanal',this)">Semanais</button>
+      <button class="tab-pill" onclick="setMetasView('mensal',this)">Mensais</button>
+    </div>
+
+    <!-- METAS SEMANAIS -->
+    <div id="metas-semanal-view">
+      <div class="section-header" style="margin-bottom:16px">
+        <div style="font-size:0.9rem;color:var(--text-muted)">Selecione a semana</div>
+        <div class="week-nav">
+          <button onclick="metasWeek(-1)">‹</button>
+          <span class="week-label" id="metas-week-label">—</span>
+          <button onclick="metasWeek(1)">›</button>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:24px">
+        <div class="card">
+          <div class="card-title">Loja 1</div>
+          <div class="form-group">
+            <label class="form-label">🟢 Meta (R$)</label>
+            <input type="number" class="form-input" id="ms-l1-meta" placeholder="Ex: 8000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">🟡 Super (R$)</label>
+            <input type="number" class="form-input" id="ms-l1-super" placeholder="Ex: 10000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">🏆 Mega (R$)</label>
+            <input type="number" class="form-input" id="ms-l1-mega" placeholder="Ex: 12000">
+          </div>
+          <button class="btn btn-primary" onclick="saveMetaSemanalNamed('Loja 1')">Salvar Loja 1</button>
+        </div>
+        <div class="card">
+          <div class="card-title">Loja 2</div>
+          <div class="form-group">
+            <label class="form-label">🟢 Meta (R$)</label>
+            <input type="number" class="form-input" id="ms-l2-meta" placeholder="Ex: 8000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">🟡 Super (R$)</label>
+            <input type="number" class="form-input" id="ms-l2-super" placeholder="Ex: 10000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">🏆 Mega (R$)</label>
+            <input type="number" class="form-input" id="ms-l2-mega" placeholder="Ex: 12000">
+          </div>
+          <button class="btn btn-primary" onclick="saveMetaSemanalNamed('Loja 2')">Salvar Loja 2</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Histórico de Metas Semanais</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Semana</th><th>Loja</th><th>🟢 Meta</th><th>🟡 Super</th><th>🏆 Mega</th><th></th></tr></thead>
+            <tbody id="metas-sem-tbody"><tr><td colspan="6" class="empty">Nenhuma meta cadastrada</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- METAS MENSAIS -->
+    <div id="metas-mensal-view" style="display:none">
+      <div class="section-header" style="margin-bottom:16px">
+        <div style="font-size:0.9rem;color:var(--text-muted)">Selecione o mês</div>
+        <div class="week-nav">
+          <button onclick="metasMonth(-1)">‹</button>
+          <span class="week-label" id="metas-month-label">—</span>
+          <button onclick="metasMonth(1)">›</button>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:24px">
+        <div class="card">
+          <div class="card-title">Loja 1</div>
+          <div class="form-group">
+            <label class="form-label">🟢 Meta (R$)</label>
+            <input type="number" class="form-input" id="mm-l1-meta" placeholder="Ex: 35000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">🟡 Super (R$)</label>
+            <input type="number" class="form-input" id="mm-l1-super" placeholder="Ex: 42000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">🏆 Mega (R$)</label>
+            <input type="number" class="form-input" id="mm-l1-mega" placeholder="Ex: 50000">
+          </div>
+          <button class="btn btn-primary" onclick="saveMetaMensalNamed('Loja 1')">Salvar Loja 1</button>
+        </div>
+        <div class="card">
+          <div class="card-title">Loja 2</div>
+          <div class="form-group">
+            <label class="form-label">🟢 Meta (R$)</label>
+            <input type="number" class="form-input" id="mm-l2-meta" placeholder="Ex: 35000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">🟡 Super (R$)</label>
+            <input type="number" class="form-input" id="mm-l2-super" placeholder="Ex: 42000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">🏆 Mega (R$)</label>
+            <input type="number" class="form-input" id="mm-l2-mega" placeholder="Ex: 50000">
+          </div>
+          <button class="btn btn-primary" onclick="saveMetaMensalNamed('Loja 2')">Salvar Loja 2</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Histórico de Metas Mensais</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Mês</th><th>Loja</th><th>🟢 Meta</th><th>🟡 Super</th><th>🏆 Mega</th><th></th></tr></thead>
+            <tbody id="metas-men-tbody"><tr><td colspan="6" class="empty">Nenhuma meta cadastrada</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== HISTÓRICO ===== -->
+  <div class="tab-panel" id="tab-historico">
+    <div class="section-header">
+      <div class="section-title">Histórico de Vendas</div>
+    </div>
+
+    <div class="tab-pills" style="margin-bottom:20px">
+      <button class="tab-pill active" onclick="setHistView('semanal',this)">Por Semana</button>
+      <button class="tab-pill" onclick="setHistView('mensal',this)">Por Mês</button>
+    </div>
+
+    <!-- HISTÓRICO SEMANAL -->
+    <div id="hist-semanal-view">
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Loja</label>
+            <select class="form-select" id="hist-sem-loja" onchange="loadHistSemanal()" style="width:140px">
+              <option value="">Todas</option><option>Loja 1</option><option>Loja 2</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Ano</label>
+            <select class="form-select" id="hist-sem-ano" onchange="loadHistSemanal()" style="width:100px"></select>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Semana</th><th>Loja</th><th>Vendas</th><th>Faturamento</th><th>Ticket Médio</th><th>Tier</th><th>Meta</th><th>Super</th><th>Mega</th></tr></thead>
+            <tbody id="hist-sem-tbody"><tr><td colspan="9" class="empty">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTÓRICO MENSAL -->
+    <div id="hist-mensal-view" style="display:none">
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Loja</label>
+            <select class="form-select" id="hist-men-loja" onchange="loadHistMensal()" style="width:140px">
+              <option value="">Todas</option><option>Loja 1</option><option>Loja 2</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Ano</label>
+            <select class="form-select" id="hist-men-ano" onchange="loadHistMensal()" style="width:100px"></select>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Mês</th><th>Loja</th><th>Vendas</th><th>Faturamento</th><th>Ticket Médio</th><th>Tier</th><th>Meta</th><th>Super</th><th>Mega</th></tr></thead>
+            <tbody id="hist-men-tbody"><tr><td colspan="9" class="empty">Carregando...</td></tr></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -630,9 +822,11 @@ function showTab(name, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
-  btn.classList.add('active');
+  if (btn) btn.classList.add('active');
   if (name === 'dashboard') loadDashboard();
   if (name === 'vendas') { loadFuncionarias(); loadVendas(); }
+  if (name === 'metas') loadMetasSemanal();
+  if (name === 'historico') { initHistFilters(); loadHistSemanal(); }
   if (name === 'comissoes') loadComissoes();
   if (name === 'lista') loadLista();
   if (name === 'config') loadConfig();
@@ -1095,6 +1289,249 @@ async function saveMetaMensal(loja) {
   );
   if (error) { showToast('Erro ao salvar','error'); return; }
   showToast(`Meta mensal da ${loja} salva!`);
+}
+
+// ===== METAS =====
+let metasWeekOffset = 0, metasMonthOffset = 0;
+let metasView = 'semanal';
+
+function setMetasView(v, btn) {
+  metasView = v;
+  document.querySelectorAll('#tab-metas .tab-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('metas-semanal-view').style.display = v === 'semanal' ? '' : 'none';
+  document.getElementById('metas-mensal-view').style.display  = v === 'mensal'  ? '' : 'none';
+  if (v === 'semanal') loadMetasSemanal();
+  else loadMetasMensal();
+}
+
+function metasWeek(d) { metasWeekOffset += d; loadMetasSemanal(); }
+function metasMonth(d) { metasMonthOffset += d; loadMetasMensal(); }
+
+async function loadMetasSemanal() {
+  const monday = currentMonday(metasWeekOffset);
+  const sunday = getSunday(monday);
+  document.getElementById('metas-week-label').textContent = weekLabel(monday);
+
+  // Preenche formulário com valores existentes
+  const { data: existing } = await sb.from('metas_semanais').select('*').eq('semana_inicio', monday);
+  ['Loja 1','Loja 2'].forEach(l => {
+    const suf = l === 'Loja 1' ? 'l1' : 'l2';
+    const m = existing?.find(x => x.loja === l);
+    document.getElementById(`ms-${suf}-meta`).value  = m ? m.valor_meta  : '';
+    document.getElementById(`ms-${suf}-super`).value = m ? m.valor_super : '';
+    document.getElementById(`ms-${suf}-mega`).value  = m ? m.valor_mega  : '';
+  });
+
+  // Tabela histórico completo
+  const { data: all } = await sb.from('metas_semanais').select('*').order('semana_inicio', { ascending: false });
+  const tbody = document.getElementById('metas-sem-tbody');
+  if (!all?.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Nenhuma meta cadastrada</td></tr>'; return; }
+  tbody.innerHTML = all.map(m => `
+    <tr>
+      <td style="white-space:nowrap">${fmtDate(m.semana_inicio)} – ${fmtDate(m.semana_fim)}</td>
+      <td><span class="badge badge-${m.loja === 'Loja 1' ? 'loja1' : 'loja2'}">${m.loja}</span></td>
+      <td style="color:var(--meta-color)">${fmt(m.valor_meta)}</td>
+      <td style="color:var(--super-color)">${fmt(m.valor_super)}</td>
+      <td style="color:var(--mega-color)">${fmt(m.valor_mega)}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteMetaSem('${m.id}')">✕</button></td>
+    </tr>`).join('');
+}
+
+async function saveMetaSemanalNamed(loja) {
+  const monday = currentMonday(metasWeekOffset);
+  const sunday = getSunday(monday);
+  const suf = loja === 'Loja 1' ? 'l1' : 'l2';
+  const valor_meta  = parseFloat(document.getElementById(`ms-${suf}-meta`).value);
+  const valor_super = parseFloat(document.getElementById(`ms-${suf}-super`).value);
+  const valor_mega  = parseFloat(document.getElementById(`ms-${suf}-mega`).value);
+  if (!valor_meta || !valor_super || !valor_mega) { showToast('Preencha os 3 valores', 'error'); return; }
+  const { error } = await sb.from('metas_semanais').upsert(
+    { loja, semana_inicio: monday, semana_fim: sunday, valor_meta, valor_super, valor_mega },
+    { onConflict: 'loja,semana_inicio' }
+  );
+  if (error) { showToast('Erro ao salvar', 'error'); return; }
+  showToast(`Meta da ${loja} salva!`);
+  loadMetasSemanal();
+}
+
+async function deleteMetaSem(id) {
+  if (!confirm('Excluir esta meta?')) return;
+  await sb.from('metas_semanais').delete().eq('id', id);
+  loadMetasSemanal();
+}
+
+async function loadMetasMensal() {
+  const { mes, ano } = getCurrentMonthYear(metasMonthOffset);
+  document.getElementById('metas-month-label').textContent = monthLabel(ano, mes);
+
+  const { data: existing } = await sb.from('metas_mensais').select('*').eq('mes', mes).eq('ano', ano);
+  ['Loja 1','Loja 2'].forEach(l => {
+    const suf = l === 'Loja 1' ? 'l1' : 'l2';
+    const m = existing?.find(x => x.loja === l);
+    document.getElementById(`mm-${suf}-meta`).value  = m ? m.valor_meta  : '';
+    document.getElementById(`mm-${suf}-super`).value = m ? m.valor_super : '';
+    document.getElementById(`mm-${suf}-mega`).value  = m ? m.valor_mega  : '';
+  });
+
+  const { data: all } = await sb.from('metas_mensais').select('*').order('ano', { ascending: false }).order('mes', { ascending: false });
+  const tbody = document.getElementById('metas-men-tbody');
+  if (!all?.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Nenhuma meta cadastrada</td></tr>'; return; }
+  tbody.innerHTML = all.map(m => `
+    <tr>
+      <td>${monthLabel(m.ano, m.mes)}</td>
+      <td><span class="badge badge-${m.loja === 'Loja 1' ? 'loja1' : 'loja2'}">${m.loja}</span></td>
+      <td style="color:var(--meta-color)">${fmt(m.valor_meta)}</td>
+      <td style="color:var(--super-color)">${fmt(m.valor_super)}</td>
+      <td style="color:var(--mega-color)">${fmt(m.valor_mega)}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteMetaMen('${m.id}')">✕</button></td>
+    </tr>`).join('');
+}
+
+async function saveMetaMensalNamed(loja) {
+  const { mes, ano } = getCurrentMonthYear(metasMonthOffset);
+  const suf = loja === 'Loja 1' ? 'l1' : 'l2';
+  const valor_meta  = parseFloat(document.getElementById(`mm-${suf}-meta`).value);
+  const valor_super = parseFloat(document.getElementById(`mm-${suf}-super`).value);
+  const valor_mega  = parseFloat(document.getElementById(`mm-${suf}-mega`).value);
+  if (!valor_meta || !valor_super || !valor_mega) { showToast('Preencha os 3 valores', 'error'); return; }
+  const { error } = await sb.from('metas_mensais').upsert(
+    { loja, mes, ano, valor_meta, valor_super, valor_mega },
+    { onConflict: 'loja,mes,ano' }
+  );
+  if (error) { showToast('Erro ao salvar', 'error'); return; }
+  showToast(`Meta mensal da ${loja} salva!`);
+  loadMetasMensal();
+}
+
+async function deleteMetaMen(id) {
+  if (!confirm('Excluir esta meta?')) return;
+  await sb.from('metas_mensais').delete().eq('id', id);
+  loadMetasMensal();
+}
+
+// ===== HISTÓRICO =====
+let histView = 'semanal';
+
+function setHistView(v, btn) {
+  histView = v;
+  document.querySelectorAll('#tab-historico .tab-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('hist-semanal-view').style.display = v === 'semanal' ? '' : 'none';
+  document.getElementById('hist-mensal-view').style.display  = v === 'mensal'  ? '' : 'none';
+  if (v === 'semanal') loadHistSemanal();
+  else loadHistMensal();
+}
+
+function initHistFilters() {
+  const anoAtual = new Date().getFullYear();
+  const anos = Array.from({ length: 5 }, (_, i) => anoAtual - i);
+  ['hist-sem-ano','hist-men-ano'].forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = anos.map(a => `<option value="${a}" ${a === anoAtual ? 'selected' : ''}>${a}</option>`).join('');
+  });
+}
+
+async function loadHistSemanal() {
+  const loja  = document.getElementById('hist-sem-loja').value;
+  const ano   = parseInt(document.getElementById('hist-sem-ano').value);
+  const start = `${ano}-01-01`;
+  const end   = `${ano}-12-31`;
+
+  // Busca vendas e metas do período
+  let qv = sb.from('vendas').select('*').gte('data_venda', start).lte('data_venda', end);
+  if (loja) qv = qv.eq('loja', loja);
+  let qm = sb.from('metas_semanais').select('*').gte('semana_inicio', start).lte('semana_inicio', end);
+  if (loja) qm = qm.eq('loja', loja);
+
+  const [{ data: vendas }, { data: metas }] = await Promise.all([qv, qm]);
+
+  // Agrupa vendas por semana+loja
+  const map = {};
+  (vendas || []).forEach(v => {
+    const monday = getMonday(v.data_venda);
+    const key = `${monday}__${v.loja}`;
+    if (!map[key]) map[key] = { monday, loja: v.loja, count: 0, total: 0 };
+    map[key].count++;
+    map[key].total += v.valor;
+  });
+  // Garante que semanas com meta mas sem venda apareçam
+  (metas || []).forEach(m => {
+    const key = `${m.semana_inicio}__${m.loja}`;
+    if (!map[key]) map[key] = { monday: m.semana_inicio, loja: m.loja, count: 0, total: 0 };
+  });
+
+  const rows = Object.values(map).sort((a,b) => b.monday.localeCompare(a.monday) || a.loja.localeCompare(b.loja));
+  const tbody = document.getElementById('hist-sem-tbody');
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="9" class="empty">Nenhum dado no período</td></tr>'; return; }
+
+  tbody.innerHTML = rows.map(r => {
+    const meta = metas?.find(m => m.semana_inicio === r.monday && m.loja === r.loja);
+    const tier = calcTier(r.total, meta);
+    const ticket = r.count ? r.total / r.count : 0;
+    return `<tr>
+      <td style="white-space:nowrap;font-size:0.8rem">${fmtDate(r.monday)} – ${fmtDate(getSunday(r.monday))}</td>
+      <td><span class="badge badge-${r.loja === 'Loja 1' ? 'loja1' : 'loja2'}">${r.loja}</span></td>
+      <td>${r.count}</td>
+      <td style="font-weight:600;color:var(--accent)">${fmt(r.total)}</td>
+      <td style="color:var(--text-muted)">${fmt(ticket)}</td>
+      <td>${tierBadgeHtml(tier)}</td>
+      <td style="color:var(--meta-color)">${meta ? fmt(meta.valor_meta) : '—'}</td>
+      <td style="color:var(--super-color)">${meta ? fmt(meta.valor_super) : '—'}</td>
+      <td style="color:var(--mega-color)">${meta ? fmt(meta.valor_mega) : '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function loadHistMensal() {
+  const loja = document.getElementById('hist-men-loja').value;
+  const ano  = parseInt(document.getElementById('hist-men-ano').value);
+  const start = `${ano}-01-01`;
+  const end   = `${ano}-12-31`;
+
+  let qv = sb.from('vendas').select('*').gte('data_venda', start).lte('data_venda', end);
+  if (loja) qv = qv.eq('loja', loja);
+  let qm = sb.from('metas_mensais').select('*').eq('ano', ano);
+  if (loja) qm = qm.eq('loja', loja);
+
+  const [{ data: vendas }, { data: metas }] = await Promise.all([qv, qm]);
+
+  // Agrupa por mês+loja
+  const map = {};
+  (vendas || []).forEach(v => {
+    const d = new Date(v.data_venda + 'T00:00:00');
+    const mes = d.getMonth() + 1;
+    const lojaKey = v.loja;
+    const key = `${mes}__${lojaKey}`;
+    if (!map[key]) map[key] = { mes, loja: lojaKey, count: 0, total: 0 };
+    map[key].count++;
+    map[key].total += v.valor;
+  });
+  (metas || []).forEach(m => {
+    const key = `${m.mes}__${m.loja}`;
+    if (!map[key]) map[key] = { mes: m.mes, loja: m.loja, count: 0, total: 0 };
+  });
+
+  const rows = Object.values(map).sort((a,b) => b.mes - a.mes || a.loja.localeCompare(b.loja));
+  const tbody = document.getElementById('hist-men-tbody');
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="9" class="empty">Nenhum dado no período</td></tr>'; return; }
+
+  tbody.innerHTML = rows.map(r => {
+    const meta = metas?.find(m => m.mes === r.mes && m.loja === r.loja);
+    const tier = calcTier(r.total, meta);
+    const ticket = r.count ? r.total / r.count : 0;
+    return `<tr>
+      <td>${monthLabel(ano, r.mes)}</td>
+      <td><span class="badge badge-${r.loja === 'Loja 1' ? 'loja1' : 'loja2'}">${r.loja}</span></td>
+      <td>${r.count}</td>
+      <td style="font-weight:600;color:var(--accent)">${fmt(r.total)}</td>
+      <td style="color:var(--text-muted)">${fmt(ticket)}</td>
+      <td>${tierBadgeHtml(tier)}</td>
+      <td style="color:var(--meta-color)">${meta ? fmt(meta.valor_meta) : '—'}</td>
+      <td style="color:var(--super-color)">${meta ? fmt(meta.valor_super) : '—'}</td>
+      <td style="color:var(--mega-color)">${meta ? fmt(meta.valor_mega) : '—'}</td>
+    </tr>`;
+  }).join('');
 }
 
 // ===== INIT =====
