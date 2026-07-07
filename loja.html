@@ -734,23 +734,47 @@ function showNav(tab) {
 async function loadHistorico() {
   const el = document.getElementById('historico-list');
   el.innerHTML = '<div class="empty">Carregando...</div>';
-  const { data } = await sb.from('fechamento_dia')
-    .select('*, fechamento_vendedoras(valor, funcionarias(nome))')
-    .eq('loja', lojaAtual)
-    .order('data_fechamento', { ascending: false })
-    .limit(30);
-  if (!data?.length) { el.innerHTML = '<div class="empty">Nenhum fechamento registrado</div>'; return; }
-  el.innerHTML = data.map(d => {
-    const vends = (d.fechamento_vendedoras || [])
-      .map(v => `<div style="font-size:0.78rem;color:var(--text-muted);padding-left:8px">↳ ${v.funcionarias?.nome || '—'}: ${fmt(v.valor)}</div>`)
-      .join('');
+
+  const [{ data: fechamentos }, { data: despesas }] = await Promise.all([
+    sb.from('fechamento_dia')
+      .select('*')
+      .eq('loja', lojaAtual)
+      .order('data_fechamento', { ascending: false })
+      .limit(30),
+    sb.from('despesas')
+      .select('data_despesa, valor')
+      .eq('loja', lojaAtual)
+      .order('data_despesa', { ascending: false })
+  ]);
+
+  if (!fechamentos?.length) { el.innerHTML = '<div class="empty">Nenhum fechamento registrado</div>'; return; }
+
+  // agrupa despesas por data
+  const despPorDia = {};
+  (despesas || []).forEach(d => {
+    despPorDia[d.data_despesa] = (despPorDia[d.data_despesa] || 0) + d.valor;
+  });
+
+  el.innerHTML = fechamentos.map(d => {
+    const vendas   = d.total_loja || 0;
+    const desp     = despPorDia[d.data_fechamento] || 0;
+    const dataLabel = new Date(d.data_fechamento + 'T12:00:00')
+      .toLocaleDateString('pt-BR', { weekday:'short', day:'2-digit', month:'short' });
     return `
-      <div class="hist-row" style="flex-direction:column;align-items:flex-start;gap:6px">
-        <div style="display:flex;justify-content:space-between;width:100%">
-          <span class="hist-data">${new Date(d.data_fechamento + 'T12:00:00').toLocaleDateString('pt-BR', { weekday:'short', day:'2-digit', month:'short' })}</span>
-          <span class="hist-total">${fmt(d.total_loja)}</span>
+      <div class="hist-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+        <div style="margin-bottom:2px">
+          <span class="hist-data" style="font-size:0.85rem;font-weight:600;color:var(--text)">${dataLabel}</span>
         </div>
-        ${vends}
+        <div style="display:flex;gap:10px;width:100%">
+          <div style="flex:1;background:var(--surface2);border-radius:8px;padding:8px 10px">
+            <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">💰 Vendas</div>
+            <div style="font-size:0.9rem;font-weight:600;color:var(--accent)">${fmt(vendas)}</div>
+          </div>
+          <div style="flex:1;background:var(--surface2);border-radius:8px;padding:8px 10px">
+            <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">🧾 Despesas</div>
+            <div style="font-size:0.9rem;font-weight:600;color:var(--red)">${desp > 0 ? fmt(desp) : '—'}</div>
+          </div>
+        </div>
       </div>`;
   }).join('');
 }
