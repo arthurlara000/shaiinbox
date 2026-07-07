@@ -301,13 +301,45 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 
   <!-- ABA: DESPESAS -->
   <div id="tab-despesas" class="content" style="display:none;padding-bottom:100px">
-    <div class="section">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div class="section-title" style="margin:0">🧾 Despesas do Dia</div>
-        <button class="btn btn-ghost btn-sm" onclick="openModal('modal-despesa')">+ Adicionar</button>
+
+    <!-- Formulário inline -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="section-title" style="margin-bottom:14px">🧾 Adicionar Despesa</div>
+
+      <div class="form-label" style="margin-bottom:10px">Categoria</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+        <button class="cat-chip active" onclick="selectCat('Comida',this)">🍽️ Comida</button>
+        <button class="cat-chip" onclick="selectCat('Limpeza',this)">🧹 Limpeza</button>
+        <button class="cat-chip" onclick="selectCat('Manutenção',this)">🔧 Manutenção</button>
+        <button class="cat-chip" onclick="selectCat('Outros',this)">📦 Outros</button>
       </div>
-      <div id="despesas-list"><div class="empty">Nenhuma despesa hoje</div></div>
+      <input type="hidden" id="d-cat" value="Comida">
+
+      <div class="form-group" id="d-outros-group" style="display:none">
+        <label class="form-label">Descreva o que foi <span style="color:var(--red)">*</span></label>
+        <input type="text" class="form-input" id="d-outros-desc" placeholder="Ex: Presente cliente, Taxa bancária...">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Valor (R$)</label>
+        <input type="number" class="form-input" id="d-valor" placeholder="0,00" step="0.01" inputmode="decimal">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Foto da nota (opcional)</label>
+        <label class="foto-label" for="foto-input">
+          📷 <span id="foto-label-text">Tirar foto ou escolher da galeria</span>
+        </label>
+        <input type="file" id="foto-input" accept="image/*" capture="environment" onchange="previewFoto(this)">
+        <img id="foto-preview" class="foto-preview" alt="preview">
+      </div>
+
+      <button class="btn btn-primary" onclick="addDespesa()">+ Adicionar Despesa</button>
     </div>
+
+    <!-- Lista de despesas do dia -->
+    <div class="section-title" style="margin-bottom:12px">Despesas de hoje</div>
+    <div id="despesas-list"><div class="empty">Nenhuma despesa hoje</div></div>
   </div>
 
   <!-- ABA: HISTÓRICO -->
@@ -332,48 +364,6 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   </nav>
 </div>
 
-<!-- MODAL DESPESA -->
-<div class="modal-overlay" id="modal-despesa">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">🧾 Nova Despesa</div>
-
-    <!-- Categorias tipo chip -->
-    <div class="form-label" style="margin-bottom:10px">Categoria</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
-      <button class="cat-chip active" onclick="selectCat('Comida',this)">🍽️ Comida</button>
-      <button class="cat-chip" onclick="selectCat('Limpeza',this)">🧹 Limpeza</button>
-      <button class="cat-chip" onclick="selectCat('Manutenção',this)">🔧 Manutenção</button>
-      <button class="cat-chip" onclick="selectCat('Outros',this)">📦 Outros</button>
-    </div>
-    <input type="hidden" id="d-cat" value="Comida">
-
-    <!-- Campo "Outros" — aparece só quando selecionado -->
-    <div class="form-group" id="d-outros-group" style="display:none">
-      <label class="form-label">Descreva o que foi <span style="color:var(--red)">*</span></label>
-      <input type="text" class="form-input" id="d-outros-desc" placeholder="Ex: Presente cliente, Taxa bancária...">
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Valor (R$)</label>
-      <input type="number" class="form-input" id="d-valor" placeholder="0,00" step="0.01" inputmode="decimal">
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Foto da nota (opcional)</label>
-      <label class="foto-label" for="foto-input">
-        📷 <span id="foto-label-text">Tirar foto ou escolher da galeria</span>
-      </label>
-      <input type="file" id="foto-input" accept="image/*" capture="environment" onchange="previewFoto(this)">
-      <img id="foto-preview" class="foto-preview" alt="preview">
-    </div>
-
-    <div style="display:flex;gap:10px;margin-top:4px">
-      <button class="btn btn-ghost btn-sm" style="flex:1" onclick="closeModal('modal-despesa')">Cancelar</button>
-      <button class="btn btn-primary btn-sm" style="flex:2" onclick="addDespesa()">Adicionar</button>
-    </div>
-  </div>
-</div>
 
 <!-- MODAL RESUMO -->
 <div class="modal-overlay" id="modal-resumo">
@@ -575,8 +565,7 @@ function addDespesa() {
 
   despesasTemp.push({ descricao: desc, categoria: cat, valor, _foto: fotoFile, _temp: true });
 
-  closeModal('modal-despesa');
-  // reset modal
+  // reset form
   document.querySelectorAll('.cat-chip').forEach((b,i) => b.classList.toggle('active', i===0));
   document.getElementById('d-cat').value = 'Comida';
   document.getElementById('d-outros-group').style.display = 'none';
