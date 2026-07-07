@@ -106,6 +106,15 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .despesa-foto { font-size: 1.2rem; cursor: pointer; }
 .del-btn { background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; padding: 4px; }
 
+/* LISTA ITEM */
+.lista-item {
+  background: var(--surface2); border-radius: 10px; padding: 12px 14px;
+  margin-bottom: 8px; display: flex; align-items: center; gap: 10px;
+}
+.lista-info { flex: 1; }
+.lista-nome { font-size: 0.9rem; font-weight: 600; }
+.lista-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+
 /* CATEGORY CHIPS */
 .cat-chip {
   padding: 12px 8px; border-radius: 12px; border: 1.5px solid var(--border);
@@ -350,6 +359,51 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
     </div>
   </div>
 
+  <!-- ABA: LISTA DE COMPRAS -->
+  <div id="tab-lista" class="content" style="display:none;padding-bottom:100px">
+
+    <!-- Formulário inline -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="section-title" style="margin-bottom:14px">🛍️ Anotar Falta</div>
+
+      <div class="form-group">
+        <label class="form-label">Produto <span style="color:var(--red)">*</span></label>
+        <input type="text" class="form-input" id="l-nome" placeholder="Ex: Vestido, Calça, Blusa...">
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group">
+          <label class="form-label">Tamanho</label>
+          <input type="text" class="form-input" id="l-tamanho" placeholder="P, M, G, 38...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cor</label>
+          <input type="text" class="form-input" id="l-cor" placeholder="Azul, Preto...">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Categoria <span style="color:var(--red)">*</span></label>
+        <select class="form-select" id="l-cat">
+          <option>Vestido</option>
+          <option>Calça</option>
+          <option>Blusa</option>
+          <option>Blazer</option>
+          <option>Saia</option>
+          <option>Acessório</option>
+          <option>Calçado</option>
+          <option>Outros</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary" onclick="addLista()">+ Adicionar à Lista</button>
+    </div>
+
+    <!-- Lista de itens -->
+    <div class="section-title" style="margin-bottom:12px">Itens pendentes</div>
+    <div id="lista-itens"><div class="empty">Nenhum item na lista</div></div>
+  </div>
+
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
     <button class="nav-item active" id="nav-vendas" onclick="showNav('vendas')">
@@ -360,6 +414,9 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
     </button>
     <button class="nav-item" id="nav-historico" onclick="showNav('historico')">
       <span class="nav-icon">📅</span>Histórico
+    </button>
+    <button class="nav-item" id="nav-lista" onclick="showNav('lista')">
+      <span class="nav-icon">🛍️</span>Lista
     </button>
   </nav>
 </div>
@@ -723,11 +780,12 @@ async function verResumo() {
 
 // ===== NAV =====
 function showNav(tab) {
-  ['vendas','despesas','historico'].forEach(t => {
+  ['vendas','despesas','historico','lista'].forEach(t => {
     document.getElementById('tab-' + t).style.display = t === tab ? '' : 'none';
     document.getElementById('nav-' + t).classList.toggle('active', t === tab);
   });
   if (tab === 'historico') loadHistorico();
+  if (tab === 'lista') loadLista();
 }
 
 // ===== HISTÓRICO =====
@@ -792,6 +850,47 @@ function toggleHist(i) {
   detail.style.display  = open ? '' : 'none';
   chevron.style.transform = open ? 'rotate(90deg)' : '';
   chevron.textContent     = '›';
+}
+
+// ===== LISTA DE COMPRAS =====
+async function loadLista() {
+  const el = document.getElementById('lista-itens');
+  el.innerHTML = '<div class="empty">Carregando...</div>';
+  const { data } = await sb.from('lista_loja')
+    .select('*').eq('loja', lojaAtual).eq('status','pendente')
+    .order('criado_em', { ascending: false });
+  if (!data?.length) { el.innerHTML = '<div class="empty">Nenhum item na lista</div>'; return; }
+  el.innerHTML = data.map(item => {
+    const sub = [item.categoria, item.tamanho, item.cor].filter(Boolean).join(' · ');
+    return `
+      <div class="lista-item">
+        <div class="lista-info">
+          <div class="lista-nome">${item.nome}</div>
+          ${sub ? `<div class="lista-sub">${sub}</div>` : ''}
+        </div>
+        <button class="del-btn" onclick="removeLista('${item.id}')">✕</button>
+      </div>`;
+  }).join('');
+}
+
+async function addLista() {
+  const nome = document.getElementById('l-nome').value.trim();
+  const cat  = document.getElementById('l-cat').value;
+  if (!nome) { showToast('Informe o nome do produto', 'error'); return; }
+  const tamanho = document.getElementById('l-tamanho').value.trim() || null;
+  const cor     = document.getElementById('l-cor').value.trim()     || null;
+  const { error } = await sb.from('lista_loja').insert({ loja: lojaAtual, nome, tamanho, cor, categoria: cat });
+  if (error) { showToast('Erro ao salvar', 'error'); return; }
+  document.getElementById('l-nome').value    = '';
+  document.getElementById('l-tamanho').value = '';
+  document.getElementById('l-cor').value     = '';
+  showToast('Item adicionado!');
+  loadLista();
+}
+
+async function removeLista(id) {
+  await sb.from('lista_loja').delete().eq('id', id);
+  loadLista();
 }
 
 // ===== UTILS =====

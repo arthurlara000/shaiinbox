@@ -613,6 +613,21 @@ tr:hover td { background: var(--surface2); }
         <div id="lista-insumos"><div class="empty">Nenhum item</div></div>
       </div>
     </div>
+
+    <!-- Lista das Lojas -->
+    <div style="margin-top:32px">
+      <div class="section-title" style="margin-bottom:16px">🏪 Faltas das Lojas</div>
+      <div class="grid-2">
+        <div>
+          <div class="card-title" style="margin-bottom:12px;padding-left:4px">📍 Loja Areal</div>
+          <div id="lista-loja-areal"><div class="empty">Nenhum item</div></div>
+        </div>
+        <div>
+          <div class="card-title" style="margin-bottom:12px;padding-left:4px">📍 Loja Três Rios</div>
+          <div id="lista-loja-tresrios"><div class="empty">Nenhum item</div></div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ===== CONFIG ===== -->
@@ -1208,6 +1223,30 @@ async function loadLista() {
   const { data } = await sb.from('lista_compras').select('*').order('feito').order('criado_em',{ascending:false});
   renderChecklist('lista-estoque', (data||[]).filter(i=>i.categoria==='Estoque'));
   renderChecklist('lista-insumos', (data||[]).filter(i=>i.categoria==='Insumos'));
+  loadListaLojas();
+}
+async function loadListaLojas() {
+  const { data } = await sb.from('lista_loja').select('*').eq('status','pendente').order('criado_em',{ascending:false});
+  renderListaLoja('lista-loja-areal',    (data||[]).filter(i=>i.loja==='Loja Areal'));
+  renderListaLoja('lista-loja-tresrios', (data||[]).filter(i=>i.loja==='Loja Três Rios'));
+}
+function renderListaLoja(elId, items) {
+  const el = document.getElementById(elId);
+  if (!items.length) { el.innerHTML='<div class="empty">Nenhum item</div>'; return; }
+  el.innerHTML = items.map(i => {
+    const sub = [i.categoria, i.tamanho, i.cor].filter(Boolean).join(' · ');
+    return `<div class="check-item">
+      <div class="check-text" style="flex:1">
+        <div>${i.nome}</div>
+        ${sub ? `<div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px">${sub}</div>` : ''}
+      </div>
+      <button class="btn btn-primary" style="padding:4px 10px;font-size:0.75rem" onclick="okListaLoja('${i.id}')">✓ OK</button>
+    </div>`;
+  }).join('');
+}
+async function okListaLoja(id) {
+  await sb.from('lista_loja').update({status:'ok'}).eq('id',id);
+  loadListaLojas();
 }
 function renderChecklist(elId, items) {
   const el = document.getElementById(elId);
