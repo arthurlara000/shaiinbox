@@ -6,6 +6,7 @@
 <title>Shai Vendas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
@@ -240,8 +241,8 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
     <div class="form-group">
       <label class="form-label">Loja</label>
       <select class="form-select" id="cad-loja">
-        <option value="Loja Areal">📍 Loja Areal</option>
-        <option value="Loja Três Rios">📍 Loja Três Rios</option>
+        <option value="Loja Areal"><i class="ti ti-map-pin"></i>Loja Areal</option>
+        <option value="Loja Três Rios"><i class="ti ti-map-pin"></i>Loja Três Rios</option>
       </select>
     </div>
     <div class="form-group">
@@ -274,24 +275,24 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   <!-- ABA: VENDAS -->
   <div id="tab-vendas" class="content" style="padding-bottom:100px">
     <div class="section">
-      <div class="section-title">💰 Fechamento do Dia</div>
+      <div class="section-title"><i class="ti ti-report-money"></i> Fechamento do Dia</div>
       <div class="card">
         <div class="form-label" style="margin-bottom:12px">Forma de pagamento</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
           <div>
-            <label class="form-label">💵 Dinheiro</label>
+            <label class="form-label"><i class="ti ti-cash"></i> Dinheiro</label>
             <input type="text" class="form-input" id="total-dinheiro" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this);calcTotal()">
           </div>
           <div>
-            <label class="form-label">💳 Cartão</label>
+            <label class="form-label"><i class="ti ti-credit-card"></i> Cartão</label>
             <input type="text" class="form-input" id="total-cartao" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this);calcTotal()">
           </div>
           <div>
-            <label class="form-label">📱 Pix</label>
+            <label class="form-label"><i class="ti ti-qrcode"></i> Pix</label>
             <input type="text" class="form-input" id="total-pix" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this);calcTotal()">
           </div>
           <div>
-            <label class="form-label">📒 Crediário</label>
+            <label class="form-label"><i class="ti ti-notebook"></i> Crediário</label>
             <input type="text" class="form-input" id="total-crediario" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this);calcTotal()">
           </div>
         </div>
@@ -309,7 +310,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
       </div>
     </div>
     <div class="save-bar">
-      <button class="btn btn-primary" onclick="salvarDia()">✓ Salvar Fechamento</button>
+      <button class="btn btn-primary" onclick="salvarDia()"><i class="ti ti-check"></i> Salvar Fechamento</button>
     </div>
   </div>
 
@@ -318,14 +319,14 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 
     <!-- Formulário inline -->
     <div class="card" style="margin-bottom:20px">
-      <div class="section-title" style="margin-bottom:14px">🧾 Adicionar Despesa</div>
+      <div class="section-title" style="margin-bottom:14px"><i class="ti ti-receipt"></i> Adicionar Despesa</div>
 
       <div class="form-label" style="margin-bottom:10px">Categoria</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-        <button class="cat-chip active" onclick="selectCat('Alimentação',this)">🍽️ Alimentação</button>
-        <button class="cat-chip" onclick="selectCat('Limpeza',this)">🧹 Limpeza</button>
-        <button class="cat-chip" onclick="selectCat('Manutenção',this)">🔧 Manutenção</button>
-        <button class="cat-chip" onclick="selectCat('Outros',this)">📦 Outros</button>
+        <button class="cat-chip active" onclick="selectCat('Alimentação',this)"><i class="ti ti-tools-kitchen-2"></i> Alimentação</button>
+        <button class="cat-chip" onclick="selectCat('Limpeza',this)"><i class="ti ti-spray"></i> Limpeza</button>
+        <button class="cat-chip" onclick="selectCat('Manutenção',this)"><i class="ti ti-tool"></i> Manutenção</button>
+        <button class="cat-chip" onclick="selectCat('Outros',this)"><i class="ti ti-package"></i> Outros</button>
       </div>
       <input type="hidden" id="d-cat" value="Alimentação">
 
@@ -342,7 +343,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
       <div class="form-group">
         <label class="form-label">Foto da nota <span style="color:var(--red)">*</span></label>
         <label class="foto-label" for="foto-input">
-          📷 <span id="foto-label-text">Tirar foto ou escolher da galeria</span>
+          <i class="ti ti-camera"></i> <span id="foto-label-text">Tirar foto ou escolher da galeria</span>
         </label>
         <input type="file" id="foto-input" accept="image/*" capture="environment" onchange="previewFoto(this)">
         <img id="foto-preview" class="foto-preview" alt="preview">
@@ -359,7 +360,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   <!-- ABA: HISTÓRICO -->
   <div id="tab-historico" class="content" style="display:none;padding-bottom:100px">
     <div class="section">
-      <div class="section-title">📅 Histórico de Vendas</div>
+      <div class="section-title"><i class="ti ti-history"></i> Histórico de Vendas</div>
       <div id="historico-list"><div class="empty">Carregando...</div></div>
     </div>
   </div>
@@ -369,7 +370,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 
     <!-- Formulário inline -->
     <div class="card" style="margin-bottom:20px">
-      <div class="section-title" style="margin-bottom:14px">🛍️ Anotar Falta</div>
+      <div class="section-title" style="margin-bottom:14px"><i class="ti ti-shopping-bag"></i> Anotar Falta</div>
 
       <div class="form-group">
         <label class="form-label">Produto <span style="color:var(--red)">*</span></label>
@@ -412,16 +413,16 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
     <button class="nav-item active" id="nav-vendas" onclick="showNav('vendas')">
-      <span class="nav-icon">💰</span>Vendas
+      <span class="nav-icon"><i class="ti ti-cash"></i></span>Vendas
     </button>
     <button class="nav-item" id="nav-despesas" onclick="showNav('despesas')">
-      <span class="nav-icon">🧾</span>Despesas
+      <span class="nav-icon"><i class="ti ti-receipt"></i></span>Despesas
     </button>
     <button class="nav-item" id="nav-historico" onclick="showNav('historico')">
-      <span class="nav-icon">📅</span>Histórico
+      <span class="nav-icon"><i class="ti ti-history"></i></span>Histórico
     </button>
     <button class="nav-item" id="nav-lista" onclick="showNav('lista')">
-      <span class="nav-icon">🛍️</span>Lista
+      <span class="nav-icon"><i class="ti ti-shopping-bag"></i></span>Lista
     </button>
   </nav>
 </div>
@@ -431,7 +432,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 <div class="modal-overlay" id="modal-resumo">
   <div class="modal" style="max-height:80vh;overflow-y:auto">
     <div class="modal-handle"></div>
-    <div class="modal-title">📋 Resumo do Dia</div>
+    <div class="modal-title"><i class="ti ti-clipboard-list"></i> Resumo do Dia</div>
     <div id="resumo-content"></div>
     <div style="margin-top:16px">
       <button class="btn btn-ghost" onclick="closeModal('modal-resumo')">Fechar</button>
@@ -586,7 +587,7 @@ function calcDiff() {
   const badge = document.getElementById('diff-badge');
   if (total === 0) { badge.textContent = ''; return; }
   if (Math.abs(diff) < 0.01) {
-    badge.innerHTML = '<span style="color:var(--green)">✓ Valores conferem</span>';
+    badge.innerHTML = '<span style="color:var(--green)"><i class="ti ti-check"></i> Valores conferem</span>';
   } else {
     badge.innerHTML = `<span style="color:var(--accent)">${diff > 0 ? '+' : ''}${fmt(diff)} de diferença</span>`;
   }
@@ -610,9 +611,9 @@ function renderDespesas(lista) {
         <div class="despesa-desc">${d.descricao}</div>
         <div class="despesa-cat"><span class="badge badge-cat">${d.categoria}</span></div>
       </div>
-      ${d.foto_url ? `<span class="despesa-foto" onclick="verFoto('${d.foto_url}')">🖼️</span>` : ''}
+      ${d.foto_url ? `<span class="despesa-foto" onclick="verFoto('${d.foto_url}')"><i class="ti ti-photo"></i></span>` : ''}
       <div class="despesa-valor">${fmt(d.valor)}</div>
-      ${!d.id || d._temp ? `<button class="del-btn" onclick="removeDespesaTemp(${i})">✕</button>` : ''}
+      ${!d.id || d._temp ? `<button class="del-btn" onclick="removeDespesaTemp(${i})"><i class="ti ti-x"></i></button>` : ''}
     </div>`).join('') +
     `<div style="padding:10px 0;text-align:right;font-size:0.85rem;color:var(--text-muted)">
       Total despesas: <strong style="color:var(--red)">${fmt(total)}</strong>
@@ -751,13 +752,13 @@ async function salvarDia() {
     }
     despesasTemp = [];
 
-    showToast('Dia salvo com sucesso! ✓', 'success');
+    showToast('Dia salvo com sucesso!', 'success');
     loadDespesasHoje();
   } catch (e) {
     console.error(e);
     showToast('Erro ao salvar. Tente novamente.', 'error');
   } finally {
-    btn.textContent = '✓ Salvar Fechamento';
+    btn.textContent = '<i class="ti ti-check"></i> Salvar Fechamento';
     btn.disabled = false;
   }
 }
@@ -775,14 +776,14 @@ async function verResumo() {
   }).filter(r => r.val > 0);
 
   document.getElementById('resumo-content').innerHTML = `
-    <div class="resumo-row"><span class="resumo-label">📅 Data</span><span class="resumo-valor">${todayLabel}</span></div>
-    <div class="resumo-row"><span class="resumo-label">📍 Loja</span><span class="resumo-valor">${lojaAtual}</span></div>
+    <div class="resumo-row"><span class="resumo-label"><i class="ti ti-calendar"></i> Data</span><span class="resumo-valor">${todayLabel}</span></div>
+    <div class="resumo-row"><span class="resumo-label"><i class="ti ti-map-pin"></i> Loja</span><span class="resumo-valor">${lojaAtual}</span></div>
     <div style="height:8px"></div>
-    <div class="resumo-row"><span class="resumo-label" style="font-weight:600">💰 Total Bruto</span><span class="resumo-valor" style="color:var(--accent);font-size:1.1rem">${fmt(total)}</span></div>
+    <div class="resumo-row"><span class="resumo-label" style="font-weight:600"><i class="ti ti-cash"></i> Total Bruto</span><span class="resumo-valor" style="color:var(--accent);font-size:1.1rem">${fmt(total)}</span></div>
     ${vendRows.map(r => `<div class="resumo-row" style="padding-left:12px"><span class="resumo-label">↳ ${r.nome}</span><span class="resumo-valor">${fmt(r.val)}</span></div>`).join('')}
     <div style="height:8px"></div>
-    <div class="resumo-row"><span class="resumo-label">🧾 Total Despesas</span><span class="resumo-valor" style="color:var(--red)">${fmt(totalDesp)}</span></div>
-    <div class="resumo-row" style="padding-top:12px"><span class="resumo-label" style="font-weight:700">✨ Líquido do Dia</span><span class="resumo-valor" style="color:var(--green);font-size:1.1rem">${fmt(liquido)}</span></div>
+    <div class="resumo-row"><span class="resumo-label"><i class="ti ti-receipt"></i> Total Despesas</span><span class="resumo-valor" style="color:var(--red)">${fmt(totalDesp)}</span></div>
+    <div class="resumo-row" style="padding-top:12px"><span class="resumo-label" style="font-weight:700"><i class="ti ti-wallet"></i> Líquido do Dia</span><span class="resumo-valor" style="color:var(--green);font-size:1.1rem">${fmt(liquido)}</span></div>
   `;
   openModal('modal-resumo');
 }
@@ -839,11 +840,11 @@ async function loadHistorico() {
         <div id="hist-detail-${i}" style="display:none;width:100%;padding:0 14px 14px">
           <div style="display:flex;gap:8px">
             <div style="flex:1;background:var(--surface2);border-radius:8px;padding:8px 10px">
-              <div style="font-size:0.62rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">💰 Vendas</div>
+              <div style="font-size:0.62rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px"><i class="ti ti-cash"></i> Vendas</div>
               <div style="font-size:0.9rem;font-weight:600;color:var(--accent)">${fmt(vendas)}</div>
             </div>
             <div style="flex:1;background:var(--surface2);border-radius:8px;padding:8px 10px">
-              <div style="font-size:0.62rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">🧾 Despesas</div>
+              <div style="font-size:0.62rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px"><i class="ti ti-receipt"></i> Despesas</div>
               <div style="font-size:0.9rem;font-weight:600;color:var(--red)">${desp > 0 ? fmt(desp) : '—'}</div>
             </div>
           </div>
@@ -877,7 +878,7 @@ async function loadLista() {
           <div class="lista-nome">${item.nome}</div>
           ${sub ? `<div class="lista-sub">${sub}</div>` : ''}
         </div>
-        <button class="del-btn" onclick="removeLista('${item.id}')">✕</button>
+        <button class="del-btn" onclick="removeLista('${item.id}')"><i class="ti ti-x"></i></button>
       </div>`;
   }).join('');
 }

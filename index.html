@@ -6,6 +6,7 @@
 <title>Shai Manager</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
@@ -32,6 +33,10 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+.ti { vertical-align: -0.125em; font-size: 1.05em; }
+.nav-tab .ti { font-size: 1.15em; margin-right: 7px; }
+.tab-pill .ti, .btn .ti { margin-right: 5px; }
+.dre-row .ti { margin-right: 8px; width: 1.15em; text-align: center; color: var(--text-muted); }
 
 .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 100; }
 .logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--accent); letter-spacing: 0.05em; }
@@ -228,14 +233,14 @@ tr:hover td { background: var(--surface2); }
 </div>
 
 <div class="nav-tabs">
-  <button class="nav-tab active" onclick="showTab('dashboard',this)">📊 Dashboard</button>
-  <button class="nav-tab" onclick="showTab('metas',this)">🎯 Metas</button>
-  <button class="nav-tab" onclick="showTab('historico',this)">📁 Histórico</button>
-  <button class="nav-tab" onclick="showTab('comissoes',this)">👥 Comissões</button>
-  <button class="nav-tab" onclick="showTab('lista',this)">🛒 Lista de Compras</button>
-  <button class="nav-tab" onclick="showTab('custos',this)">💸 Custos Fixos</button>
-  <button class="nav-tab" onclick="showTab('fechamentos',this)">📊 Fechamentos</button>
-  <button class="nav-tab" onclick="showTab('config',this)">⚙️ Configurações</button>
+  <button class="nav-tab active" onclick="showTab('dashboard',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
+  <button class="nav-tab" onclick="showTab('metas',this)"><i class="ti ti-target-arrow"></i>Metas</button>
+  <button class="nav-tab" onclick="showTab('historico',this)"><i class="ti ti-history"></i>Histórico</button>
+  <button class="nav-tab" onclick="showTab('comissoes',this)"><i class="ti ti-users"></i>Comissões</button>
+  <button class="nav-tab" onclick="showTab('lista',this)"><i class="ti ti-shopping-cart"></i>Lista de Compras</button>
+  <button class="nav-tab" onclick="showTab('custos',this)"><i class="ti ti-building-bank"></i>Custos Fixos</button>
+  <button class="nav-tab" onclick="showTab('fechamentos',this)"><i class="ti ti-report-money"></i>Fechamentos</button>
+  <button class="nav-tab" onclick="showTab('config',this)"><i class="ti ti-settings"></i>Configurações</button>
 </div>
 
 <div class="content">
@@ -394,8 +399,8 @@ tr:hover td { background: var(--surface2); }
     </div>
 
     <div class="tab-pills" style="margin-bottom:20px">
-      <button class="tab-pill active" onclick="setMetasView('semanal',this)">📅 Meta Semanal</button>
-      <button class="tab-pill" onclick="setMetasView('mensal',this)">🗓️ Meta Mensal</button>
+      <button class="tab-pill active" onclick="setMetasView('semanal',this)"><i class="ti ti-calendar"></i>Meta Semanal</button>
+      <button class="tab-pill" onclick="setMetasView('mensal',this)"><i class="ti ti-calendar-month"></i>Meta Mensal</button>
     </div>
 
     <!-- METAS SEMANAIS -->
@@ -413,15 +418,15 @@ tr:hover td { background: var(--surface2); }
         <div class="card">
           <div class="card-title">Loja Areal</div>
           <div class="form-group">
-            <label class="form-label">🟢 Meta (R$)</label>
+            <label class="form-label"><i class="ti ti-circle-check" style="color:var(--meta-color)"></i> Meta (R$)</label>
             <input type="text" class="form-input" id="ms-l1-meta" placeholder="R$ 0,00" oninput="maskBRL(this)">
           </div>
           <div class="form-group">
-            <label class="form-label">🟡 Super (R$)</label>
+            <label class="form-label"><i class="ti ti-star" style="color:var(--super-color)"></i> Super (R$)</label>
             <input type="text" class="form-input" id="ms-l1-super" placeholder="R$ 0,00" oninput="maskBRL(this)">
           </div>
           <div class="form-group">
-            <label class="form-label">🏆 Mega (R$)</label>
+            <label class="form-label"><i class="ti ti-trophy" style="color:var(--mega-color)"></i> Mega (R$)</label>
             <input type="text" class="form-input" id="ms-l1-mega" placeholder="R$ 0,00" oninput="maskBRL(this)">
           </div>
           <button class="btn btn-primary" onclick="saveMetaSemanalNamed('Loja Areal')">Salvar Loja Areal</button>
@@ -429,15 +434,15 @@ tr:hover td { background: var(--surface2); }
         <div class="card">
           <div class="card-title">Loja Três Rios</div>
           <div class="form-group">
-            <label class="form-label">🟢 Meta (R$)</label>
+            <label class="form-label"><i class="ti ti-circle-check" style="color:var(--meta-color)"></i> Meta (R$)</label>
             <input type="text" class="form-input" id="ms-l2-meta" placeholder="R$ 0,00" oninput="maskBRL(this)">
           </div>
           <div class="form-group">
-            <label class="form-label">🟡 Super (R$)</label>
+            <label class="form-label"><i class="ti ti-star" style="color:var(--super-color)"></i> Super (R$)</label>
             <input type="text" class="form-input" id="ms-l2-super" placeholder="R$ 0,00" oninput="maskBRL(this)">
           </div>
           <div class="form-group">
-            <label class="form-label">🏆 Mega (R$)</label>
+            <label class="form-label"><i class="ti ti-trophy" style="color:var(--mega-color)"></i> Mega (R$)</label>
             <input type="text" class="form-input" id="ms-l2-mega" placeholder="R$ 0,00" oninput="maskBRL(this)">
           </div>
           <button class="btn btn-primary" onclick="saveMetaSemanalNamed('Loja Três Rios')">Salvar Loja Três Rios</button>
@@ -448,7 +453,7 @@ tr:hover td { background: var(--surface2); }
         <div class="card-title">Histórico de Metas Semanais</div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Semana</th><th>Loja</th><th>🟢 Meta</th><th>🟡 Super</th><th>🏆 Mega</th><th></th></tr></thead>
+            <thead><tr><th>Semana</th><th>Loja</th><th><i class="ti ti-circle-check" style="color:var(--meta-color)"></i> Meta</th><th><i class="ti ti-star" style="color:var(--super-color)"></i> Super</th><th><i class="ti ti-trophy" style="color:var(--mega-color)"></i> Mega</th><th></th></tr></thead>
             <tbody id="metas-sem-tbody"><tr><td colspan="6" class="empty">Nenhuma meta cadastrada</td></tr></tbody>
           </table>
         </div>
@@ -470,15 +475,15 @@ tr:hover td { background: var(--surface2); }
         <div class="card">
           <div class="card-title">Loja Areal</div>
           <div class="form-group">
-            <label class="form-label">🟢 Meta (R$)</label>
+            <label class="form-label"><i class="ti ti-circle-check" style="color:var(--meta-color)"></i> Meta (R$)</label>
             <input type="text" class="form-input" id="mm-l1-meta" placeholder="R$ 0,00" oninput="maskBRL(this)">
           </div>
           <div class="form-group">
-            <label class="form-label">🟡 Super (R$)</label>
+            <label class="form-label"><i class="ti ti-star" style="color:var(--super-color)"></i> Super (R$)</label>
             <input type="text" class="form-input" id="mm-l1-super" placeholder="R$ 0,00" oninput="maskBRL(this)">
           </div>
           <div class="form-group">
-            <label class="form-label">🏆 Mega (R$)</label>
+            <label class="form-label"><i class="ti ti-trophy" style="color:var(--mega-color)"></i> Mega (R$)</label>
             <input type="text" class="form-input" id="mm-l1-mega" placeholder="R$ 0,00" oninput="maskBRL(this)">
           </div>
           <button class="btn btn-primary" onclick="saveMetaMensalNamed('Loja Areal')">Salvar Loja Areal</button>
@@ -486,15 +491,15 @@ tr:hover td { background: var(--surface2); }
         <div class="card">
           <div class="card-title">Loja Três Rios</div>
           <div class="form-group">
-            <label class="form-label">🟢 Meta (R$)</label>
+            <label class="form-label"><i class="ti ti-circle-check" style="color:var(--meta-color)"></i> Meta (R$)</label>
             <input type="text" class="form-input" id="mm-l2-meta" placeholder="R$ 0,00" oninput="maskBRL(this)">
           </div>
           <div class="form-group">
-            <label class="form-label">🟡 Super (R$)</label>
+            <label class="form-label"><i class="ti ti-star" style="color:var(--super-color)"></i> Super (R$)</label>
             <input type="text" class="form-input" id="mm-l2-super" placeholder="R$ 0,00" oninput="maskBRL(this)">
           </div>
           <div class="form-group">
-            <label class="form-label">🏆 Mega (R$)</label>
+            <label class="form-label"><i class="ti ti-trophy" style="color:var(--mega-color)"></i> Mega (R$)</label>
             <input type="text" class="form-input" id="mm-l2-mega" placeholder="R$ 0,00" oninput="maskBRL(this)">
           </div>
           <button class="btn btn-primary" onclick="saveMetaMensalNamed('Loja Três Rios')">Salvar Loja Três Rios</button>
@@ -505,7 +510,7 @@ tr:hover td { background: var(--surface2); }
         <div class="card-title">Histórico de Metas Mensais</div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Mês</th><th>Loja</th><th>🟢 Meta</th><th>🟡 Super</th><th>🏆 Mega</th><th></th></tr></thead>
+            <thead><tr><th>Mês</th><th>Loja</th><th><i class="ti ti-circle-check" style="color:var(--meta-color)"></i> Meta</th><th><i class="ti ti-star" style="color:var(--super-color)"></i> Super</th><th><i class="ti ti-trophy" style="color:var(--mega-color)"></i> Mega</th><th></th></tr></thead>
             <tbody id="metas-men-tbody"><tr><td colspan="6" class="empty">Nenhuma meta cadastrada</td></tr></tbody>
           </table>
         </div>
@@ -663,9 +668,9 @@ tr:hover td { background: var(--surface2); }
     </div>
 
     <div class="tab-pills" style="margin-bottom:20px">
-      <button class="tab-pill active" id="lpill-areal"    onclick="setListaView('areal',this)">📍 Loja Areal</button>
-      <button class="tab-pill"        id="lpill-tresrios" onclick="setListaView('tresrios',this)">📍 Loja Três Rios</button>
-      <button class="tab-pill"        id="lpill-todas"    onclick="setListaView('todas',this)">📋 Consolidado</button>
+      <button class="tab-pill active" id="lpill-areal"    onclick="setListaView('areal',this)"><i class="ti ti-map-pin"></i>Loja Areal</button>
+      <button class="tab-pill"        id="lpill-tresrios" onclick="setListaView('tresrios',this)"><i class="ti ti-map-pin"></i>Loja Três Rios</button>
+      <button class="tab-pill"        id="lpill-todas"    onclick="setListaView('todas',this)"><i class="ti ti-clipboard-list"></i>Consolidado</button>
     </div>
 
     <!-- Loja Areal -->
@@ -682,11 +687,11 @@ tr:hover td { background: var(--surface2); }
     <div id="lview-todas" style="display:none">
       <div class="grid-2">
         <div>
-          <div class="card-title" style="margin-bottom:12px;padding-left:4px">📍 Loja Areal</div>
+          <div class="card-title" style="margin-bottom:12px;padding-left:4px"><i class="ti ti-map-pin"></i>Loja Areal</div>
           <div id="lista-loja-areal-c"><div class="empty">Nenhum item</div></div>
         </div>
         <div>
-          <div class="card-title" style="margin-bottom:12px;padding-left:4px">📍 Loja Três Rios</div>
+          <div class="card-title" style="margin-bottom:12px;padding-left:4px"><i class="ti ti-map-pin"></i>Loja Três Rios</div>
           <div id="lista-loja-tresrios-c"><div class="empty">Nenhum item</div></div>
         </div>
       </div>
@@ -700,8 +705,8 @@ tr:hover td { background: var(--surface2); }
     </div>
 
     <div class="tab-pills" style="margin-bottom:20px">
-      <button class="tab-pill active" id="cpill-areal"    onclick="setCustosLoja('Loja Areal',this)">📍 Loja Areal</button>
-      <button class="tab-pill"        id="cpill-tresrios" onclick="setCustosLoja('Loja Três Rios',this)">📍 Loja Três Rios</button>
+      <button class="tab-pill active" id="cpill-areal"    onclick="setCustosLoja('Loja Areal',this)"><i class="ti ti-map-pin"></i>Loja Areal</button>
+      <button class="tab-pill"        id="cpill-tresrios" onclick="setCustosLoja('Loja Três Rios',this)"><i class="ti ti-map-pin"></i>Loja Três Rios</button>
     </div>
 
     <!-- Formulário inline -->
@@ -736,10 +741,10 @@ tr:hover td { background: var(--surface2); }
     </div>
 
     <div class="tab-pills" style="margin-bottom:20px">
-      <button class="tab-pill active" id="fpill-semanal"  onclick="setFechView('semanal',this)">📅 Semanal</button>
-      <button class="tab-pill"        id="fpill-mensal"   onclick="setFechView('mensal',this)">🗓️ Mensal</button>
-      <button class="tab-pill"        id="fpill-anual"    onclick="setFechView('anual',this)">📆 Anual</button>
-      <button class="tab-pill"        id="fpill-periodo"  onclick="setFechView('periodo',this)">🔍 Por Período</button>
+      <button class="tab-pill active" id="fpill-semanal"  onclick="setFechView('semanal',this)"><i class="ti ti-calendar"></i>Semanal</button>
+      <button class="tab-pill"        id="fpill-mensal"   onclick="setFechView('mensal',this)"><i class="ti ti-calendar-month"></i>Mensal</button>
+      <button class="tab-pill"        id="fpill-anual"    onclick="setFechView('anual',this)"><i class="ti ti-calendar-stats"></i>Anual</button>
+      <button class="tab-pill"        id="fpill-periodo"  onclick="setFechView('periodo',this)"><i class="ti ti-search"></i>Por Período</button>
     </div>
 
     <!-- Seletor de período -->
@@ -910,8 +915,9 @@ function calcTier(realizado, meta) {
 
 function tierBadgeHtml(tier) {
   const map = { Meta: 'tier-meta', Super: 'tier-super', Mega: 'tier-mega', Nenhum: 'tier-none' };
-  const icons = { Meta: '🟢', Super: '🟡', Mega: '🏆', Nenhum: '—' };
-  return `<span class="tier-badge ${map[tier] || 'tier-none'}">${icons[tier] || ''} ${tier}</span>`;
+  const icons = { Meta: 'ti-circle-check', Super: 'ti-star', Mega: 'ti-trophy', Nenhum: '' };
+  const ic = icons[tier] ? `<i class="ti ${icons[tier]}"></i> ` : '';
+  return `<span class="tier-badge ${map[tier] || 'tier-none'}">${ic}${tier}</span>`;
 }
 
 function showToast(msg, type = 'success') {
@@ -997,7 +1003,7 @@ function renderTierProgress(realizado, meta, lojaColor) {
   const faltaMeta  = realizado < meta.valor_meta  ? fmt(meta.valor_meta  - realizado) + ' p/ Meta'  : null;
   const faltaSuper = realizado < meta.valor_super ? fmt(meta.valor_super - realizado) + ' p/ Super' : null;
   const faltaMega  = realizado < meta.valor_mega  ? fmt(meta.valor_mega  - realizado) + ' p/ Mega'  : null;
-  const falta = faltaMega || faltaSuper || faltaMeta || '🏆 Mega atingida!';
+  const falta = faltaMega || faltaSuper || faltaMeta || '<i class="ti ti-trophy"></i> Mega atingida!';
 
   return `
     <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px">
@@ -1012,9 +1018,9 @@ function renderTierProgress(realizado, meta, lojaColor) {
         <div class="tier-marker" style="left:${sPct}%"></div>
       </div>
       <div class="tier-labels">
-        <div class="tier-label-item"><span class="tier-label-name" style="color:var(--meta-color)">🟢 Meta</span><span>${fmt(meta.valor_meta)}</span></div>
-        <div class="tier-label-item"><span class="tier-label-name" style="color:var(--super-color)">🟡 Super</span><span>${fmt(meta.valor_super)}</span></div>
-        <div class="tier-label-item"><span class="tier-label-name" style="color:var(--mega-color)">🏆 Mega</span><span>${fmt(meta.valor_mega)}</span></div>
+        <div class="tier-label-item"><span class="tier-label-name" style="color:var(--meta-color)"><i class="ti ti-circle-check" style="color:var(--meta-color)"></i> Meta</span><span>${fmt(meta.valor_meta)}</span></div>
+        <div class="tier-label-item"><span class="tier-label-name" style="color:var(--super-color)"><i class="ti ti-star" style="color:var(--super-color)"></i> Super</span><span>${fmt(meta.valor_super)}</span></div>
+        <div class="tier-label-item"><span class="tier-label-name" style="color:var(--mega-color)"><i class="ti ti-trophy" style="color:var(--mega-color)"></i> Mega</span><span>${fmt(meta.valor_mega)}</span></div>
       </div>
     </div>`;
 }
@@ -1146,7 +1152,7 @@ async function loadFuncionarias() {
       <td><span class="badge ${f.ativa?'badge-green':'badge-red'}">${f.ativa?'Ativa':'Inativa'}</span></td>
       <td style="display:flex;gap:6px">
         <button class="btn btn-ghost btn-sm" onclick="toggleFunc('${f.id}',${f.ativa})">${f.ativa?'Desativar':'Ativar'}</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteFunc('${f.id}')">✕</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteFunc('${f.id}')"><i class="ti ti-x"></i></button>
       </td>
     </tr>`;
   tbody.innerHTML = ['Loja Areal','Loja Três Rios'].map(loja => {
@@ -1263,7 +1269,7 @@ async function loadComissoes() {
           Loja Areal ${tierBadgeHtml(tierLoja['Loja Areal'])} &nbsp; Loja Três Rios ${tierBadgeHtml(tierLoja['Loja Três Rios'])}
         </div>
       </div>
-      <button class="btn btn-primary" onclick="fecharComissoes('${monday}','${sunday}')">✓ Fechar Semana</button>
+      <button class="btn btn-primary" onclick="fecharComissoes('${monday}','${sunday}')"><i class="ti ti-check"></i> Fechar Semana</button>
     </div>
     <div class="table-wrap">
       <table>
@@ -1327,7 +1333,7 @@ function renderListaLoja(elId, items) {
         <div>${i.nome}</div>
         ${sub ? `<div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px">${sub}</div>` : ''}
       </div>
-      <button class="btn btn-primary" style="padding:4px 10px;font-size:0.75rem" onclick="okListaLoja('${i.id}')">✓ OK</button>
+      <button class="btn btn-primary" style="padding:4px 10px;font-size:0.75rem" onclick="okListaLoja('${i.id}')"><i class="ti ti-check"></i> OK</button>
     </div>`;
   }).join('');
 }
@@ -1349,7 +1355,7 @@ function renderChecklist(elId, items) {
       <div class="check-box ${i.feito?'checked':''}" onclick="toggleItem('${i.id}',${i.feito})"></div>
       <div class="check-text">${i.item}</div>
       ${i.quantidade?`<div class="check-qty">${i.quantidade}</div>`:''}
-      <button class="check-del" onclick="deleteItem('${i.id}')">✕</button>
+      <button class="check-del" onclick="deleteItem('${i.id}')"><i class="ti ti-x"></i></button>
     </div>`).join('');
 }
 async function toggleItem(id, feito) { await sb.from('lista_compras').update({feito:!feito}).eq('id',id); loadLista(); }
@@ -1390,7 +1396,7 @@ async function loadCustos() {
     <div class="check-item">
       <div class="check-text" style="flex:1">${c.nome}</div>
       <div style="font-weight:600;color:var(--accent);margin-right:12px">${fmt(c.valor)}</div>
-      <button class="check-del" onclick="deleteCusto('${c.id}')">✕</button>
+      <button class="check-del" onclick="deleteCusto('${c.id}')"><i class="ti ti-x"></i></button>
     </div>`).join('');
   const total = data.reduce((s, c) => s + Number(c.valor), 0);
   document.getElementById('custos-total').textContent = fmt(total);
@@ -1515,15 +1521,15 @@ async function loadFechamentos() {
   const dreCard = d => `
     <div class="card" style="margin-bottom:16px">
       <div class="card-title" style="color:${cor(d.loja)};margin-bottom:14px">${d.loja}</div>
-      <div class="dre-row"><span>💰 Receita bruta</span><span style="color:var(--green)">${fmt(d.receita)}</span></div>
+      <div class="dre-row"><span><i class="ti ti-cash"></i>Receita bruta</span><span style="color:var(--green)">${fmt(d.receita)}</span></div>
       <div class="dre-sub"><span>↳ Dinheiro</span><span>${fmt(d.dinheiro)}</span></div>
       <div class="dre-sub"><span>↳ Cartão</span><span>${fmt(d.cartao)}</span></div>
       <div class="dre-sub"><span>↳ Pix</span><span>${fmt(d.pix)}</span></div>
       ${d.crediario ? `<div class="dre-sub"><span>↳ Crediário</span><span>${fmt(d.crediario)}</span></div>` : ''}
       <div class="dre-divider"></div>
-      <div class="dre-row"><span>🧾 Despesas variáveis</span><span style="color:var(--red)">- ${fmt(d.desp)}</span></div>
-      <div class="dre-row"><span>👥 Comissões</span><span style="color:var(--red)">- ${fmt(d.comissao)}</span></div>
-      <div class="dre-row"><span>🏢 Custos fixos <small style="color:var(--text-muted)">(${diasPeriodo}d × ${fmt(d.custoMensal)}/mês)</small></span><span style="color:var(--red)">- ${fmt(d.custoProp)}</span></div>
+      <div class="dre-row"><span><i class="ti ti-receipt"></i>Despesas variáveis</span><span style="color:var(--red)">- ${fmt(d.desp)}</span></div>
+      <div class="dre-row"><span><i class="ti ti-users"></i>Comissões</span><span style="color:var(--red)">- ${fmt(d.comissao)}</span></div>
+      <div class="dre-row"><span><i class="ti ti-building-bank"></i>Custos fixos <small style="color:var(--text-muted)">(${diasPeriodo}d × ${fmt(d.custoMensal)}/mês)</small></span><span style="color:var(--red)">- ${fmt(d.custoProp)}</span></div>
       <div class="dre-divider"></div>
       <div class="dre-row dre-total">
         <span>Resultado líquido</span>
@@ -1543,11 +1549,11 @@ async function loadFechamentos() {
   el.innerHTML = `
     <div class="grid-2">${dre.map(dreCard).join('')}</div>
     <div class="card" style="background:var(--surface2)">
-      <div class="card-title" style="margin-bottom:14px">📋 Consolidado — ${label}</div>
-      <div class="dre-row"><span>💰 Receita total</span><span style="color:var(--green)">${fmt(tot.receita)}</span></div>
-      <div class="dre-row"><span>🧾 Despesas variáveis</span><span style="color:var(--red)">- ${fmt(tot.desp)}</span></div>
-      <div class="dre-row"><span>👥 Comissões</span><span style="color:var(--red)">- ${fmt(tot.comissao)}</span></div>
-      <div class="dre-row"><span>🏢 Custos fixos</span><span style="color:var(--red)">- ${fmt(tot.custoProp)}</span></div>
+      <div class="card-title" style="margin-bottom:14px"><i class="ti ti-clipboard-list"></i>Consolidado — ${label}</div>
+      <div class="dre-row"><span><i class="ti ti-cash"></i>Receita total</span><span style="color:var(--green)">${fmt(tot.receita)}</span></div>
+      <div class="dre-row"><span><i class="ti ti-receipt"></i>Despesas variáveis</span><span style="color:var(--red)">- ${fmt(tot.desp)}</span></div>
+      <div class="dre-row"><span><i class="ti ti-users"></i>Comissões</span><span style="color:var(--red)">- ${fmt(tot.comissao)}</span></div>
+      <div class="dre-row"><span><i class="ti ti-building-bank"></i>Custos fixos</span><span style="color:var(--red)">- ${fmt(tot.custoProp)}</span></div>
       <div class="dre-divider"></div>
       <div class="dre-row dre-total">
         <span>Resultado líquido</span>
@@ -1664,7 +1670,7 @@ async function loadMetasSemanal() {
       <td style="color:var(--meta-color)">${fmt(m.valor_meta)}</td>
       <td style="color:var(--super-color)">${fmt(m.valor_super)}</td>
       <td style="color:var(--mega-color)">${fmt(m.valor_mega)}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteMetaSem('${m.id}')">✕</button></td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteMetaSem('${m.id}')"><i class="ti ti-x"></i></button></td>
     </tr>`).join('');
 }
 
@@ -1714,7 +1720,7 @@ async function loadMetasMensal() {
       <td style="color:var(--meta-color)">${fmt(m.valor_meta)}</td>
       <td style="color:var(--super-color)">${fmt(m.valor_super)}</td>
       <td style="color:var(--mega-color)">${fmt(m.valor_mega)}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteMetaMen('${m.id}')">✕</button></td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteMetaMen('${m.id}')"><i class="ti ti-x"></i></button></td>
     </tr>`).join('');
 }
 
