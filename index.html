@@ -154,12 +154,62 @@ tr:hover td { background: var(--surface2); }
 .info-box { background: var(--accent-dim, rgba(201,169,110,0.08)); border: 1px solid rgba(201,169,110,0.2); border-radius: 8px; padding: 12px 16px; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; }
 
 @media (max-width: 700px) {
-  .content { padding: 16px; }
+  /* Layout base */
+  .content { padding: 12px; }
   .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
   .form-row, .form-row-3 { grid-template-columns: 1fr; }
-  .header { padding: 0 16px; }
-  .nav-tabs { padding: 0 8px; }
-  .nav-tab { padding: 12px 14px; font-size: 0.8rem; }
+
+  /* Header */
+  .header { padding: 0 12px; height: 52px; }
+  .logo { font-size: 1.1rem; }
+
+  /* Nav tabs: scroll horizontal com indicador visual */
+  .nav-tabs {
+    padding: 0;
+    gap: 0;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab { padding: 10px 12px; font-size: 0.72rem; flex-shrink: 0; }
+
+  /* Cards */
+  .card { padding: 14px; }
+  .card-title { font-size: 0.85rem; }
+
+  /* Tabelas: scroll horizontal */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: 480px; }
+
+  /* Section header empilha */
+  .section-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .section-title { font-size: 1rem; }
+
+  /* Formulário de custos fixos: empilha tudo */
+  #tab-custos .card > div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+  #cf-valor { width: 100% !important; }
+
+  /* Tab pills: scroll horizontal */
+  .tab-pills { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: 4px; }
+  .tab-pills::-webkit-scrollbar { display: none; }
+  .tab-pill { flex-shrink: 0; }
+
+  /* Botões de ação não ficam cortados */
+  .btn { white-space: nowrap; }
+
+  /* Check items: compacta */
+  .check-item { padding: 10px 12px; font-size: 0.85rem; }
+
+  /* Total bar */
+  #custos-total { font-size: 1.1rem; }
+
+  /* Histórico accordion */
+  .hist-header { font-size: 0.82rem; }
+
+  /* Modal ocupa tela toda no mobile */
+  .modal { width: calc(100vw - 32px); max-height: 85vh; overflow-y: auto; }
 }
 </style>
 </head>
