@@ -601,30 +601,34 @@ tr:hover td { background: var(--surface2); }
   <div class="tab-panel" id="tab-lista">
     <div class="section-header">
       <div class="section-title">Lista de Compras</div>
-      <button class="btn btn-primary" onclick="openModal('modal-item')">+ Adicionar Item</button>
-    </div>
-    <div class="grid-2">
-      <div>
-        <div class="card-title" style="margin-bottom:12px;padding-left:4px">🏷️ Estoque</div>
-        <div id="lista-estoque"><div class="empty">Nenhum item</div></div>
-      </div>
-      <div>
-        <div class="card-title" style="margin-bottom:12px;padding-left:4px">📦 Insumos</div>
-        <div id="lista-insumos"><div class="empty">Nenhum item</div></div>
-      </div>
     </div>
 
-    <!-- Lista das Lojas -->
-    <div style="margin-top:32px">
-      <div class="section-title" style="margin-bottom:16px">🏪 Faltas das Lojas</div>
+    <div class="tab-pills" style="margin-bottom:20px">
+      <button class="tab-pill active" id="lpill-areal"    onclick="setListaView('areal',this)">📍 Loja Areal</button>
+      <button class="tab-pill"        id="lpill-tresrios" onclick="setListaView('tresrios',this)">📍 Loja Três Rios</button>
+      <button class="tab-pill"        id="lpill-todas"    onclick="setListaView('todas',this)">📋 Consolidado</button>
+    </div>
+
+    <!-- Loja Areal -->
+    <div id="lview-areal">
+      <div id="lista-loja-areal"><div class="empty">Nenhum item</div></div>
+    </div>
+
+    <!-- Loja Três Rios -->
+    <div id="lview-tresrios" style="display:none">
+      <div id="lista-loja-tresrios"><div class="empty">Nenhum item</div></div>
+    </div>
+
+    <!-- Consolidado -->
+    <div id="lview-todas" style="display:none">
       <div class="grid-2">
         <div>
           <div class="card-title" style="margin-bottom:12px;padding-left:4px">📍 Loja Areal</div>
-          <div id="lista-loja-areal"><div class="empty">Nenhum item</div></div>
+          <div id="lista-loja-areal-c"><div class="empty">Nenhum item</div></div>
         </div>
         <div>
           <div class="card-title" style="margin-bottom:12px;padding-left:4px">📍 Loja Três Rios</div>
-          <div id="lista-loja-tresrios"><div class="empty">Nenhum item</div></div>
+          <div id="lista-loja-tresrios-c"><div class="empty">Nenhum item</div></div>
         </div>
       </div>
     </div>
@@ -1220,18 +1224,20 @@ async function fecharComissoes(monday, sunday) {
 
 // ===== LISTA =====
 async function loadLista() {
-  const { data } = await sb.from('lista_compras').select('*').order('feito').order('criado_em',{ascending:false});
-  renderChecklist('lista-estoque', (data||[]).filter(i=>i.categoria==='Estoque'));
-  renderChecklist('lista-insumos', (data||[]).filter(i=>i.categoria==='Insumos'));
   loadListaLojas();
 }
 async function loadListaLojas() {
   const { data } = await sb.from('lista_loja').select('*').eq('status','pendente').order('criado_em',{ascending:false});
-  renderListaLoja('lista-loja-areal',    (data||[]).filter(i=>i.loja==='Loja Areal'));
-  renderListaLoja('lista-loja-tresrios', (data||[]).filter(i=>i.loja==='Loja Três Rios'));
+  const areal    = (data||[]).filter(i=>i.loja==='Loja Areal');
+  const tresrios = (data||[]).filter(i=>i.loja==='Loja Três Rios');
+  renderListaLoja('lista-loja-areal',      areal);
+  renderListaLoja('lista-loja-tresrios',   tresrios);
+  renderListaLoja('lista-loja-areal-c',    areal);
+  renderListaLoja('lista-loja-tresrios-c', tresrios);
 }
 function renderListaLoja(elId, items) {
   const el = document.getElementById(elId);
+  if (!el) return;
   if (!items.length) { el.innerHTML='<div class="empty">Nenhum item</div>'; return; }
   el.innerHTML = items.map(i => {
     const sub = [i.categoria, i.tamanho, i.cor].filter(Boolean).join(' · ');
@@ -1247,6 +1253,12 @@ function renderListaLoja(elId, items) {
 async function okListaLoja(id) {
   await sb.from('lista_loja').update({status:'ok'}).eq('id',id);
   loadListaLojas();
+}
+function setListaView(view, btn) {
+  ['areal','tresrios','todas'].forEach(v => {
+    document.getElementById('lview-' + v).style.display = v === view ? '' : 'none';
+    document.getElementById('lpill-' + v).classList.toggle('active', v === view);
+  });
 }
 function renderChecklist(elId, items) {
   const el = document.getElementById(elId);
