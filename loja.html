@@ -270,15 +270,15 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
           <div>
             <label class="form-label">💵 Dinheiro</label>
-            <input type="number" class="form-input" id="total-dinheiro" placeholder="0,00" step="0.01" inputmode="decimal" oninput="calcTotal()">
+            <input type="text" class="form-input" id="total-dinheiro" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this);calcTotal()">
           </div>
           <div>
             <label class="form-label">💳 Cartão</label>
-            <input type="number" class="form-input" id="total-cartao" placeholder="0,00" step="0.01" inputmode="decimal" oninput="calcTotal()">
+            <input type="text" class="form-input" id="total-cartao" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this);calcTotal()">
           </div>
           <div>
             <label class="form-label">📱 Pix</label>
-            <input type="number" class="form-input" id="total-pix" placeholder="0,00" step="0.01" inputmode="decimal" oninput="calcTotal()">
+            <input type="text" class="form-input" id="total-pix" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this);calcTotal()">
           </div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface2);border-radius:10px;padding:12px 14px;margin-bottom:16px">
@@ -322,7 +322,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 
       <div class="form-group">
         <label class="form-label">Valor (R$)</label>
-        <input type="number" class="form-input" id="d-valor" placeholder="0,00" step="0.01" inputmode="decimal">
+        <input type="text" class="form-input" id="d-valor" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this)">
       </div>
 
       <div class="form-group">
@@ -392,6 +392,25 @@ let lojaAtual = null;
 let funcionarias = [];
 let despesasTemp = [];
 let fotoFile = null;
+
+// ===== BRL MASK =====
+function maskBRL(el) {
+  let v = el.value.replace(/\D/g,'');
+  if (!v) { el.value = ''; return; }
+  v = (parseInt(v,10)/100).toFixed(2);
+  el.value = 'R$ ' + v.replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+}
+function parseBRL(str) {
+  if (!str) return 0;
+  return parseFloat(str.replace('R$ ','').replace(/\./g,'').replace(',','.')) || 0;
+}
+function setBRL(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (!val && val !== 0) { el.value = ''; return; }
+  const n = parseFloat(val).toFixed(2);
+  el.value = 'R$ ' + n.replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+}
 
 // ===== AUTH =====
 function traduzirErro(msg) {
@@ -477,27 +496,27 @@ function renderVendedoras() {
   el.innerHTML = funcionarias.map(f => `
     <div class="vend-row">
       <div class="vend-name">${f.nome}</div>
-      <input class="vend-input" type="number" inputmode="decimal" step="0.01"
+      <input class="vend-input" type="text" inputmode="decimal"
         id="vend-${f.id}" placeholder="R$ 0" onchange="calcDiff()">
     </div>`).join('');
 }
 
 function calcTotal() {
-  const dinheiro = parseFloat(document.getElementById('total-dinheiro').value) || 0;
-  const cartao   = parseFloat(document.getElementById('total-cartao').value)   || 0;
-  const pix      = parseFloat(document.getElementById('total-pix').value)      || 0;
+  const dinheiro = parseBRL(document.getElementById('total-dinheiro').value);
+  const cartao   = parseBRL(document.getElementById('total-cartao').value);
+  const pix      = parseBRL(document.getElementById('total-pix').value);
   const total    = dinheiro + cartao + pix;
   document.getElementById('total-loja-display').textContent = fmt(total);
   calcDiff();
 }
 
 function calcDiff() {
-  const dinheiro = parseFloat(document.getElementById('total-dinheiro').value) || 0;
-  const cartao   = parseFloat(document.getElementById('total-cartao').value)   || 0;
-  const pix      = parseFloat(document.getElementById('total-pix').value)      || 0;
+  const dinheiro = parseBRL(document.getElementById('total-dinheiro').value);
+  const cartao   = parseBRL(document.getElementById('total-cartao').value);
+  const pix      = parseBRL(document.getElementById('total-pix').value);
   const total    = dinheiro + cartao + pix;
   const somaVend = funcionarias.reduce((s, f) => {
-    return s + (parseFloat(document.getElementById(`vend-${f.id}`)?.value) || 0);
+    return s + parseBRL(document.getElementById(`vend-${f.id}`)?.value || "");
   }, 0);
   const diff = total - somaVend;
   const badge = document.getElementById('diff-badge');
@@ -555,7 +574,7 @@ function selectCat(cat, btn) {
 
 function addDespesa() {
   const cat   = document.getElementById('d-cat').value;
-  const valor = parseFloat(document.getElementById('d-valor').value);
+  const valor = parseBRL(document.getElementById('d-valor').value);
   let desc = cat;
   if (cat === 'Outros') {
     desc = document.getElementById('d-outros-desc').value.trim();
@@ -600,9 +619,9 @@ async function loadVendasHoje() {
     .eq('loja', lojaAtual).eq('data_fechamento', today).single();
 
   if (fech) {
-    document.getElementById('total-dinheiro').value = fech.total_dinheiro || '';
-    document.getElementById('total-cartao').value   = fech.total_cartao   || '';
-    document.getElementById('total-pix').value      = fech.total_pix      || '';
+    setBRL('total-dinheiro', fech.total_dinheiro);
+    setBRL('total-cartao',   fech.total_cartao);
+    setBRL('total-pix',      fech.total_pix);
     calcTotal();
     (fech.fechamento_vendedoras || []).forEach(fv => {
       const el = document.getElementById(`vend-${fv.funcionaria_id}`);
@@ -614,9 +633,9 @@ async function loadVendasHoje() {
 
 // ===== SALVAR DIA =====
 async function salvarDia() {
-  const total_dinheiro = parseFloat(document.getElementById('total-dinheiro').value) || 0;
-  const total_cartao   = parseFloat(document.getElementById('total-cartao').value)   || 0;
-  const total_pix      = parseFloat(document.getElementById('total-pix').value)      || 0;
+  const total_dinheiro = parseBRL(document.getElementById('total-dinheiro').value);
+  const total_cartao   = parseBRL(document.getElementById('total-cartao').value);
+  const total_pix      = parseBRL(document.getElementById('total-pix').value);
   const total          = total_dinheiro + total_cartao + total_pix;
   if (!total) { showToast('Informe pelo menos uma forma de pagamento', 'error'); return; }
 
