@@ -326,7 +326,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
       </div>
 
       <div class="form-group">
-        <label class="form-label">Foto da nota (opcional)</label>
+        <label class="form-label">Foto da nota <span style="color:var(--red)">*</span></label>
         <label class="foto-label" for="foto-input">
           📷 <span id="foto-label-text">Tirar foto ou escolher da galeria</span>
         </label>
@@ -562,6 +562,7 @@ function addDespesa() {
     if (!desc) { showToast('Descreva o que foi comprado', 'error'); return; }
   }
   if (!valor) { showToast('Informe o valor', 'error'); return; }
+  if (!fotoFile) { showToast('Anexe a foto da nota', 'error'); return; }
 
   despesasTemp.push({ descricao: desc, categoria: cat, valor, _foto: fotoFile, _temp: true });
 
