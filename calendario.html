@@ -87,7 +87,9 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 }
 .day-num {
   font-size: 0.72rem; color: var(--text-muted);
-  width: 19px; height: 19px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  min-width: 22px; height: 16px; padding: 0 6px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; border-radius: 999px; transition: background 0.15s;
 }
 .ev-pill {
   width: 100%; border-radius: 3px; padding: 1px 4px;
@@ -151,18 +153,37 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   text-transform: uppercase; padding: 2px 0; font-weight: 600;
 }
 .mini-day {
-  font-size: 0.5rem; text-align: center; padding: 2px 0;
-  border-radius: 3px; cursor: pointer; color: var(--text-muted); position: relative;
+  font-size: 0.5rem; text-align: center; padding: 2px 3px;
+  border-radius: 999px; cursor: pointer; color: var(--text-muted); position: relative;
 }
 .mini-day:active { background: var(--surface2); }
 .mini-day.today-mini { background: var(--accent); color: var(--bg); border-radius: 50%; font-weight: 700; }
 .mini-day.has-ev { color: var(--text); font-weight: 600; }
 .mini-day.has-ev::after {
   content: ''; display: block; width: 3px; height: 3px; border-radius: 50%;
-  background: var(--yellow); margin: 1px auto 0;
+  background: var(--dot-cor, var(--yellow)); margin: 1px auto 0;
 }
-.mini-day.has-loja::after { background: var(--accent); }
-.mini-day.has-both::after { background: var(--yellow); }
+
+/* TOOLTIP */
+.cal-tooltip {
+  position: fixed; z-index: 500;
+  background: #1e2328; border: 1px solid var(--border);
+  border-radius: 10px; padding: 8px 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  pointer-events: none; opacity: 0;
+  transition: opacity 0.15s;
+  max-width: 220px; min-width: 140px;
+}
+.cal-tooltip.visible { opacity: 1; }
+.tooltip-item {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 0.76rem; font-weight: 500; line-height: 1.4;
+  padding: 2px 0;
+}
+.tooltip-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+.tooltip-sep { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
 
 /* ── LISTA DE EVENTOS ─────────────────────────────── */
 .events-wrap { padding: 0 14px; max-width: 480px; margin: 0 auto; }
@@ -192,6 +213,16 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .badge-loja         { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
 .event-del { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.9rem; padding: 2px; }
 .empty { text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 32px 0; }
+
+/* SELETOR DE COR */
+.color-picker { display: flex; gap: 8px; flex-wrap: wrap; }
+.color-opt {
+  width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; transition: transform 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.color-opt:hover { transform: scale(1.15); }
+.color-opt.selected { border-color: #fff; transform: scale(1.15); }
 
 /* MODAL */
 .modal-overlay {
@@ -377,6 +408,10 @@ textarea.form-input { resize: none; height: 76px; }
       <label class="form-label">Descrição (opcional)</label>
       <textarea class="form-input" id="ev-desc" placeholder="Detalhes do evento..."></textarea>
     </div>
+    <div class="form-group">
+      <label class="form-label">Cor do evento</label>
+      <div class="color-picker" id="color-picker"></div>
+    </div>
     <div class="btn-row">
       <button class="btn btn-ghost" onclick="closeModal('modal-add')">Cancelar</button>
       <button class="btn btn-primary" onclick="salvarEvento()">Salvar</button>
@@ -385,6 +420,7 @@ textarea.form-input { resize: none; height: 76px; }
 </div>
 
 <div id="toast"></div>
+<div class="cal-tooltip" id="cal-tooltip"></div>
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
@@ -405,6 +441,35 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
 const today = new Date().toISOString().split('T')[0];
+
+// ===== PALETA DE CORES =====
+const CORES = [
+  { id:'azul',    hex:'#7c93a6' },
+  { id:'rosa',    hex:'#c47a95' },
+  { id:'verde',   hex:'#6fa88a' },
+  { id:'amarelo', hex:'#c4a85a' },
+  { id:'laranja', hex:'#c47a50' },
+  { id:'lilas',   hex:'#9a7cc4' },
+  { id:'ciano',   hex:'#5aacbf' },
+  { id:'vermelho',hex:'#cf8080' },
+];
+let corSelecionada = CORES[0].hex;
+
+function initColorPicker() {
+  const el = document.getElementById('color-picker');
+  el.innerHTML = CORES.map(c => `
+    <div class="color-opt ${c.hex === corSelecionada ? 'selected' : ''}"
+         style="background:${c.hex}"
+         onclick="selecionarCor('${c.hex}', this)"
+         title="${c.id}"></div>
+  `).join('');
+}
+
+function selecionarCor(hex, el) {
+  corSelecionada = hex;
+  document.querySelectorAll('.color-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
 const [todayY, todayM, todayD] = today.split('-').map(Number);
 
 let currentView = 'mensal';
@@ -418,41 +483,58 @@ const MESES_ABREV = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out'
 const DOWS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 
 // ===== COMEMORATIVAS =====
+// Cores por categoria:
+// #cf8080 vermelho  → datas obrigatórias (maior impacto em vendas)
+// #c4a85a amarelo   → ciclo da moda (coleção, liquidação)
+// #6fa88a verde     → datas de apoio (boas para campanhas)
+// #7d858c cinza     → feriados nacionais sem impacto direto
+
 const FIXAS = [
-  { mes:1,  dia:1,  titulo:'Ano Novo',               desc:'Promoção de início de ano' },
-  { mes:2,  dia:12, titulo:'Dia do Amor',             desc:'Antecipa Dia dos Namorados' },
-  { mes:3,  dia:8,  titulo:'Dia da Mulher',           desc:'Data forte para moda feminina' },
-  { mes:4,  dia:21, titulo:'Tiradentes',              desc:'Feriado nacional' },
-  { mes:5,  dia:1,  titulo:'Dia do Trabalho',         desc:'Feriado nacional' },
-  { mes:6,  dia:12, titulo:'Dia dos Namorados',       desc:'Ótimo para vendas de moda' },
-  { mes:6,  dia:24, titulo:'Festa Junina',            desc:'Oportunidade de vitrine temática' },
-  { mes:7,  dia:1,  titulo:'Férias Escolares',        desc:'Período de movimento em lojas' },
-  { mes:9,  dia:7,  titulo:'Independência do Brasil', desc:'Feriado nacional' },
-  { mes:9,  dia:15, titulo:'Dia do Cliente',          desc:'Ótimo para promoções e fidelização' },
-  { mes:9,  dia:22, titulo:'Início da Primavera',     desc:'Renovação de coleção' },
-  { mes:10, dia:12, titulo:'Dia das Crianças',        desc:'Feriado — data de presentes' },
-  { mes:10, dia:31, titulo:'Halloween',               desc:'Tendência crescente no Brasil' },
-  { mes:11, dia:2,  titulo:'Finados',                 desc:'Feriado nacional' },
-  { mes:11, dia:15, titulo:'Proclamação da República',desc:'Feriado nacional' },
-  { mes:12, dia:25, titulo:'Natal',                   desc:'Maior data do varejo' },
-  { mes:12, dia:31, titulo:'Réveillon',               desc:'Looks de festa — alta demanda' },
+  // ── FERIADOS ──
+  { mes:1,  dia:1,  titulo:'Ano Novo',               desc:'Feriado — prepare promoção de início de ano',     cor:'#7d858c' },
+  { mes:4,  dia:21, titulo:'Tiradentes',              desc:'Feriado nacional',                               cor:'#7d858c' },
+  { mes:5,  dia:1,  titulo:'Dia do Trabalho',         desc:'Feriado nacional',                               cor:'#7d858c' },
+  { mes:9,  dia:7,  titulo:'Independência do Brasil', desc:'Feriado nacional',                               cor:'#7d858c' },
+  { mes:10, dia:12, titulo:'Dia das Crianças',        desc:'Feriado — moda infantil e presentes em família', cor:'#7d858c' },
+  { mes:11, dia:2,  titulo:'Finados',                 desc:'Feriado nacional',                               cor:'#7d858c' },
+  { mes:11, dia:15, titulo:'Proclamação da República',desc:'Feriado nacional',                               cor:'#7d858c' },
+
+  // ── DATAS OBRIGATÓRIAS (alto impacto em vendas de moda) ──
+  { mes:6,  dia:12, titulo:'Dia dos Namorados',       desc:'Top 3 datas do ano — looks, presentes, kits',   cor:'#cf8080' },
+  { mes:12, dia:25, titulo:'Natal',                   desc:'Maior data do varejo — prepare com 1 mês de antecedência', cor:'#cf8080' },
+  { mes:12, dia:31, titulo:'Réveillon',               desc:'Looks de festa e virada — alta demanda',         cor:'#cf8080' },
+
+  // ── CICLO DA MODA (coleção e liquidação) ──
+  { mes:7,  dia:1,  titulo:'Férias Escolares',        desc:'Período de movimento em lojas — famílias saem mais',  cor:'#6fa88a' },
+  { mes:1,  dia:15, titulo:'Liquidação Verão',        desc:'Queima de sobras da coleção verão — descontos 30–50%', cor:'#c4a85a' },
+  { mes:3,  dia:1,  titulo:'Lançamento Coleção Outono',desc:'Início da temporada Outono — renovar vitrine',  cor:'#c4a85a' },
+  { mes:5,  dia:1,  titulo:'Lançamento Coleção Inverno',desc:'Início da temporada Inverno — renovar vitrine',cor:'#c4a85a' },
+  { mes:7,  dia:15, titulo:'Liquidação Inverno',      desc:'Queima de estoque Outono/Inverno — descontos 30–50%', cor:'#c4a85a' },
+  { mes:9,  dia:22, titulo:'Início da Primavera',     desc:'Lançamento coleção Primavera/Verão — vitrine nova', cor:'#c4a85a' },
+
+  // ── DATAS DE APOIO (boas para campanhas) ──
+  { mes:2,  dia:12, titulo:'Dia do Amor',             desc:'Antecipa Dia dos Namorados — looks e presentes', cor:'#6fa88a' },
+  { mes:3,  dia:8,  titulo:'Dia da Mulher',           desc:'Data forte para moda feminina — ação especial', cor:'#6fa88a' },
+  { mes:6,  dia:24, titulo:'Festa Junina',            desc:'Vitrine temática — estampas e looks caipiras',   cor:'#6fa88a' },
+  { mes:9,  dia:15, titulo:'Dia do Cliente',          desc:'Fidelização, desconto especial para cadastradas',cor:'#6fa88a' },
+  { mes:10, dia:31, titulo:'Halloween',               desc:'Tendência crescente — looks e acessórios',       cor:'#6fa88a' },
 ];
 
 function getComemorativas(ano) {
   const r = FIXAS.map(c => ({
     data: `${ano}-${pad(c.mes)}-${pad(c.dia)}`,
-    titulo: c.titulo, desc: c.desc, tipo: 'comemorativa'
+    titulo: c.titulo, desc: c.desc, cor: c.cor, tipo: 'comemorativa'
   }));
   // variáveis
-  r.push({ data: nthWeekday(ano,5,0,2),  titulo:'Dia das Mães',  desc:'Maior data do ano para moda feminina', tipo:'comemorativa' });
-  r.push({ data: nthWeekday(ano,8,0,2),  titulo:'Dia dos Pais',  desc:'Presente — moda masculina e acessórios', tipo:'comemorativa' });
+  r.push({ data: nthWeekday(ano,5,0,2), titulo:'Dia das Mães',  desc:'Top 1 data do ano para moda feminina — prepare 3 semanas antes', cor:'#cf8080', tipo:'comemorativa' });
+  r.push({ data: nthWeekday(ano,8,0,2), titulo:'Dia dos Pais',  desc:'Moda masculina e acessórios — boa data para presentes', cor:'#cf8080', tipo:'comemorativa' });
   const bf = lastWeekday(ano,11,5);
-  r.push({ data: bf, titulo:'Black Friday', desc:'Prepare descontos com 1 semana de antecedência', tipo:'comemorativa' });
+  r.push({ data: bf, titulo:'Black Friday', desc:'Queima de estoque com descontos — prepare divulgação com 1 semana de antecedência', cor:'#cf8080', tipo:'comemorativa' });
   const cm = new Date(bf); cm.setDate(cm.getDate()+3);
-  r.push({ data: iso(cm), titulo:'Cyber Monday', desc:'Sequência da Black Friday', tipo:'comemorativa' });
-  r.push({ data: pascoa(ano),  titulo:'Páscoa',   desc:'Feriado — família e presenteamento', tipo:'comemorativa' });
+  r.push({ data: iso(cm), titulo:'Cyber Monday', desc:'Sequência da Black Friday — promoções online', cor:'#c4a85a', tipo:'comemorativa' });
+  r.push({ data: pascoa(ano), titulo:'Páscoa', desc:'Feriado — família e presenteamento', cor:'#7d858c', tipo:'comemorativa' });
   const c2 = new Date(pascoa(ano)); c2.setDate(c2.getDate()-47);
-  r.push({ data: iso(c2), titulo:'Carnaval', desc:'Feriado prolongado', tipo:'comemorativa' });
+  r.push({ data: iso(c2), titulo:'Carnaval', desc:'Feriado prolongado — queda de movimento em loja física', cor:'#7d858c', tipo:'comemorativa' });
   return r;
 }
 
@@ -497,15 +579,22 @@ async function salvarEvento() {
   const data   = document.getElementById('ev-data').value;
   const titulo = document.getElementById('ev-titulo').value.trim();
   const desc   = document.getElementById('ev-desc').value.trim();
+  const cor    = corSelecionada;
   if (!data || !titulo) { showToast('Preencha a data e o título','error'); return; }
-  const { error } = await sb.from('eventos_loja').insert({ data, titulo, descricao: desc||null });
+  const { error } = await sb.from('eventos_loja').insert({ data, titulo, descricao: desc||null, cor });
   if (error) {
     if (error.code === '42P01' || error.message?.includes('does not exist')) {
-      eventosLoja.push({ id: Date.now().toString(), data, titulo, descricao:desc||null, tipo:'loja' });
+      eventosLoja.push({ id: Date.now().toString(), data, titulo, descricao:desc||null, cor, tipo:'loja' });
       closeModal('modal-add'); limparModal(); renderView();
-      showToast('Salvo localmente (tabela não criada ainda)'); return;
+      showToast('Salvo localmente — rode o SQL no Supabase para persistir');
+      return;
     }
-    showToast('Erro ao salvar','error'); return;
+    if (error.code === '42703' || error.message?.includes('column')) {
+      // tabela existe mas sem coluna cor — salva sem a cor
+      const { error: e2 } = await sb.from('eventos_loja').insert({ data, titulo, descricao: desc||null });
+      if (!e2) { closeModal('modal-add'); limparModal(); await loadEventosLoja(); showToast('Evento salvo! (rode o SQL para adicionar coluna cor)'); return; }
+    }
+    showToast('Erro: ' + (error.message || error.code), 'error'); return;
   }
   closeModal('modal-add'); limparModal();
   await loadEventosLoja();
@@ -578,13 +667,20 @@ function renderMensal() {
     const el = document.createElement('div');
     el.className = 'cal-day' + (isToday?' today':'');
     el.onclick = () => showDayEvents(dataStr, d);
-    let html = `<span class="day-num">${d}</span>`;
+    const primCor = evs.length ? (evs[0].cor || (evs[0].tipo==='loja' ? 'var(--accent)' : 'var(--yellow)')) : null;
+    const numStyle = primCor && !isToday ? `style="background:color-mix(in srgb,${primCor} 30%,transparent);color:${primCor};font-weight:700"` : '';
+    let html = `<span class="day-num" ${numStyle}>${d}</span>`;
     evs.slice(0,2).forEach(e => {
       const lbl = e.titulo.length>10 ? e.titulo.slice(0,9)+'…' : e.titulo;
-      html += `<div class="ev-pill ${e.tipo}">${lbl}</div>`;
+      const c = e.cor || (e.tipo==='loja' ? 'var(--accent)' : 'var(--yellow)');
+      html += `<div class="ev-pill" style="background:color-mix(in srgb,${c} 25%,transparent);color:${c}">${lbl}</div>`;
     });
     if (evs.length>2) html += `<div class="ev-pill more">+${evs.length-2}</div>`;
     el.innerHTML = html;
+    if (evs.length) {
+      el.addEventListener('mouseenter', ev => showTooltip(ev, evs));
+      el.addEventListener('mouseleave', hideTooltip);
+    }
     grid.appendChild(el);
   }
 
@@ -647,7 +743,8 @@ function renderSemana() {
     let pills = '';
     evs.slice(0,3).forEach(e => {
       const lbl = e.titulo.length>8 ? e.titulo.slice(0,7)+'…' : e.titulo;
-      pills += `<div class="week-pill ${e.tipo}">${lbl}</div>`;
+      const c = e.cor || (e.tipo==='loja' ? 'var(--accent)' : 'var(--yellow)');
+      pills += `<div class="week-pill" style="background:color-mix(in srgb,${c} 25%,transparent);color:${c}">${lbl}</div>`;
     });
     if (evs.length>3) pills += `<div class="week-pill more">+${evs.length-3}</div>`;
 
@@ -690,17 +787,17 @@ function renderAnual() {
     for (let d=1; d<=days; d++) {
       const dataStr = `${viewYear}-${pad(m+1)}-${pad(d)}`;
       const evs = doMes.filter(e => e.data===dataStr);
-      const hasLoja = evs.some(e => e.tipo==='loja');
-      const hasCom  = evs.some(e => e.tipo==='comemorativa');
       const isToday = isThisMes && d===todayD;
       let cls = 'mini-day';
-      if (isToday) cls += ' today-mini';
-      else if (evs.length) {
+      let inlineStyle = '';
+      if (isToday) {
+        cls += ' today-mini';
+      } else if (evs.length) {
         cls += ' has-ev';
-        if (hasLoja && hasCom) cls += ' has-both';
-        else if (hasLoja) cls += ' has-loja';
+        const c = evs[0].cor || (evs[0].tipo==='loja' ? 'var(--accent)' : 'var(--yellow)');
+        inlineStyle = `background:color-mix(in srgb,${c} 30%,transparent);color:${c};font-weight:700;--dot-cor:${c}`;
       }
-      miniHTML += `<div class="${cls}" onclick="showMiniDay('${dataStr}')">${d}</div>`;
+      miniHTML += `<div class="${cls}" style="${inlineStyle}" onclick="showMiniDay('${dataStr}')" onmouseenter="showTooltipMini(event,'${dataStr}')" onmouseleave="hideTooltip()">${d}</div>`;
     }
     miniHTML += '</div>';
     box.innerHTML = miniHTML;
@@ -731,16 +828,17 @@ function renderEventCards(elId, eventos) {
   if (!eventos.length) { el.innerHTML = '<div class="empty">Nenhum evento neste período</div>'; return; }
   el.innerHTML = eventos.map(e => {
     const [, m, d] = e.data.split('-');
+    const cor = e.cor || (e.tipo==='loja' ? 'var(--accent)' : 'var(--yellow)');
     const badge = e.tipo==='loja'
-      ? '<span class="event-badge badge-loja">Loja</span>'
+      ? `<span class="event-badge" style="background:color-mix(in srgb,${cor} 18%,transparent);color:${cor}">Loja</span>`
       : '<span class="event-badge badge-comemorativa">Data comemorativa</span>';
     const del = e.tipo==='loja' && e.id
       ? `<button class="event-del" onclick="deletarEvento('${e.id}')"><i class="ti ti-x"></i></button>`
       : '';
     return `
-      <div class="event-card">
-        <div class="event-date-box">
-          <div class="event-date-day">${parseInt(d)}</div>
+      <div class="event-card" style="border-left: 3px solid ${cor}">
+        <div class="event-date-box" style="border-color:color-mix(in srgb,${cor} 30%,transparent)">
+          <div class="event-date-day" style="color:${cor}">${parseInt(d)}</div>
           <div class="event-date-mon">${MESES_ABREV[parseInt(m)-1]}</div>
         </div>
         <div class="event-info">
@@ -754,14 +852,60 @@ function renderEventCards(elId, eventos) {
 }
 
 // ===== MODAL =====
-function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function openModal(id)  {
+  document.getElementById(id).classList.add('open');
+  if (id === 'modal-add') initColorPicker();
+}
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 function limparModal() {
   ['ev-data','ev-titulo','ev-desc'].forEach(id => document.getElementById(id).value='');
+  corSelecionada = CORES[0].hex;
+  initColorPicker();
 }
 document.querySelectorAll('.modal-overlay').forEach(m =>
   m.addEventListener('click', e => { if (e.target===m) m.classList.remove('open'); })
 );
+
+// ===== TOOLTIP =====
+const tooltip = document.getElementById('cal-tooltip');
+let tooltipTimer = null;
+
+function showTooltip(e, evs) {
+  if (!evs.length) return;
+  clearTimeout(tooltipTimer);
+  tooltip.innerHTML = evs.map((ev, i) => {
+    const c = ev.cor || (ev.tipo==='loja' ? 'var(--accent)' : 'var(--yellow)');
+    return `${i > 0 ? '<hr class="tooltip-sep">' : ''}
+      <div class="tooltip-item">
+        <div class="tooltip-dot" style="background:${c}"></div>
+        <span>${ev.titulo}</span>
+      </div>`;
+  }).join('');
+  tooltip.classList.add('visible');
+  positionTooltip(e);
+}
+
+function positionTooltip(e) {
+  const tw = tooltip.offsetWidth, th = tooltip.offsetHeight;
+  let x = e.clientX + 12, y = e.clientY + 12;
+  if (x + tw > window.innerWidth - 8)  x = e.clientX - tw - 12;
+  if (y + th > window.innerHeight - 8) y = e.clientY - th - 12;
+  tooltip.style.left = x + 'px';
+  tooltip.style.top  = y + 'px';
+}
+
+function hideTooltip() {
+  tooltipTimer = setTimeout(() => tooltip.classList.remove('visible'), 80);
+}
+
+document.addEventListener('mousemove', e => {
+  if (tooltip.classList.contains('visible')) positionTooltip(e);
+});
+
+function showTooltipMini(e, dataStr) {
+  const evs = allEventos(viewYear).filter(ev => ev.data===dataStr);
+  showTooltip(e, evs);
+}
 
 // ===== TOAST =====
 function showToast(msg, type='success') {

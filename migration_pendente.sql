@@ -36,3 +36,15 @@ ALTER TABLE public.fechamento_vendedoras DISABLE ROW LEVEL SECURITY;
 -- Storage bucket para fotos de notas (criar em Storage > New bucket)
 -- Nome: notas-despesas
 -- Public: sim
+
+-- ─── CALENDÁRIO: eventos da loja ───────────────────────
+CREATE TABLE IF NOT EXISTS public.eventos_loja (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  data        date NOT NULL,
+  titulo      text NOT NULL,
+  descricao   text,
+  cor         text DEFAULT '#7c93a6',
+  criado_em   timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.eventos_loja DISABLE ROW LEVEL SECURITY;
