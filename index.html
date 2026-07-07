@@ -153,6 +153,12 @@ tr:hover td { background: var(--surface2); }
 .empty { text-align: center; padding: 32px; color: var(--text-muted); font-size: 0.875rem; }
 .info-box { background: var(--accent-dim, rgba(201,169,110,0.08)); border: 1px solid rgba(201,169,110,0.2); border-radius: 8px; padding: 12px 16px; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; }
 
+/* DRE */
+.dre-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; font-size:0.88rem; }
+.dre-sub { display:flex; justify-content:space-between; align-items:center; padding:3px 0 3px 16px; font-size:0.78rem; color:var(--text-muted); }
+.dre-divider { border-top:1px solid var(--border); margin:8px 0; }
+.dre-total { padding:10px 0 4px; }
+
 @media (max-width: 700px) {
   /* Layout base */
   .content { padding: 12px; }
@@ -227,6 +233,7 @@ tr:hover td { background: var(--surface2); }
   <button class="nav-tab" onclick="showTab('comissoes',this)">👥 Comissões</button>
   <button class="nav-tab" onclick="showTab('lista',this)">🛒 Lista de Compras</button>
   <button class="nav-tab" onclick="showTab('custos',this)">💸 Custos Fixos</button>
+  <button class="nav-tab" onclick="showTab('fechamentos',this)">📊 Fechamentos</button>
   <button class="nav-tab" onclick="showTab('config',this)">⚙️ Configurações</button>
 </div>
 
@@ -721,6 +728,65 @@ tr:hover td { background: var(--surface2); }
     </div>
   </div>
 
+  <!-- ===== FECHAMENTOS ===== -->
+  <div class="tab-panel" id="tab-fechamentos">
+    <div class="section-header">
+      <div class="section-title">Fechamentos</div>
+    </div>
+
+    <div class="tab-pills" style="margin-bottom:20px">
+      <button class="tab-pill active" id="fpill-semanal"  onclick="setFechView('semanal',this)">📅 Semanal</button>
+      <button class="tab-pill"        id="fpill-mensal"   onclick="setFechView('mensal',this)">🗓️ Mensal</button>
+      <button class="tab-pill"        id="fpill-anual"    onclick="setFechView('anual',this)">📆 Anual</button>
+      <button class="tab-pill"        id="fpill-periodo"  onclick="setFechView('periodo',this)">🔍 Por Período</button>
+    </div>
+
+    <!-- Seletor de período -->
+    <div id="fech-nav-semanal" style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:20px">
+      <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="fechNav(-1)">‹</button>
+      <div style="text-align:center">
+        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Semana</div>
+        <strong id="fech-period-label" style="color:var(--text);font-size:0.9rem">—</strong>
+      </div>
+      <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="fechNav(1)">›</button>
+    </div>
+
+    <div id="fech-nav-mensal" style="display:none;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:20px">
+      <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="fechNav(-1)">‹</button>
+      <div style="text-align:center">
+        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Mês</div>
+        <strong id="fech-period-label-m" style="color:var(--text);font-size:0.9rem">—</strong>
+      </div>
+      <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="fechNav(1)">›</button>
+    </div>
+
+    <div id="fech-nav-anual" style="display:none;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:20px">
+      <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="fechNav(-1)">‹</button>
+      <div style="text-align:center">
+        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Ano</div>
+        <strong id="fech-period-label-a" style="color:var(--text);font-size:0.9rem">—</strong>
+      </div>
+      <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="fechNav(1)">›</button>
+    </div>
+
+    <div id="fech-nav-periodo" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:20px">
+      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end">
+        <div>
+          <label class="form-label">Data início</label>
+          <input type="date" class="form-input" id="fech-dt-ini">
+        </div>
+        <div>
+          <label class="form-label">Data fim</label>
+          <input type="date" class="form-input" id="fech-dt-fim">
+        </div>
+        <button class="btn btn-primary" onclick="loadFechamentos()" style="height:42px">Buscar</button>
+      </div>
+    </div>
+
+    <!-- DRE consolidado -->
+    <div id="fech-resultado"><div class="empty">Selecione um período</div></div>
+  </div>
+
   <!-- ===== CONFIG ===== -->
   <div class="tab-panel" id="tab-config">
     <div class="section-header">
@@ -871,6 +937,7 @@ function showTab(name, btn) {
   if (name === 'comissoes') loadComissoes();
   if (name === 'lista') loadLista();
   if (name === 'custos') loadCustos();
+  if (name === 'fechamentos') { setFechView('semanal', document.getElementById('fpill-semanal')); }
   if (name === 'config') loadConfig();
 }
 
@@ -1325,6 +1392,141 @@ async function addCusto() {
 async function deleteCusto(id) {
   await sb.from('custos_fixos').delete().eq('id', id);
   loadCustos();
+}
+
+// ===== FECHAMENTOS =====
+let fechView = 'semanal';
+let fechOffset = 0;
+
+function setFechView(v, btn) {
+  fechView = v;
+  fechOffset = 0;
+  document.querySelectorAll('#tab-fechamentos .tab-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['semanal','mensal','anual','periodo'].forEach(k => {
+    const el = document.getElementById('fech-nav-' + k);
+    el.style.display = k === v ? (k === 'periodo' ? 'block' : 'flex') : 'none';
+  });
+  if (v !== 'periodo') loadFechamentos();
+}
+
+function fechNav(d) { fechOffset += d; loadFechamentos(); }
+
+async function loadFechamentos() {
+  const el = document.getElementById('fech-resultado');
+  el.innerHTML = '<div class="empty">Carregando...</div>';
+
+  let dtIni, dtFim, label;
+  const today = new Date();
+
+  if (fechView === 'semanal') {
+    const mon = new Date(today);
+    mon.setDate(today.getDate() - ((today.getDay()||7)-1) + fechOffset*7);
+    const sun = new Date(mon); sun.setDate(mon.getDate()+6);
+    dtIni = mon.toISOString().slice(0,10);
+    dtFim = sun.toISOString().slice(0,10);
+    label = `${fmtDate(dtIni)} – ${fmtDate(dtFim)}`;
+    document.getElementById('fech-period-label').textContent = label;
+
+  } else if (fechView === 'mensal') {
+    const d = new Date(today.getFullYear(), today.getMonth() + fechOffset, 1);
+    dtIni = d.toISOString().slice(0,10);
+    const last = new Date(d.getFullYear(), d.getMonth()+1, 0);
+    dtFim = last.toISOString().slice(0,10);
+    label = monthLabel(d.getFullYear(), d.getMonth()+1);
+    document.getElementById('fech-period-label-m').textContent = label;
+
+  } else if (fechView === 'anual') {
+    const ano = today.getFullYear() + fechOffset;
+    dtIni = `${ano}-01-01`;
+    dtFim = `${ano}-12-31`;
+    label = String(ano);
+    document.getElementById('fech-period-label-a').textContent = label;
+
+  } else {
+    dtIni = document.getElementById('fech-dt-ini').value;
+    dtFim = document.getElementById('fech-dt-fim').value;
+    if (!dtIni || !dtFim) { el.innerHTML = '<div class="empty">Selecione as datas e clique em Buscar</div>'; return; }
+    label = `${fmtDate(dtIni)} – ${fmtDate(dtFim)}`;
+  }
+
+  // Calcular dias no período e dias no mês (para rateio do custo fixo)
+  const d1 = new Date(dtIni), d2 = new Date(dtFim);
+  const diasPeriodo = Math.round((d2 - d1) / 86400000) + 1;
+
+  // Buscar dados das duas lojas em paralelo
+  const lojas = ['Loja Areal', 'Loja Três Rios'];
+  const [vendasRes, despesasRes, custosRes] = await Promise.all([
+    sb.from('fechamento_dia').select('loja,total_loja,total_dinheiro,total_cartao,total_pix,total_crediario')
+      .gte('data_fechamento', dtIni).lte('data_fechamento', dtFim),
+    sb.from('despesas').select('loja,valor')
+      .gte('data_despesa', dtIni).lte('data_despesa', dtFim),
+    sb.from('custos_fixos').select('loja,valor')
+  ]);
+
+  const vendas   = vendasRes.data   || [];
+  const despesas = despesasRes.data || [];
+  const custos   = custosRes.data   || [];
+
+  // Montar DRE por loja
+  const dre = lojas.map(loja => {
+    const v = vendas.filter(x => x.loja === loja);
+    const receita    = v.reduce((s,x) => s + Number(x.total_loja||0), 0);
+    const dinheiro   = v.reduce((s,x) => s + Number(x.total_dinheiro||0), 0);
+    const cartao     = v.reduce((s,x) => s + Number(x.total_cartao||0), 0);
+    const pix        = v.reduce((s,x) => s + Number(x.total_pix||0), 0);
+    const crediario  = v.reduce((s,x) => s + Number(x.total_crediario||0), 0);
+    const desp       = despesas.filter(x => x.loja === loja).reduce((s,x) => s + Number(x.valor||0), 0);
+
+    // Custo fixo: total mensal / 30 × dias do período
+    const custoMensal = custos.filter(x => x.loja === loja).reduce((s,x) => s + Number(x.valor||0), 0);
+    const custoProp   = (custoMensal / 30) * diasPeriodo;
+
+    const liquido = receita - desp - custoProp;
+    return { loja, receita, dinheiro, cartao, pix, crediario, desp, custoMensal, custoProp, liquido };
+  });
+
+  const cor = loja => loja === 'Loja Areal' ? 'var(--loja1,#7b8cde)' : 'var(--loja2,#de7bb8)';
+
+  const dreCard = d => `
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title" style="color:${cor(d.loja)};margin-bottom:14px">${d.loja}</div>
+      <div class="dre-row"><span>💰 Receita bruta</span><span style="color:var(--green)">${fmt(d.receita)}</span></div>
+      <div class="dre-sub"><span>↳ Dinheiro</span><span>${fmt(d.dinheiro)}</span></div>
+      <div class="dre-sub"><span>↳ Cartão</span><span>${fmt(d.cartao)}</span></div>
+      <div class="dre-sub"><span>↳ Pix</span><span>${fmt(d.pix)}</span></div>
+      ${d.crediario ? `<div class="dre-sub"><span>↳ Crediário</span><span>${fmt(d.crediario)}</span></div>` : ''}
+      <div class="dre-divider"></div>
+      <div class="dre-row"><span>🧾 Despesas variáveis</span><span style="color:var(--red)">- ${fmt(d.desp)}</span></div>
+      <div class="dre-row"><span>🏢 Custos fixos <small style="color:var(--text-muted)">(${diasPeriodo}d × R$${fmt(d.custoMensal)}/mês)</small></span><span style="color:var(--red)">- ${fmt(d.custoProp)}</span></div>
+      <div class="dre-divider"></div>
+      <div class="dre-row dre-total">
+        <span>Resultado líquido</span>
+        <span style="color:${d.liquido >= 0 ? 'var(--green)' : 'var(--red)'};font-size:1.1rem;font-weight:700">${d.liquido >= 0 ? '' : '- '}${fmt(Math.abs(d.liquido))}</span>
+      </div>
+    </div>`;
+
+  // Consolidado
+  const tot = {
+    receita:   dre.reduce((s,d) => s+d.receita,   0),
+    desp:      dre.reduce((s,d) => s+d.desp,       0),
+    custoProp: dre.reduce((s,d) => s+d.custoProp,  0),
+  };
+  tot.liquido = tot.receita - tot.desp - tot.custoProp;
+
+  el.innerHTML = `
+    <div class="grid-2">${dre.map(dreCard).join('')}</div>
+    <div class="card" style="background:var(--surface2)">
+      <div class="card-title" style="margin-bottom:14px">📋 Consolidado — ${label}</div>
+      <div class="dre-row"><span>💰 Receita total</span><span style="color:var(--green)">${fmt(tot.receita)}</span></div>
+      <div class="dre-row"><span>🧾 Despesas variáveis</span><span style="color:var(--red)">- ${fmt(tot.desp)}</span></div>
+      <div class="dre-row"><span>🏢 Custos fixos</span><span style="color:var(--red)">- ${fmt(tot.custoProp)}</span></div>
+      <div class="dre-divider"></div>
+      <div class="dre-row dre-total">
+        <span>Resultado líquido</span>
+        <span style="color:${tot.liquido >= 0 ? 'var(--green)' : 'var(--red)'};font-size:1.2rem;font-weight:700">${tot.liquido >= 0 ? '' : '- '}${fmt(Math.abs(tot.liquido))}</span>
+      </div>
+    </div>`;
 }
 
 // ===== CONFIG =====
