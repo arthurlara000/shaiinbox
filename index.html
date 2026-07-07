@@ -1454,19 +1454,22 @@ async function loadFechamentos() {
   const d1 = new Date(dtIni), d2 = new Date(dtFim);
   const diasPeriodo = Math.round((d2 - d1) / 86400000) + 1;
 
-  // Buscar dados das duas lojas em paralelo
+  // Buscar dados em paralelo
   const lojas = ['Loja Areal', 'Loja Três Rios'];
-  const [vendasRes, despesasRes, custosRes] = await Promise.all([
+  const [vendasRes, despesasRes, custosRes, comissoesRes] = await Promise.all([
     sb.from('fechamento_dia').select('loja,total_loja,total_dinheiro,total_cartao,total_pix,total_crediario')
       .gte('data_fechamento', dtIni).lte('data_fechamento', dtFim),
     sb.from('despesas').select('loja,valor')
       .gte('data_despesa', dtIni).lte('data_despesa', dtFim),
-    sb.from('custos_fixos').select('loja,valor')
+    sb.from('custos_fixos').select('loja,valor'),
+    sb.from('comissao_fechamento').select('total_a_pagar, funcionarias(loja)')
+      .gte('semana_inicio', dtIni).lte('semana_inicio', dtFim)
   ]);
 
-  const vendas   = vendasRes.data   || [];
-  const despesas = despesasRes.data || [];
-  const custos   = custosRes.data   || [];
+  const vendas    = vendasRes.data    || [];
+  const despesas  = despesasRes.data  || [];
+  const custos    = custosRes.data    || [];
+  const comissoes = comissoesRes.data || [];
 
   // Montar DRE por loja
   const dre = lojas.map(loja => {
@@ -1477,13 +1480,14 @@ async function loadFechamentos() {
     const pix        = v.reduce((s,x) => s + Number(x.total_pix||0), 0);
     const crediario  = v.reduce((s,x) => s + Number(x.total_crediario||0), 0);
     const desp       = despesas.filter(x => x.loja === loja).reduce((s,x) => s + Number(x.valor||0), 0);
+    const comissao   = comissoes.filter(x => x.funcionarias?.loja === loja).reduce((s,x) => s + Number(x.total_a_pagar||0), 0);
 
     // Custo fixo: total mensal / 30 × dias do período
     const custoMensal = custos.filter(x => x.loja === loja).reduce((s,x) => s + Number(x.valor||0), 0);
     const custoProp   = (custoMensal / 30) * diasPeriodo;
 
-    const liquido = receita - desp - custoProp;
-    return { loja, receita, dinheiro, cartao, pix, crediario, desp, custoMensal, custoProp, liquido };
+    const liquido = receita - desp - comissao - custoProp;
+    return { loja, receita, dinheiro, cartao, pix, crediario, desp, comissao, custoMensal, custoProp, liquido };
   });
 
   const cor = loja => loja === 'Loja Areal' ? 'var(--loja1,#7b8cde)' : 'var(--loja2,#de7bb8)';
@@ -1498,7 +1502,8 @@ async function loadFechamentos() {
       ${d.crediario ? `<div class="dre-sub"><span>↳ Crediário</span><span>${fmt(d.crediario)}</span></div>` : ''}
       <div class="dre-divider"></div>
       <div class="dre-row"><span>🧾 Despesas variáveis</span><span style="color:var(--red)">- ${fmt(d.desp)}</span></div>
-      <div class="dre-row"><span>🏢 Custos fixos <small style="color:var(--text-muted)">(${diasPeriodo}d × R$${fmt(d.custoMensal)}/mês)</small></span><span style="color:var(--red)">- ${fmt(d.custoProp)}</span></div>
+      <div class="dre-row"><span>👥 Comissões</span><span style="color:var(--red)">- ${fmt(d.comissao)}</span></div>
+      <div class="dre-row"><span>🏢 Custos fixos <small style="color:var(--text-muted)">(${diasPeriodo}d × ${fmt(d.custoMensal)}/mês)</small></span><span style="color:var(--red)">- ${fmt(d.custoProp)}</span></div>
       <div class="dre-divider"></div>
       <div class="dre-row dre-total">
         <span>Resultado líquido</span>
@@ -1510,9 +1515,10 @@ async function loadFechamentos() {
   const tot = {
     receita:   dre.reduce((s,d) => s+d.receita,   0),
     desp:      dre.reduce((s,d) => s+d.desp,       0),
+    comissao:  dre.reduce((s,d) => s+d.comissao,   0),
     custoProp: dre.reduce((s,d) => s+d.custoProp,  0),
   };
-  tot.liquido = tot.receita - tot.desp - tot.custoProp;
+  tot.liquido = tot.receita - tot.desp - tot.comissao - tot.custoProp;
 
   el.innerHTML = `
     <div class="grid-2">${dre.map(dreCard).join('')}</div>
@@ -1520,6 +1526,7 @@ async function loadFechamentos() {
       <div class="card-title" style="margin-bottom:14px">📋 Consolidado — ${label}</div>
       <div class="dre-row"><span>💰 Receita total</span><span style="color:var(--green)">${fmt(tot.receita)}</span></div>
       <div class="dre-row"><span>🧾 Despesas variáveis</span><span style="color:var(--red)">- ${fmt(tot.desp)}</span></div>
+      <div class="dre-row"><span>👥 Comissões</span><span style="color:var(--red)">- ${fmt(tot.comissao)}</span></div>
       <div class="dre-row"><span>🏢 Custos fixos</span><span style="color:var(--red)">- ${fmt(tot.custoProp)}</span></div>
       <div class="dre-divider"></div>
       <div class="dre-row dre-total">
