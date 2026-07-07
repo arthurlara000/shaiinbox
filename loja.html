@@ -308,12 +308,12 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 
       <div class="form-label" style="margin-bottom:10px">Categoria</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-        <button class="cat-chip active" onclick="selectCat('Comida',this)">🍽️ Comida</button>
+        <button class="cat-chip active" onclick="selectCat('Alimentação',this)">🍽️ Alimentação</button>
         <button class="cat-chip" onclick="selectCat('Limpeza',this)">🧹 Limpeza</button>
         <button class="cat-chip" onclick="selectCat('Manutenção',this)">🔧 Manutenção</button>
         <button class="cat-chip" onclick="selectCat('Outros',this)">📦 Outros</button>
       </div>
-      <input type="hidden" id="d-cat" value="Comida">
+      <input type="hidden" id="d-cat" value="Alimentação">
 
       <div class="form-group" id="d-outros-group" style="display:none">
         <label class="form-label">Descreva o que foi <span style="color:var(--red)">*</span></label>
@@ -567,7 +567,7 @@ function addDespesa() {
 
   // reset form
   document.querySelectorAll('.cat-chip').forEach((b,i) => b.classList.toggle('active', i===0));
-  document.getElementById('d-cat').value = 'Comida';
+  document.getElementById('d-cat').value = 'Alimentação';
   document.getElementById('d-outros-group').style.display = 'none';
   document.getElementById('d-outros-desc').value = '';
   document.getElementById('d-valor').value = '';
