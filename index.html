@@ -176,6 +176,7 @@ tr:hover td { background: var(--surface2); }
   <button class="nav-tab" onclick="showTab('historico',this)">📁 Histórico</button>
   <button class="nav-tab" onclick="showTab('comissoes',this)">👥 Comissões</button>
   <button class="nav-tab" onclick="showTab('lista',this)">🛒 Lista de Compras</button>
+  <button class="nav-tab" onclick="showTab('custos',this)">💸 Custos Fixos</button>
   <button class="nav-tab" onclick="showTab('config',this)">⚙️ Configurações</button>
 </div>
 
@@ -634,6 +635,42 @@ tr:hover td { background: var(--surface2); }
     </div>
   </div>
 
+  <!-- ===== CUSTOS FIXOS ===== -->
+  <div class="tab-panel" id="tab-custos">
+    <div class="section-header">
+      <div class="section-title">Custos Fixos</div>
+    </div>
+
+    <div class="tab-pills" style="margin-bottom:20px">
+      <button class="tab-pill active" id="cpill-areal"    onclick="setCustosLoja('Loja Areal',this)">📍 Loja Areal</button>
+      <button class="tab-pill"        id="cpill-tresrios" onclick="setCustosLoja('Loja Três Rios',this)">📍 Loja Três Rios</button>
+    </div>
+
+    <!-- Formulário inline -->
+    <div class="card" style="margin-bottom:20px">
+      <div style="display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:end">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Descrição <span style="color:var(--red)">*</span></label>
+          <input type="text" class="form-input" id="cf-nome" placeholder="Ex: Aluguel, Energia, Contador...">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Valor mensal <span style="color:var(--red)">*</span></label>
+          <input type="text" class="form-input" id="cf-valor" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this)" style="width:140px">
+        </div>
+        <button class="btn btn-primary" onclick="addCusto()" style="height:42px">+ Adicionar</button>
+      </div>
+    </div>
+
+    <!-- Lista de itens -->
+    <div id="custos-lista"><div class="empty">Nenhum custo cadastrado</div></div>
+
+    <!-- Total -->
+    <div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-top:16px">
+      <span style="font-size:0.85rem;color:var(--text-muted)">Total mensal</span>
+      <span id="custos-total" style="font-size:1.3rem;font-weight:700;color:var(--accent)">R$ 0,00</span>
+    </div>
+  </div>
+
   <!-- ===== CONFIG ===== -->
   <div class="tab-panel" id="tab-config">
     <div class="section-header">
@@ -783,6 +820,7 @@ function showTab(name, btn) {
   if (name === 'historico') { initHistFilters(); loadHistDiario(); }
   if (name === 'comissoes') loadComissoes();
   if (name === 'lista') loadLista();
+  if (name === 'custos') loadCustos();
   if (name === 'config') loadConfig();
 }
 
@@ -1192,6 +1230,52 @@ async function saveItem() {
   loadLista();
 }
 async function deleteItem(id) { await sb.from('lista_compras').delete().eq('id',id); loadLista(); }
+
+// ===== CUSTOS FIXOS =====
+let custosLoja = 'Loja Areal';
+
+function setCustosLoja(loja, btn) {
+  custosLoja = loja;
+  document.querySelectorAll('#tab-custos .tab-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadCustos();
+}
+
+async function loadCustos() {
+  const { data } = await sb.from('custos_fixos').select('*').eq('loja', custosLoja).order('criado_em');
+  const el = document.getElementById('custos-lista');
+  if (!data?.length) {
+    el.innerHTML = '<div class="empty">Nenhum custo cadastrado</div>';
+    document.getElementById('custos-total').textContent = 'R$ 0,00';
+    return;
+  }
+  el.innerHTML = data.map(c => `
+    <div class="check-item">
+      <div class="check-text" style="flex:1">${c.nome}</div>
+      <div style="font-weight:600;color:var(--accent);margin-right:12px">${fmt(c.valor)}</div>
+      <button class="check-del" onclick="deleteCusto('${c.id}')">✕</button>
+    </div>`).join('');
+  const total = data.reduce((s, c) => s + Number(c.valor), 0);
+  document.getElementById('custos-total').textContent = fmt(total);
+}
+
+async function addCusto() {
+  const nome  = document.getElementById('cf-nome').value.trim();
+  const valor = parseBRL(document.getElementById('cf-valor').value);
+  if (!nome)  { showToast('Informe a descrição', 'error'); return; }
+  if (!valor) { showToast('Informe o valor', 'error'); return; }
+  const { error } = await sb.from('custos_fixos').insert({ loja: custosLoja, nome, valor });
+  if (error) { showToast('Erro ao salvar', 'error'); return; }
+  document.getElementById('cf-nome').value  = '';
+  document.getElementById('cf-valor').value = '';
+  showToast('Custo adicionado!');
+  loadCustos();
+}
+
+async function deleteCusto(id) {
+  await sb.from('custos_fixos').delete().eq('id', id);
+  loadCustos();
+}
 
 // ===== CONFIG =====
 let cfgWeekOffset = 0, cfgMonthOffset = 0;
