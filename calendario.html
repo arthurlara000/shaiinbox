@@ -248,6 +248,62 @@ textarea.form-input { resize: none; height: 76px; }
 }
 .nav-item.active { color: var(--accent); }
 .nav-icon { font-size: 1.25rem; line-height: 1; }
+
+/* ── RESPONSIVO: NOTEBOOK (768px+) ── */
+@media (min-width: 768px) {
+  .period-nav  { max-width: 900px; padding: 18px 28px 14px; }
+  .cal-wrap    { max-width: 900px; padding: 0 20px; }
+  #view-semana { max-width: 900px; padding: 0 20px; }
+  #view-anual  { max-width: 900px; padding: 0 20px; }
+  .events-wrap { max-width: 900px; padding: 0 24px; }
+
+  .cal-day { min-height: 82px; padding: 7px 5px 4px; }
+  .ev-pill { font-size: 0.63rem; padding: 2px 5px; }
+  .day-num { font-size: 0.8rem; width: 22px; height: 22px; }
+  .cal-day.today .day-num { width: 22px; height: 22px; }
+
+  .week-col  { min-height: 180px; }
+  .week-pill { font-size: 0.6rem; }
+
+  .year-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .mini-month-title { font-size: 0.75rem; }
+  .mini-day { font-size: 0.55rem; padding: 3px 0; }
+  .mini-dow { font-size: 0.48rem; padding: 3px 0; }
+}
+
+/* ── RESPONSIVO: DESKTOP GRANDE (1280px+) ── */
+@media (min-width: 1280px) {
+  .period-nav  { max-width: 1600px; padding: 22px 48px 16px; }
+  .cal-wrap    { max-width: 1600px; padding: 0 40px; }
+  #view-semana { max-width: 1600px; padding: 0 40px; }
+  #view-anual  { max-width: 1600px; padding: 0 40px; }
+  .events-wrap { max-width: 1600px; padding: 0 44px; }
+
+  .period-label { font-size: 1.2rem; }
+  .nav-arrow    { width: 36px; height: 36px; font-size: 1.1rem; }
+
+  .cal-day { min-height: 110px; padding: 9px 7px 5px; gap: 3px; }
+  .ev-pill { font-size: 0.7rem; padding: 3px 6px; border-radius: 4px; }
+  .day-num { font-size: 0.9rem; width: 26px; height: 26px; }
+  .cal-day.today .day-num { width: 26px; height: 26px; }
+
+  .week-col     { min-height: 260px; }
+  .week-day-num { font-size: 1rem; width: 32px; height: 32px; }
+  .week-pill    { font-size: 0.65rem; padding: 3px 5px; }
+  .week-dow     { font-size: 0.65rem; padding: 10px 0 5px; }
+
+  .year-grid { grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .mini-month { padding: 14px 12px; }
+  .mini-month-title { font-size: 0.82rem; margin-bottom: 8px; }
+  .mini-day { font-size: 0.62rem; padding: 4px 0; }
+  .mini-dow { font-size: 0.52rem; padding: 4px 0; }
+
+  .event-card     { padding: 16px 18px; }
+  .event-title    { font-size: 0.95rem; }
+  .event-desc     { font-size: 0.8rem; }
+  .event-date-day { font-size: 1.3rem; }
+  .section-title  { font-size: 0.72rem; }
+}
 </style>
 </head>
 <body>
@@ -263,6 +319,7 @@ textarea.form-input { resize: none; height: 76px; }
   </button>
 </div>
 
+<div class="app-body">
 <!-- PERIOD NAV -->
 <div class="period-nav">
   <button class="nav-arrow" onclick="changePeriod(-1)"><i class="ti ti-chevron-left"></i></button>
@@ -301,6 +358,8 @@ textarea.form-input { resize: none; height: 76px; }
     <div id="year-events-list"></div>
   </div>
 </div>
+
+</div><!-- /app-body -->
 
 <!-- MODAL: NOVO EVENTO -->
 <div class="modal-overlay" id="modal-add">
