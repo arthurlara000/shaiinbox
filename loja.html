@@ -755,28 +755,43 @@ async function loadHistorico() {
     despPorDia[d.data_despesa] = (despPorDia[d.data_despesa] || 0) + d.valor;
   });
 
-  el.innerHTML = fechamentos.map(d => {
+  el.innerHTML = fechamentos.map((d, i) => {
     const vendas   = d.total_loja || 0;
     const desp     = despPorDia[d.data_fechamento] || 0;
     const dataLabel = new Date(d.data_fechamento + 'T12:00:00')
       .toLocaleDateString('pt-BR', { weekday:'short', day:'2-digit', month:'short' });
     return `
-      <div class="hist-row" style="flex-direction:column;align-items:flex-start;gap:8px">
-        <div style="margin-bottom:2px">
-          <span class="hist-data" style="font-size:0.85rem;font-weight:600;color:var(--text)">${dataLabel}</span>
-        </div>
-        <div style="display:flex;gap:10px;width:100%">
-          <div style="flex:1;background:var(--surface2);border-radius:8px;padding:8px 10px">
-            <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">💰 Vendas</div>
-            <div style="font-size:0.9rem;font-weight:600;color:var(--accent)">${fmt(vendas)}</div>
+      <div class="hist-row" style="flex-direction:column;align-items:flex-start;gap:0;padding:0;overflow:hidden">
+        <button onclick="toggleHist(${i})" style="width:100%;display:flex;justify-content:space-between;align-items:center;background:none;border:none;cursor:pointer;padding:14px;font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent">
+          <span style="font-size:0.85rem;font-weight:600;color:var(--text)">${dataLabel}</span>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:0.85rem;font-weight:600;color:var(--accent)">${fmt(vendas)}</span>
+            <span id="hist-chevron-${i}" style="color:var(--text-muted);font-size:1rem;transition:transform 0.2s">›</span>
           </div>
-          <div style="flex:1;background:var(--surface2);border-radius:8px;padding:8px 10px">
-            <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">🧾 Despesas</div>
-            <div style="font-size:0.9rem;font-weight:600;color:var(--red)">${desp > 0 ? fmt(desp) : '—'}</div>
+        </button>
+        <div id="hist-detail-${i}" style="display:none;width:100%;padding:0 14px 14px">
+          <div style="display:flex;gap:8px">
+            <div style="flex:1;background:var(--surface2);border-radius:8px;padding:8px 10px">
+              <div style="font-size:0.62rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">💰 Vendas</div>
+              <div style="font-size:0.9rem;font-weight:600;color:var(--accent)">${fmt(vendas)}</div>
+            </div>
+            <div style="flex:1;background:var(--surface2);border-radius:8px;padding:8px 10px">
+              <div style="font-size:0.62rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">🧾 Despesas</div>
+              <div style="font-size:0.9rem;font-weight:600;color:var(--red)">${desp > 0 ? fmt(desp) : '—'}</div>
+            </div>
           </div>
         </div>
       </div>`;
   }).join('');
+}
+
+function toggleHist(i) {
+  const detail  = document.getElementById('hist-detail-' + i);
+  const chevron = document.getElementById('hist-chevron-' + i);
+  const open = detail.style.display === 'none';
+  detail.style.display  = open ? '' : 'none';
+  chevron.style.transform = open ? 'rotate(90deg)' : '';
+  chevron.textContent     = '›';
 }
 
 // ===== UTILS =====
