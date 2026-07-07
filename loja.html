@@ -276,7 +276,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
       <div class="section-title">💰 Fechamento do Dia</div>
       <div class="card">
         <div class="form-label" style="margin-bottom:12px">Forma de pagamento</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
           <div>
             <label class="form-label">💵 Dinheiro</label>
             <input type="text" class="form-input" id="total-dinheiro" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this);calcTotal()">
@@ -288,6 +288,10 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
           <div>
             <label class="form-label">📱 Pix</label>
             <input type="text" class="form-input" id="total-pix" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this);calcTotal()">
+          </div>
+          <div>
+            <label class="form-label">📒 Crediário</label>
+            <input type="text" class="form-input" id="total-crediario" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this);calcTotal()">
           </div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface2);border-radius:10px;padding:12px 14px;margin-bottom:16px">
@@ -559,19 +563,21 @@ function renderVendedoras() {
 }
 
 function calcTotal() {
-  const dinheiro = parseBRL(document.getElementById('total-dinheiro').value);
-  const cartao   = parseBRL(document.getElementById('total-cartao').value);
-  const pix      = parseBRL(document.getElementById('total-pix').value);
-  const total    = dinheiro + cartao + pix;
+  const dinheiro   = parseBRL(document.getElementById('total-dinheiro').value);
+  const cartao     = parseBRL(document.getElementById('total-cartao').value);
+  const pix        = parseBRL(document.getElementById('total-pix').value);
+  const crediario  = parseBRL(document.getElementById('total-crediario').value);
+  const total      = dinheiro + cartao + pix + crediario;
   document.getElementById('total-loja-display').textContent = fmt(total);
   calcDiff();
 }
 
 function calcDiff() {
-  const dinheiro = parseBRL(document.getElementById('total-dinheiro').value);
-  const cartao   = parseBRL(document.getElementById('total-cartao').value);
-  const pix      = parseBRL(document.getElementById('total-pix').value);
-  const total    = dinheiro + cartao + pix;
+  const dinheiro   = parseBRL(document.getElementById('total-dinheiro').value);
+  const cartao     = parseBRL(document.getElementById('total-cartao').value);
+  const pix        = parseBRL(document.getElementById('total-pix').value);
+  const crediario  = parseBRL(document.getElementById('total-crediario').value);
+  const total      = dinheiro + cartao + pix + crediario;
   const somaVend = funcionarias.reduce((s, f) => {
     return s + parseBRL(document.getElementById(`vend-${f.id}`)?.value || "");
   }, 0);
@@ -677,8 +683,9 @@ async function loadVendasHoje() {
 
   if (fech) {
     setBRL('total-dinheiro', fech.total_dinheiro);
-    setBRL('total-cartao',   fech.total_cartao);
-    setBRL('total-pix',      fech.total_pix);
+    setBRL('total-cartao',    fech.total_cartao);
+    setBRL('total-pix',       fech.total_pix);
+    setBRL('total-crediario', fech.total_crediario);
     calcTotal();
     (fech.fechamento_vendedoras || []).forEach(fv => {
       const el = document.getElementById(`vend-${fv.funcionaria_id}`);
@@ -690,10 +697,11 @@ async function loadVendasHoje() {
 
 // ===== SALVAR DIA =====
 async function salvarDia() {
-  const total_dinheiro = parseBRL(document.getElementById('total-dinheiro').value);
-  const total_cartao   = parseBRL(document.getElementById('total-cartao').value);
-  const total_pix      = parseBRL(document.getElementById('total-pix').value);
-  const total          = total_dinheiro + total_cartao + total_pix;
+  const total_dinheiro  = parseBRL(document.getElementById('total-dinheiro').value);
+  const total_cartao    = parseBRL(document.getElementById('total-cartao').value);
+  const total_pix       = parseBRL(document.getElementById('total-pix').value);
+  const total_crediario = parseBRL(document.getElementById('total-crediario').value);
+  const total           = total_dinheiro + total_cartao + total_pix + total_crediario;
   if (!total) { showToast('Informe pelo menos uma forma de pagamento', 'error'); return; }
 
   const btn = document.querySelector('.save-bar .btn-primary');
@@ -703,7 +711,7 @@ async function salvarDia() {
   try {
     // 1. Salva fechamento do dia
     const { data: fech, error: fechErr } = await sb.from('fechamento_dia').upsert(
-      { loja: lojaAtual, data_fechamento: today, total_loja: total, total_dinheiro, total_cartao, total_pix },
+      { loja: lojaAtual, data_fechamento: today, total_loja: total, total_dinheiro, total_cartao, total_pix, total_crediario },
       { onConflict: 'loja,data_fechamento' }
     ).select().single();
     if (fechErr) throw fechErr;
