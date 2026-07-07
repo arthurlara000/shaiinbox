@@ -1138,7 +1138,7 @@ async function loadFuncionarias() {
   funcionarias = data || [];
   const tbody = document.getElementById('func-tbody');
   if (!funcionarias.length) { tbody.innerHTML='<tr><td colspan="5" class="empty">Nenhuma funcionária</td></tr>'; return; }
-  tbody.innerHTML = funcionarias.map(f=>`
+  const funcRow = f => `
     <tr>
       <td>${f.nome}</td>
       <td><span class="badge badge-muted">${f.cargo}</span></td>
@@ -1148,7 +1148,13 @@ async function loadFuncionarias() {
         <button class="btn btn-ghost btn-sm" onclick="toggleFunc('${f.id}',${f.ativa})">${f.ativa?'Desativar':'Ativar'}</button>
         <button class="btn btn-danger btn-sm" onclick="deleteFunc('${f.id}')">✕</button>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  tbody.innerHTML = ['Loja Areal','Loja Três Rios'].map(loja => {
+    const doLoja = funcionarias.filter(f => f.loja === loja);
+    if (!doLoja.length) return '';
+    return `<tr><td colspan="5" style="background:var(--surface2);font-weight:600;font-size:0.78rem;color:var(--${loja==='Loja Areal'?'loja1':'loja2'});text-transform:uppercase;letter-spacing:0.06em">${loja}</td></tr>`
+      + doLoja.map(funcRow).join('');
+  }).join('');
 }
 
 async function saveFunc() {
@@ -1201,7 +1207,7 @@ async function loadComissoes() {
   if (!ativas.length) { resumoEl.innerHTML='<div class="empty">Nenhuma funcionária ativa</div>'; return; }
 
   let totalPagar = 0;
-  const rows = ativas.map(f => {
+  const funcRow = f => {
     const tier = tierLoja[f.loja];
 
     let vendido, baseCalculo;
@@ -1225,7 +1231,6 @@ async function loadComissoes() {
     return `<tr>
       <td>${f.nome}</td>
       <td><span class="badge badge-muted">${f.cargo}</span></td>
-      <td><span class="badge badge-${f.loja==='Loja Areal'?'loja1':'loja2'}">${f.loja}</span></td>
       <td>${tierBadgeHtml(tier)}</td>
       <td>${fmt(vendido)}</td>
       <td>${tier!=='Nenhum'?regra.pct+'%':'—'}</td>
@@ -1233,6 +1238,20 @@ async function loadComissoes() {
       <td>${tier!=='Nenhum'?fmt(bonus):'—'}</td>
       <td style="font-weight:700;color:var(--accent)">${tier!=='Nenhum'?fmt(total):'—'}</td>
     </tr>`;
+  };
+  const rows = ['Loja Areal','Loja Três Rios'].map(loja => {
+    const doLoja = ativas.filter(f => f.loja === loja);
+    if (!doLoja.length) return '';
+    const subtotal = doLoja.reduce((s,f) => {
+      const tier = tierLoja[f.loja];
+      if (tier === 'Nenhum') return s;
+      const base = f.cargo === 'Gerente' ? (totalLoja[f.loja]||0) : (vendas||[]).filter(v=>v.funcionaria_id===f.id).reduce((a,v)=>a+v.valor,0);
+      const regra = (COMISSAO[f.cargo]||COMISSAO.Vendedora)[tier] || {pct:0,bonus:0};
+      return s + base*(regra.pct/100) + regra.bonus;
+    }, 0);
+    return `<tr><td colspan="7" style="background:var(--surface2);font-weight:600;font-size:0.78rem;color:var(--${loja==='Loja Areal'?'loja1':'loja2'});text-transform:uppercase;letter-spacing:0.06em">${loja} ${tierBadgeHtml(tierLoja[loja])}</td>`
+      + `<td style="background:var(--surface2);font-weight:700;color:var(--accent)">${fmt(subtotal)}</td></tr>`
+      + doLoja.map(funcRow).join('');
   }).join('');
 
   resumoEl.innerHTML = `
@@ -1248,7 +1267,7 @@ async function loadComissoes() {
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Funcionária</th><th>Cargo</th><th>Loja</th><th>Tier</th><th>Base Cálculo</th><th>%</th><th>Comissão</th><th>Bônus Fixo</th><th>Total</th></tr></thead>
+        <thead><tr><th>Funcionária</th><th>Cargo</th><th>Tier</th><th>Base Cálculo</th><th>%</th><th>Comissão</th><th>Bônus Fixo</th><th>Total</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
