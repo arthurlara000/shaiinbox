@@ -106,6 +106,15 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .despesa-foto { font-size: 1.2rem; cursor: pointer; }
 .del-btn { background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; padding: 4px; }
 
+/* CATEGORY CHIPS */
+.cat-chip {
+  padding: 12px 8px; border-radius: 12px; border: 1.5px solid var(--border);
+  background: var(--surface2); color: var(--text-muted); font-size: 0.85rem;
+  font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s; -webkit-tap-highlight-color: transparent; text-align: center;
+}
+.cat-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(201,169,110,0.08); }
+
 /* PHOTO UPLOAD */
 .foto-label {
   display: flex; align-items: center; gap: 8px; padding: 12px 14px;
@@ -327,26 +336,29 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 <div class="modal-overlay" id="modal-despesa">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">Nova Despesa</div>
-    <div class="form-group">
-      <label class="form-label">O que foi comprado</label>
-      <input type="text" class="form-input" id="d-desc" placeholder="Ex: Sacolas, Cabides...">
+    <div class="modal-title">🧾 Nova Despesa</div>
+
+    <!-- Categorias tipo chip -->
+    <div class="form-label" style="margin-bottom:10px">Categoria</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      <button class="cat-chip active" onclick="selectCat('Comida',this)">🍽️ Comida</button>
+      <button class="cat-chip" onclick="selectCat('Limpeza',this)">🧹 Limpeza</button>
+      <button class="cat-chip" onclick="selectCat('Manutenção',this)">🔧 Manutenção</button>
+      <button class="cat-chip" onclick="selectCat('Outros',this)">📦 Outros</button>
     </div>
-    <div class="form-group">
-      <label class="form-label">Categoria</label>
-      <select class="form-select" id="d-cat">
-        <option>Embalagem</option>
-        <option>Limpeza</option>
-        <option>Alimentação</option>
-        <option>Transporte</option>
-        <option>Manutenção</option>
-        <option>Outros</option>
-      </select>
+    <input type="hidden" id="d-cat" value="Comida">
+
+    <!-- Campo "Outros" — aparece só quando selecionado -->
+    <div class="form-group" id="d-outros-group" style="display:none">
+      <label class="form-label">Descreva o que foi <span style="color:var(--red)">*</span></label>
+      <input type="text" class="form-input" id="d-outros-desc" placeholder="Ex: Presente cliente, Taxa bancária...">
     </div>
+
     <div class="form-group">
       <label class="form-label">Valor (R$)</label>
       <input type="number" class="form-input" id="d-valor" placeholder="0,00" step="0.01" inputmode="decimal">
     </div>
+
     <div class="form-group">
       <label class="form-label">Foto da nota (opcional)</label>
       <label class="foto-label" for="foto-input">
@@ -355,6 +367,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
       <input type="file" id="foto-input" accept="image/*" capture="environment" onchange="previewFoto(this)">
       <img id="foto-preview" class="foto-preview" alt="preview">
     </div>
+
     <div style="display:flex;gap:10px;margin-top:4px">
       <button class="btn btn-ghost btn-sm" style="flex:1" onclick="closeModal('modal-despesa')">Cancelar</button>
       <button class="btn btn-primary btn-sm" style="flex:2" onclick="addDespesa()">Adicionar</button>
@@ -542,17 +555,32 @@ function previewFoto(input) {
   document.getElementById('foto-label-text').textContent = fotoFile.name;
 }
 
+function selectCat(cat, btn) {
+  document.querySelectorAll('.cat-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('d-cat').value = cat;
+  document.getElementById('d-outros-group').style.display = cat === 'Outros' ? '' : 'none';
+  if (cat !== 'Outros') document.getElementById('d-outros-desc').value = '';
+}
+
 function addDespesa() {
-  const desc  = document.getElementById('d-desc').value.trim();
   const cat   = document.getElementById('d-cat').value;
   const valor = parseFloat(document.getElementById('d-valor').value);
-  if (!desc || !valor) { showToast('Preencha descrição e valor', 'error'); return; }
+  let desc = cat;
+  if (cat === 'Outros') {
+    desc = document.getElementById('d-outros-desc').value.trim();
+    if (!desc) { showToast('Descreva o que foi comprado', 'error'); return; }
+  }
+  if (!valor) { showToast('Informe o valor', 'error'); return; }
 
-  // Adiciona temporariamente (a foto será enviada no salvar)
   despesasTemp.push({ descricao: desc, categoria: cat, valor, _foto: fotoFile, _temp: true });
 
   closeModal('modal-despesa');
-  document.getElementById('d-desc').value = '';
+  // reset modal
+  document.querySelectorAll('.cat-chip').forEach((b,i) => b.classList.toggle('active', i===0));
+  document.getElementById('d-cat').value = 'Comida';
+  document.getElementById('d-outros-group').style.display = 'none';
+  document.getElementById('d-outros-desc').value = '';
   document.getElementById('d-valor').value = '';
   document.getElementById('foto-preview').style.display = 'none';
   document.getElementById('foto-label-text').textContent = 'Tirar foto ou escolher da galeria';
