@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Shai — Loja</title>
+<title>Shai Vendas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -24,19 +24,18 @@
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; padding-bottom: env(safe-area-inset-bottom, 24px); }
 
-/* SETUP SCREEN */
-#setup-screen {
+/* AUTH SCREEN */
+#auth-screen {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  min-height: 100vh; padding: 32px 24px; text-align: center; gap: 24px;
+  min-height: 100vh; padding: 32px 24px; text-align: center; gap: 8px;
 }
-.setup-logo { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--accent); }
-.setup-title { font-size: 1rem; color: var(--text-muted); }
-.loja-btn {
-  width: 100%; padding: 20px; border-radius: 16px; border: 2px solid var(--border);
-  background: var(--surface); color: var(--text); font-size: 1.1rem; font-weight: 600;
-  cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s;
-}
-.loja-btn:hover, .loja-btn:active { border-color: var(--accent); color: var(--accent); }
+.auth-logo { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--accent); margin-bottom: 8px; }
+.auth-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 24px; }
+.auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 360px; text-align: left; }
+.auth-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; }
+.auth-link { font-size: 0.82rem; color: var(--text-muted); margin-top: 16px; text-align: center; }
+.auth-link button { background: none; border: none; color: var(--accent); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; text-decoration: underline; }
+.auth-error { font-size: 0.8rem; color: var(--red); margin-top: 10px; text-align: center; min-height: 18px; }
 
 /* MAIN APP */
 #app { display: none; }
@@ -148,13 +147,38 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 0.7rem; font-weight: 600; }
 .badge-cat { background: rgba(201,169,110,0.12); color: var(--accent); }
 
-/* STATUS BAR */
-.status-bar {
-  position: sticky; bottom: 0; left: 0; right: 0;
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
   background: var(--surface); border-top: 1px solid var(--border);
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
-  display: flex; gap: 10px; max-width: 480px; margin: 0 auto;
+  display: flex; z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 4px; padding: 10px 4px;
+  background: none; border: none; cursor: pointer;
+  color: var(--text-muted); font-family: 'DM Sans', sans-serif;
+  font-size: 0.68rem; font-weight: 500; transition: color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-item .nav-icon { font-size: 1.3rem; line-height: 1; }
+.nav-item.active { color: var(--accent); }
+
+/* SAVE BTN flutuante na aba Vendas */
+.save-bar {
+  padding: 12px 16px; background: var(--bg);
+  max-width: 480px; margin: 0 auto;
+}
+
+/* HISTORICO */
+.hist-row {
+  background: var(--surface2); border-radius: 10px; padding: 14px;
+  margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
+}
+.hist-data { font-size: 0.75rem; color: var(--text-muted); }
+.hist-total { font-weight: 700; color: var(--accent); font-size: 1rem; }
 
 /* TOAST */
 #toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 18px; font-size: 0.875rem; z-index: 9999; opacity: 0; transition: all 0.3s; white-space: nowrap; }
@@ -170,17 +194,49 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 </head>
 <body>
 
-<!-- TELA DE SELEÇÃO DE LOJA -->
-<div id="setup-screen">
-  <div>
-    <div class="setup-logo">Shai</div>
-    <div class="setup-title">Selecione esta loja</div>
+<!-- TELA DE AUTH -->
+<div id="auth-screen" style="display:none">
+  <div class="auth-logo">Shai Vendas</div>
+  <div class="auth-subtitle">Painel da loja</div>
+
+  <!-- LOGIN -->
+  <div class="auth-card" id="form-login">
+    <div class="auth-title">Entrar</div>
+    <div class="form-group">
+      <label class="form-label">E-mail</label>
+      <input type="email" class="form-input" id="login-email" placeholder="seu@email.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Senha</label>
+      <input type="password" class="form-input" id="login-senha" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div class="auth-error" id="login-erro"></div>
+    <button class="btn btn-primary" style="margin-top:4px" onclick="fazerLogin()">Entrar</button>
+    <div class="auth-link">Não tem conta? <button onclick="mostrarCadastro()">Cadastrar</button></div>
   </div>
-  <div style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px">
-    <button class="loja-btn" onclick="setLoja('Loja 1')" style="border-color:var(--loja1);color:var(--loja1)">📍 Loja 1</button>
-    <button class="loja-btn" onclick="setLoja('Loja 2')" style="border-color:var(--loja2);color:var(--loja2)">📍 Loja 2</button>
+
+  <!-- CADASTRO -->
+  <div class="auth-card" id="form-cadastro" style="display:none">
+    <div class="auth-title">Criar conta</div>
+    <div class="form-group">
+      <label class="form-label">Loja</label>
+      <select class="form-select" id="cad-loja">
+        <option value="Loja Areal">📍 Loja Areal</option>
+        <option value="Loja Três Rios">📍 Loja Três Rios</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">E-mail</label>
+      <input type="email" class="form-input" id="cad-email" placeholder="seu@email.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Senha</label>
+      <input type="password" class="form-input" id="cad-senha" placeholder="mínimo 6 caracteres" autocomplete="new-password">
+    </div>
+    <div class="auth-error" id="cad-erro"></div>
+    <button class="btn btn-primary" style="margin-top:4px" onclick="fazerCadastro()">Criar conta</button>
+    <div class="auth-link">Já tem conta? <button onclick="mostrarLogin()">Entrar</button></div>
   </div>
-  <div style="font-size:0.75rem;color:var(--text-muted)">Essa escolha fica salva neste celular</div>
 </div>
 
 <!-- APP PRINCIPAL -->
@@ -192,21 +248,35 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
     </div>
     <div style="text-align:right">
       <div class="header-date" id="h-date">—</div>
-      <button class="change-loja-btn" onclick="changeLoja()">trocar loja</button>
+      <button class="change-loja-btn" onclick="fazerLogout()">sair</button>
     </div>
   </div>
 
-  <div class="content">
-
-    <!-- VENDAS DO DIA -->
+  <!-- ABA: VENDAS -->
+  <div id="tab-vendas" class="content" style="padding-bottom:100px">
     <div class="section">
-      <div class="section-title">💰 Vendas do Dia</div>
+      <div class="section-title">💰 Fechamento do Dia</div>
       <div class="card">
-        <div class="form-group">
-          <label class="form-label">Total da loja (R$)</label>
-          <input type="number" class="form-input big" id="total-loja" placeholder="0,00" step="0.01" inputmode="decimal" onchange="calcDiff()">
+        <div class="form-label" style="margin-bottom:12px">Forma de pagamento</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
+          <div>
+            <label class="form-label">💵 Dinheiro</label>
+            <input type="number" class="form-input" id="total-dinheiro" placeholder="0,00" step="0.01" inputmode="decimal" oninput="calcTotal()">
+          </div>
+          <div>
+            <label class="form-label">💳 Cartão</label>
+            <input type="number" class="form-input" id="total-cartao" placeholder="0,00" step="0.01" inputmode="decimal" oninput="calcTotal()">
+          </div>
+          <div>
+            <label class="form-label">📱 Pix</label>
+            <input type="number" class="form-input" id="total-pix" placeholder="0,00" step="0.01" inputmode="decimal" oninput="calcTotal()">
+          </div>
         </div>
-        <div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface2);border-radius:10px;padding:12px 14px;margin-bottom:16px">
+          <span style="font-size:0.8rem;color:var(--text-muted)">Total do dia</span>
+          <span id="total-loja-display" style="font-size:1.3rem;font-weight:700;color:var(--accent)">R$ 0,00</span>
+        </div>
+        <div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <div class="form-label" style="margin:0">Por vendedora</div>
             <div id="diff-badge" style="font-size:0.75rem;color:var(--text-muted)"></div>
@@ -215,24 +285,42 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
         </div>
       </div>
     </div>
+    <div class="save-bar">
+      <button class="btn btn-primary" onclick="salvarDia()">✓ Salvar Fechamento</button>
+    </div>
+  </div>
 
-    <!-- DESPESAS -->
+  <!-- ABA: DESPESAS -->
+  <div id="tab-despesas" class="content" style="display:none;padding-bottom:100px">
     <div class="section">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div class="section-title" style="margin:0">🧾 Despesas</div>
+        <div class="section-title" style="margin:0">🧾 Despesas do Dia</div>
         <button class="btn btn-ghost btn-sm" onclick="openModal('modal-despesa')">+ Adicionar</button>
       </div>
       <div id="despesas-list"><div class="empty">Nenhuma despesa hoje</div></div>
     </div>
-
-    <div style="height:80px"></div>
   </div>
 
-  <!-- BARRA INFERIOR -->
-  <div class="status-bar">
-    <button class="btn btn-ghost" style="flex:1" onclick="verResumo()">📋 Resumo</button>
-    <button class="btn btn-primary" style="flex:2" onclick="salvarDia()">✓ Salvar Dia</button>
+  <!-- ABA: HISTÓRICO -->
+  <div id="tab-historico" class="content" style="display:none;padding-bottom:100px">
+    <div class="section">
+      <div class="section-title">📅 Histórico de Vendas</div>
+      <div id="historico-list"><div class="empty">Carregando...</div></div>
+    </div>
   </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="nav-vendas" onclick="showNav('vendas')">
+      <span class="nav-icon">💰</span>Vendas
+    </button>
+    <button class="nav-item" id="nav-despesas" onclick="showNav('despesas')">
+      <span class="nav-icon">🧾</span>Despesas
+    </button>
+    <button class="nav-item" id="nav-historico" onclick="showNav('historico')">
+      <span class="nav-icon">📅</span>Histórico
+    </button>
+  </nav>
 </div>
 
 <!-- MODAL DESPESA -->
@@ -290,7 +378,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 
 <script>
 const SB_URL = 'https://ofoljmhfnohxwswskplx.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mb2xqbWhmbm9oeHdzd3NrcGx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3NjA4MTgsImV4cCI6MjA2MTMzNjgxOH0.hpTHV-HR-D7SJpRrRzmP79VZdkJNZxNaJJBJclIkNKs';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mb2xqbWhmbm9oeHdzd3NrcGx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTQzMjIsImV4cCI6MjA5NTM5MDMyMn0.IRfqUSxOLuYBlE79gdCdHaMrtuoYwNrprw6FaXj_7K8';
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
 const fmt = v => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0);
@@ -299,29 +387,73 @@ const todayLabel = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day
 
 let lojaAtual = null;
 let funcionarias = [];
-let despesasTemp = []; // despesas ainda não salvas
+let despesasTemp = [];
 let fotoFile = null;
 
-// ===== SETUP LOJA =====
-function setLoja(loja) {
-  localStorage.setItem('shai_loja', loja);
-  iniciarApp(loja);
+// ===== AUTH =====
+function traduzirErro(msg) {
+  if (!msg) return 'Erro desconhecido.';
+  const m = msg.toLowerCase();
+  if (m.includes('rate limit')) return 'Muitas tentativas. Aguarde alguns minutos e tente novamente.';
+  if (m.includes('invalid login') || m.includes('invalid credentials')) return 'E-mail ou senha incorretos.';
+  if (m.includes('email not confirmed')) return 'E-mail ainda não confirmado.';
+  if (m.includes('user already registered') || m.includes('already registered')) return 'Este e-mail já está cadastrado.';
+  if (m.includes('password') && m.includes('short')) return 'Senha muito curta. Use no mínimo 6 caracteres.';
+  if (m.includes('invalid email')) return 'E-mail inválido.';
+  if (m.includes('network') || m.includes('fetch')) return 'Erro de conexão. Verifique sua internet.';
+  return msg;
 }
-function changeLoja() {
-  if (!confirm('Trocar de loja? Dados não salvos serão perdidos.')) return;
-  localStorage.removeItem('shai_loja');
-  document.getElementById('setup-screen').style.display = 'flex';
+
+function mostrarLogin() {
+  document.getElementById('form-login').style.display = '';
+  document.getElementById('form-cadastro').style.display = 'none';
+  document.getElementById('login-erro').textContent = '';
+}
+function mostrarCadastro() {
+  document.getElementById('form-login').style.display = 'none';
+  document.getElementById('form-cadastro').style.display = '';
+  document.getElementById('cad-erro').textContent = '';
+}
+
+async function fazerLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const senha = document.getElementById('login-senha').value;
+  document.getElementById('login-erro').textContent = '';
+  if (!email || !senha) { document.getElementById('login-erro').textContent = 'Preencha e-mail e senha.'; return; }
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: senha });
+  if (error) { document.getElementById('login-erro').textContent = traduzirErro(error.message); return; }
+  iniciarApp(data.user.user_metadata?.loja || 'Loja Areal');
+}
+
+async function fazerCadastro() {
+  const loja  = document.getElementById('cad-loja').value;
+  const email = document.getElementById('cad-email').value.trim();
+  const senha = document.getElementById('cad-senha').value;
+  document.getElementById('cad-erro').textContent = '';
+  if (!email || !senha) { document.getElementById('cad-erro').textContent = 'Preencha todos os campos.'; return; }
+  if (senha.length < 6) { document.getElementById('cad-erro').textContent = 'Senha mínima de 6 caracteres.'; return; }
+  const { data, error } = await sb.auth.signUp({ email, password: senha, options: { data: { loja } } });
+  if (error) { document.getElementById('cad-erro').textContent = traduzirErro(error.message); return; }
+  showToast('Conta criada! Faça login.', 'success');
+  mostrarLogin();
+}
+
+async function fazerLogout() {
+  if (!confirm('Sair do app?')) return;
+  await sb.auth.signOut();
+  lojaAtual = null;
   document.getElementById('app').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  mostrarLogin();
 }
 
 // ===== INIT APP =====
 async function iniciarApp(loja) {
   lojaAtual = loja;
-  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.getElementById('h-loja').textContent = loja;
   document.getElementById('h-date').textContent = todayLabel;
-
   await loadFuncionarias();
   await loadDespesasHoje();
   await loadVendasHoje();
@@ -347,8 +479,20 @@ function renderVendedoras() {
     </div>`).join('');
 }
 
+function calcTotal() {
+  const dinheiro = parseFloat(document.getElementById('total-dinheiro').value) || 0;
+  const cartao   = parseFloat(document.getElementById('total-cartao').value)   || 0;
+  const pix      = parseFloat(document.getElementById('total-pix').value)      || 0;
+  const total    = dinheiro + cartao + pix;
+  document.getElementById('total-loja-display').textContent = fmt(total);
+  calcDiff();
+}
+
 function calcDiff() {
-  const total = parseFloat(document.getElementById('total-loja').value) || 0;
+  const dinheiro = parseFloat(document.getElementById('total-dinheiro').value) || 0;
+  const cartao   = parseFloat(document.getElementById('total-cartao').value)   || 0;
+  const pix      = parseFloat(document.getElementById('total-pix').value)      || 0;
+  const total    = dinheiro + cartao + pix;
   const somaVend = funcionarias.reduce((s, f) => {
     return s + (parseFloat(document.getElementById(`vend-${f.id}`)?.value) || 0);
   }, 0);
@@ -438,7 +582,10 @@ async function loadVendasHoje() {
     .eq('loja', lojaAtual).eq('data_fechamento', today).single();
 
   if (fech) {
-    document.getElementById('total-loja').value = fech.total_loja;
+    document.getElementById('total-dinheiro').value = fech.total_dinheiro || '';
+    document.getElementById('total-cartao').value   = fech.total_cartao   || '';
+    document.getElementById('total-pix').value      = fech.total_pix      || '';
+    calcTotal();
     (fech.fechamento_vendedoras || []).forEach(fv => {
       const el = document.getElementById(`vend-${fv.funcionaria_id}`);
       if (el) el.value = fv.valor;
@@ -449,17 +596,20 @@ async function loadVendasHoje() {
 
 // ===== SALVAR DIA =====
 async function salvarDia() {
-  const total = parseFloat(document.getElementById('total-loja').value) || 0;
-  if (!total) { showToast('Informe o total da loja', 'error'); return; }
+  const total_dinheiro = parseFloat(document.getElementById('total-dinheiro').value) || 0;
+  const total_cartao   = parseFloat(document.getElementById('total-cartao').value)   || 0;
+  const total_pix      = parseFloat(document.getElementById('total-pix').value)      || 0;
+  const total          = total_dinheiro + total_cartao + total_pix;
+  if (!total) { showToast('Informe pelo menos uma forma de pagamento', 'error'); return; }
 
-  const btn = document.querySelector('.status-bar .btn-primary');
+  const btn = document.querySelector('.save-bar .btn-primary');
   btn.textContent = 'Salvando...';
   btn.disabled = true;
 
   try {
     // 1. Salva fechamento do dia
     const { data: fech, error: fechErr } = await sb.from('fechamento_dia').upsert(
-      { loja: lojaAtual, data_fechamento: today, total_loja: total },
+      { loja: lojaAtual, data_fechamento: today, total_loja: total, total_dinheiro, total_cartao, total_pix },
       { onConflict: 'loja,data_fechamento' }
     ).select().single();
     if (fechErr) throw fechErr;
@@ -504,7 +654,7 @@ async function salvarDia() {
     console.error(e);
     showToast('Erro ao salvar. Tente novamente.', 'error');
   } finally {
-    btn.textContent = '✓ Salvar Dia';
+    btn.textContent = '✓ Salvar Fechamento';
     btn.disabled = false;
   }
 }
@@ -534,6 +684,40 @@ async function verResumo() {
   openModal('modal-resumo');
 }
 
+// ===== NAV =====
+function showNav(tab) {
+  ['vendas','despesas','historico'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === tab ? '' : 'none';
+    document.getElementById('nav-' + t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'historico') loadHistorico();
+}
+
+// ===== HISTÓRICO =====
+async function loadHistorico() {
+  const el = document.getElementById('historico-list');
+  el.innerHTML = '<div class="empty">Carregando...</div>';
+  const { data } = await sb.from('fechamento_dia')
+    .select('*, fechamento_vendedoras(valor, funcionarias(nome))')
+    .eq('loja', lojaAtual)
+    .order('data_fechamento', { ascending: false })
+    .limit(30);
+  if (!data?.length) { el.innerHTML = '<div class="empty">Nenhum fechamento registrado</div>'; return; }
+  el.innerHTML = data.map(d => {
+    const vends = (d.fechamento_vendedoras || [])
+      .map(v => `<div style="font-size:0.78rem;color:var(--text-muted);padding-left:8px">↳ ${v.funcionarias?.nome || '—'}: ${fmt(v.valor)}</div>`)
+      .join('');
+    return `
+      <div class="hist-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+        <div style="display:flex;justify-content:space-between;width:100%">
+          <span class="hist-data">${new Date(d.data_fechamento + 'T12:00:00').toLocaleDateString('pt-BR', { weekday:'short', day:'2-digit', month:'short' })}</span>
+          <span class="hist-total">${fmt(d.total_loja)}</span>
+        </div>
+        ${vends}
+      </div>`;
+  }).join('');
+}
+
 // ===== UTILS =====
 function showToast(msg, type = 'success') {
   const t = document.getElementById('toast');
@@ -548,8 +732,8 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
 });
 
 // ===== BOOT =====
-const lojaGuardada = localStorage.getItem('shai_loja');
-if (lojaGuardada) iniciarApp(lojaGuardada);
+// AUTH TEMPORARIAMENTE DESATIVADO — reativar depois
+iniciarApp('Loja Areal');
 </script>
 </body>
 </html>
