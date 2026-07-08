@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -136,7 +136,7 @@ tr:hover td { background: var(--surface2); }
 .check-item.done .check-text { text-decoration: line-through; color: var(--text-muted); }
 .check-box { width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--border); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
 .check-box.checked { background: var(--accent); border-color: var(--accent); }
-.check-box.checked::after { content: 'âœ“'; font-size: 12px; color: #0f0f0f; font-weight: 700; }
+.check-box.checked::after { content: '✓'; font-size: 12px; color: #0f0f0f; font-weight: 700; }
 .check-text { flex: 1; font-size: 0.875rem; }
 .check-qty { font-size: 0.75rem; color: var(--text-muted); }
 .check-del { cursor: pointer; color: var(--red); font-size: 16px; opacity: 0; transition: opacity 0.2s; background: none; border: none; }
@@ -204,7 +204,7 @@ tr:hover td { background: var(--surface2); }
   .section-header { flex-direction: column; align-items: flex-start; gap: 10px; }
   .section-title { font-size: 1rem; }
 
-  /* FormulÃ¡rio de custos fixos: empilha tudo */
+  /* Formulário de custos fixos: empilha tudo */
   #tab-custos .card > div[style*="grid-template-columns"] {
     grid-template-columns: 1fr !important;
   }
@@ -215,7 +215,7 @@ tr:hover td { background: var(--surface2); }
   .tab-pills::-webkit-scrollbar { display: none; }
   .tab-pill { flex-shrink: 0; }
 
-  /* BotÃµes de aÃ§Ã£o nÃ£o ficam cortados */
+  /* Botões de ação não ficam cortados */
   .btn { white-space: nowrap; }
 
   /* Check items: compacta */
@@ -224,7 +224,7 @@ tr:hover td { background: var(--surface2); }
   /* Total bar */
   #custos-total { font-size: 1.1rem; }
 
-  /* HistÃ³rico accordion */
+  /* Histórico accordion */
   .hist-header { font-size: 0.82rem; }
 
   /* Modal ocupa tela toda no mobile */
@@ -242,14 +242,14 @@ tr:hover td { background: var(--surface2); }
 <div class="nav-tabs">
   <button class="nav-tab active" onclick="showTab('dashboard',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
   <button class="nav-tab" onclick="showTab('metas',this)"><i class="ti ti-target-arrow"></i>Metas</button>
-  <button class="nav-tab" onclick="showTab('historico',this)"><i class="ti ti-history"></i>HistÃ³rico</button>
-  <button class="nav-tab" onclick="showTab('comissoes',this)"><i class="ti ti-coin"></i>ComissÃµes</button>
-  <button class="nav-tab" onclick="showTab('funcionarios',this)"><i class="ti ti-users"></i>FuncionÃ¡rios</button>
+  <button class="nav-tab" onclick="showTab('historico',this)"><i class="ti ti-history"></i>Histórico</button>
+  <button class="nav-tab" onclick="showTab('comissoes',this)"><i class="ti ti-coin"></i>Comissões</button>
+  <button class="nav-tab" onclick="showTab('funcionarios',this)"><i class="ti ti-users"></i>Funcionários</button>
   <button class="nav-tab" onclick="showTab('lista',this)"><i class="ti ti-shopping-cart"></i>Lista de Compras</button>
   <button class="nav-tab" onclick="showTab('custos',this)"><i class="ti ti-building-bank"></i>Custos Fixos</button>
   <button class="nav-tab" onclick="showTab('compras',this)"><i class="ti ti-shopping-bag"></i>Compras</button>
   <button class="nav-tab" onclick="showTab('fechamentos',this)"><i class="ti ti-report-money"></i>Fechamentos</button>
-  <button class="nav-tab" onclick="showTab('config',this)"><i class="ti ti-settings"></i>ConfiguraÃ§Ãµes</button>
+  <button class="nav-tab" onclick="showTab('config',this)"><i class="ti ti-settings"></i>Configurações</button>
 </div>
 
 <div class="content">
@@ -265,9 +265,9 @@ tr:hover td { background: var(--surface2); }
       <div class="section-header">
         <div class="section-title">Dashboard Semanal</div>
         <div class="week-nav">
-          <button onclick="dashWeek(-1)">â€¹</button>
-          <span class="week-label" id="dash-week-label">â€”</span>
-          <button onclick="dashWeek(1)">â€º</button>
+          <button onclick="dashWeek(-1)">‹</button>
+          <span class="week-label" id="dash-week-label">—</span>
+          <button onclick="dashWeek(1)">›</button>
         </div>
       </div>
 
@@ -283,12 +283,12 @@ tr:hover td { background: var(--surface2); }
           <div class="stat-sub" id="d-l1-tier"></div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Loja TrÃªs Rios</div>
+          <div class="stat-label">Loja Três Rios</div>
           <div class="stat-value" id="d-l2" style="color:var(--loja2)">R$ 0</div>
           <div class="stat-sub" id="d-l2-tier"></div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Ticket MÃ©dio</div>
+          <div class="stat-label">Ticket Médio</div>
           <div class="stat-value" id="d-ticket" style="color:var(--text)">R$ 0</div>
           <div class="stat-sub">por venda</div>
         </div>
@@ -296,11 +296,11 @@ tr:hover td { background: var(--surface2); }
 
       <div class="grid-2" style="margin-bottom:16px">
         <div class="card">
-          <div class="card-title">Progresso da Meta â€” Loja Areal</div>
+          <div class="card-title">Progresso da Meta — Loja Areal</div>
           <div id="meta-prog-l1"><div class="empty" style="padding:12px">Sem meta definida</div></div>
         </div>
         <div class="card">
-          <div class="card-title">Progresso da Meta â€” Loja TrÃªs Rios</div>
+          <div class="card-title">Progresso da Meta — Loja Três Rios</div>
           <div id="meta-prog-l2"><div class="empty" style="padding:12px">Sem meta definida</div></div>
         </div>
       </div>
@@ -321,15 +321,15 @@ tr:hover td { background: var(--surface2); }
       <div class="section-header">
         <div class="section-title">Dashboard Mensal</div>
         <div class="week-nav">
-          <button onclick="dashMonth(-1)">â€¹</button>
-          <span class="week-label" id="dash-month-label">â€”</span>
-          <button onclick="dashMonth(1)">â€º</button>
+          <button onclick="dashMonth(-1)">‹</button>
+          <span class="week-label" id="dash-month-label">—</span>
+          <button onclick="dashMonth(1)">›</button>
         </div>
       </div>
 
       <div class="grid-4" style="margin-bottom:16px">
         <div class="stat-card">
-          <div class="stat-label">Total do MÃªs</div>
+          <div class="stat-label">Total do Mês</div>
           <div class="stat-value" id="dm-total" style="color:var(--accent)">R$ 0</div>
           <div class="stat-sub" id="dm-count">0 vendas</div>
         </div>
@@ -339,12 +339,12 @@ tr:hover td { background: var(--surface2); }
           <div class="stat-sub" id="dm-l1-tier"></div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Loja TrÃªs Rios</div>
+          <div class="stat-label">Loja Três Rios</div>
           <div class="stat-value" id="dm-l2" style="color:var(--loja2)">R$ 0</div>
           <div class="stat-sub" id="dm-l2-tier"></div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Ticket MÃ©dio</div>
+          <div class="stat-label">Ticket Médio</div>
           <div class="stat-value" id="dm-ticket" style="color:var(--text)">R$ 0</div>
           <div class="stat-sub">por venda</div>
         </div>
@@ -352,11 +352,11 @@ tr:hover td { background: var(--surface2); }
 
       <div class="grid-2">
         <div class="card">
-          <div class="card-title">Progresso da Meta â€” Loja Areal</div>
+          <div class="card-title">Progresso da Meta — Loja Areal</div>
           <div id="meta-prog-mensal-l1"><div class="empty" style="padding:12px">Sem meta definida</div></div>
         </div>
         <div class="card">
-          <div class="card-title">Progresso da Meta â€” Loja TrÃªs Rios</div>
+          <div class="card-title">Progresso da Meta — Loja Três Rios</div>
           <div id="meta-prog-mensal-l2"><div class="empty" style="padding:12px">Sem meta definida</div></div>
         </div>
       </div>
@@ -364,21 +364,21 @@ tr:hover td { background: var(--surface2); }
   </div>
 
 
-  <!-- ===== COMISSÃ•ES ===== -->
+  <!-- ===== COMISSÕES ===== -->
   <div class="tab-panel" id="tab-comissoes">
     <div class="section-header">
-      <div class="section-title">ComissÃµes Semanais</div>
+      <div class="section-title">Comissões Semanais</div>
       <div class="week-nav">
-        <button onclick="comWeek(-1)">â€¹</button>
-        <span class="week-label" id="com-week-label">â€”</span>
-        <button onclick="comWeek(1)">â€º</button>
+        <button onclick="comWeek(-1)">‹</button>
+        <span class="week-label" id="com-week-label">—</span>
+        <button onclick="comWeek(1)">›</button>
       </div>
     </div>
 
     <div class="info-box">
-      <strong style="color:var(--text)">Tabela de comissÃµes:</strong><br>
-      Gerente â†’ Meta: 1% + R$80 | Super: 1,5% + R$100 | Mega: 2% + R$150 (sobre total da loja)<br>
-      Vendedora â†’ Meta: 1% + R$35 | Super: 1,5% + R$50 | Mega: 2% + R$65 (sobre vendas individuais)
+      <strong style="color:var(--text)">Tabela de comissões:</strong><br>
+      Gerente → Meta: 1% + R$80 | Super: 1,5% + R$100 | Mega: 2% + R$150 (sobre total da loja)<br>
+      Vendedora → Meta: 1% + R$35 | Super: 1,5% + R$50 | Mega: 2% + R$65 (sobre vendas individuais)
     </div>
 
     <div class="card" style="margin-bottom:20px" id="comissoes-resumo">
@@ -387,11 +387,11 @@ tr:hover td { background: var(--surface2); }
 
   </div>
 
-  <!-- ===== FUNCIONÃRIOS ===== -->
+  <!-- ===== FUNCIONÁRIOS ===== -->
   <div class="tab-panel" id="tab-funcionarios">
     <div class="section-header">
-      <div class="section-title">FuncionÃ¡rios</div>
-      <button class="btn btn-primary btn-sm" onclick="openModal('modal-func')">+ Nova FuncionÃ¡ria</button>
+      <div class="section-title">Funcionários</div>
+      <button class="btn btn-primary btn-sm" onclick="openModal('modal-func')">+ Nova Funcionária</button>
     </div>
     <div class="card">
       <div class="table-wrap">
@@ -417,12 +417,12 @@ tr:hover td { background: var(--surface2); }
     <!-- METAS SEMANAIS -->
     <div id="metas-semanal-view">
       <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:16px">
-        <button class="week-nav" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="metasWeek(-1)">â€¹</button>
+        <button class="week-nav" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="metasWeek(-1)">‹</button>
         <div style="text-align:center">
           <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Semana</div>
-          <strong id="metas-week-label" style="color:var(--text);font-size:0.9rem">â€”</strong>
+          <strong id="metas-week-label" style="color:var(--text);font-size:0.9rem">—</strong>
         </div>
-        <button class="week-nav" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="metasWeek(1)">â€º</button>
+        <button class="week-nav" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="metasWeek(1)">›</button>
       </div>
 
       <div class="grid-2" style="margin-bottom:24px">
@@ -443,7 +443,7 @@ tr:hover td { background: var(--surface2); }
           <button class="btn btn-primary" onclick="saveMetaSemanalNamed('Loja Areal')">Salvar Loja Areal</button>
         </div>
         <div class="card">
-          <div class="card-title">Loja TrÃªs Rios</div>
+          <div class="card-title">Loja Três Rios</div>
           <div class="form-group">
             <label class="form-label"><i class="ti ti-circle-check" style="color:var(--meta-color)"></i> Meta (R$)</label>
             <input type="text" class="form-input" id="ms-l2-meta" placeholder="R$ 0,00" oninput="maskBRL(this)">
@@ -456,12 +456,12 @@ tr:hover td { background: var(--surface2); }
             <label class="form-label"><i class="ti ti-trophy" style="color:var(--mega-color)"></i> Mega (R$)</label>
             <input type="text" class="form-input" id="ms-l2-mega" placeholder="R$ 0,00" oninput="maskBRL(this)">
           </div>
-          <button class="btn btn-primary" onclick="saveMetaSemanalNamed('Loja TrÃªs Rios')">Salvar Loja TrÃªs Rios</button>
+          <button class="btn btn-primary" onclick="saveMetaSemanalNamed('Loja Três Rios')">Salvar Loja Três Rios</button>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-title">HistÃ³rico de Metas Semanais</div>
+        <div class="card-title">Histórico de Metas Semanais</div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Semana</th><th>Loja</th><th><i class="ti ti-circle-check" style="color:var(--meta-color)"></i> Meta</th><th><i class="ti ti-star" style="color:var(--super-color)"></i> Super</th><th><i class="ti ti-trophy" style="color:var(--mega-color)"></i> Mega</th><th></th></tr></thead>
@@ -474,12 +474,12 @@ tr:hover td { background: var(--surface2); }
     <!-- METAS MENSAIS -->
     <div id="metas-mensal-view" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:16px">
-        <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="metasMonth(-1)">â€¹</button>
+        <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="metasMonth(-1)">‹</button>
         <div style="text-align:center">
-          <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">MÃªs</div>
-          <strong id="metas-month-label" style="color:var(--text);font-size:0.9rem">â€”</strong>
+          <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Mês</div>
+          <strong id="metas-month-label" style="color:var(--text);font-size:0.9rem">—</strong>
         </div>
-        <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="metasMonth(1)">â€º</button>
+        <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="metasMonth(1)">›</button>
       </div>
 
       <div class="grid-2" style="margin-bottom:24px">
@@ -500,7 +500,7 @@ tr:hover td { background: var(--surface2); }
           <button class="btn btn-primary" onclick="saveMetaMensalNamed('Loja Areal')">Salvar Loja Areal</button>
         </div>
         <div class="card">
-          <div class="card-title">Loja TrÃªs Rios</div>
+          <div class="card-title">Loja Três Rios</div>
           <div class="form-group">
             <label class="form-label"><i class="ti ti-circle-check" style="color:var(--meta-color)"></i> Meta (R$)</label>
             <input type="text" class="form-input" id="mm-l2-meta" placeholder="R$ 0,00" oninput="maskBRL(this)">
@@ -513,15 +513,15 @@ tr:hover td { background: var(--surface2); }
             <label class="form-label"><i class="ti ti-trophy" style="color:var(--mega-color)"></i> Mega (R$)</label>
             <input type="text" class="form-input" id="mm-l2-mega" placeholder="R$ 0,00" oninput="maskBRL(this)">
           </div>
-          <button class="btn btn-primary" onclick="saveMetaMensalNamed('Loja TrÃªs Rios')">Salvar Loja TrÃªs Rios</button>
+          <button class="btn btn-primary" onclick="saveMetaMensalNamed('Loja Três Rios')">Salvar Loja Três Rios</button>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-title">HistÃ³rico de Metas Mensais</div>
+        <div class="card-title">Histórico de Metas Mensais</div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>MÃªs</th><th>Loja</th><th><i class="ti ti-circle-check" style="color:var(--meta-color)"></i> Meta</th><th><i class="ti ti-star" style="color:var(--super-color)"></i> Super</th><th><i class="ti ti-trophy" style="color:var(--mega-color)"></i> Mega</th><th></th></tr></thead>
+            <thead><tr><th>Mês</th><th>Loja</th><th><i class="ti ti-circle-check" style="color:var(--meta-color)"></i> Meta</th><th><i class="ti ti-star" style="color:var(--super-color)"></i> Super</th><th><i class="ti ti-trophy" style="color:var(--mega-color)"></i> Mega</th><th></th></tr></thead>
             <tbody id="metas-men-tbody"><tr><td colspan="6" class="empty">Nenhuma meta cadastrada</td></tr></tbody>
           </table>
         </div>
@@ -529,31 +529,31 @@ tr:hover td { background: var(--surface2); }
     </div>
   </div>
 
-  <!-- ===== HISTÃ“RICO ===== -->
+  <!-- ===== HISTÓRICO ===== -->
   <div class="tab-panel" id="tab-historico">
     <div class="section-header">
-      <div class="section-title">HistÃ³rico de Vendas</div>
+      <div class="section-title">Histórico de Vendas</div>
     </div>
 
     <div class="tab-pills" style="margin-bottom:20px">
       <button class="tab-pill active" onclick="setHistView('diario',this)">Por Dia</button>
       <button class="tab-pill" onclick="setHistView('semanal',this)">Por Semana</button>
-      <button class="tab-pill" onclick="setHistView('mensal',this)">Por MÃªs</button>
-      <button class="tab-pill" onclick="setHistView('periodo',this)">Por PerÃ­odo</button>
+      <button class="tab-pill" onclick="setHistView('mensal',this)">Por Mês</button>
+      <button class="tab-pill" onclick="setHistView('periodo',this)">Por Período</button>
     </div>
 
-    <!-- HISTÃ“RICO POR PERÃODO -->
+    <!-- HISTÓRICO POR PERÍODO -->
     <div id="hist-periodo-view" style="display:none">
       <div class="card" style="margin-bottom:16px">
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
           <div class="form-group" style="margin:0">
             <label class="form-label">Loja</label>
             <select class="form-select" id="hist-per-loja" style="width:140px">
-              <option value="">Todas</option><option>Loja Areal</option><option>Loja TrÃªs Rios</option>
+              <option value="">Todas</option><option>Loja Areal</option><option>Loja Três Rios</option>
             </select>
           </div>
           <div class="form-group" style="margin:0">
-            <label class="form-label">Data inÃ­cio</label>
+            <label class="form-label">Data início</label>
             <input type="date" class="form-input" id="hist-per-ini" style="width:160px">
           </div>
           <div class="form-group" style="margin:0">
@@ -567,40 +567,40 @@ tr:hover td { background: var(--surface2); }
       <div class="grid-3" style="margin-bottom:16px">
         <div class="stat-card">
           <div class="stat-label">Faturamento Total</div>
-          <div class="stat-value" id="per-total" style="color:var(--accent)">â€”</div>
+          <div class="stat-value" id="per-total" style="color:var(--accent)">—</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Total de Vendas</div>
-          <div class="stat-value" id="per-count" style="color:var(--text)">â€”</div>
+          <div class="stat-value" id="per-count" style="color:var(--text)">—</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Ticket MÃ©dio</div>
-          <div class="stat-value" id="per-ticket" style="color:var(--text)">â€”</div>
+          <div class="stat-label">Ticket Médio</div>
+          <div class="stat-value" id="per-ticket" style="color:var(--text)">—</div>
         </div>
       </div>
 
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Data</th><th>FuncionÃ¡ria</th><th>Loja</th><th>DescriÃ§Ã£o</th><th>Valor</th></tr></thead>
-            <tbody id="hist-per-tbody"><tr><td colspan="5" class="empty">Selecione o perÃ­odo e clique em Buscar</td></tr></tbody>
+            <thead><tr><th>Data</th><th>Funcionária</th><th>Loja</th><th>Descrição</th><th>Valor</th></tr></thead>
+            <tbody id="hist-per-tbody"><tr><td colspan="5" class="empty">Selecione o período e clique em Buscar</td></tr></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- HISTÃ“RICO DIÃRIO -->
+    <!-- HISTÓRICO DIÁRIO -->
     <div id="hist-diario-view">
       <div class="card" style="margin-bottom:16px">
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
           <div class="form-group" style="margin:0">
             <label class="form-label">Loja</label>
             <select class="form-select" id="hist-dia-loja" onchange="loadHistDiario()" style="width:140px">
-              <option value="">Todas</option><option>Loja Areal</option><option>Loja TrÃªs Rios</option>
+              <option value="">Todas</option><option>Loja Areal</option><option>Loja Três Rios</option>
             </select>
           </div>
           <div class="form-group" style="margin:0">
-            <label class="form-label">MÃªs</label>
+            <label class="form-label">Mês</label>
             <select class="form-select" id="hist-dia-mes" onchange="loadHistDiario()" style="width:140px"></select>
           </div>
           <div class="form-group" style="margin:0">
@@ -612,21 +612,21 @@ tr:hover td { background: var(--surface2); }
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Data</th><th>Loja</th><th>Vendas</th><th>Faturamento</th><th>Ticket MÃ©dio</th></tr></thead>
+            <thead><tr><th>Data</th><th>Loja</th><th>Vendas</th><th>Faturamento</th><th>Ticket Médio</th></tr></thead>
             <tbody id="hist-dia-tbody"><tr><td colspan="5" class="empty">Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- HISTÃ“RICO SEMANAL -->
+    <!-- HISTÓRICO SEMANAL -->
     <div id="hist-semanal-view" style="display:none">
       <div class="card" style="margin-bottom:16px">
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
           <div class="form-group" style="margin:0">
             <label class="form-label">Loja</label>
             <select class="form-select" id="hist-sem-loja" onchange="loadHistSemanal()" style="width:140px">
-              <option value="">Todas</option><option>Loja Areal</option><option>Loja TrÃªs Rios</option>
+              <option value="">Todas</option><option>Loja Areal</option><option>Loja Três Rios</option>
             </select>
           </div>
           <div class="form-group" style="margin:0">
@@ -638,21 +638,21 @@ tr:hover td { background: var(--surface2); }
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Semana</th><th>Loja</th><th>Vendas</th><th>Faturamento</th><th>Ticket MÃ©dio</th><th>Tier</th><th>Meta</th><th>Super</th><th>Mega</th></tr></thead>
+            <thead><tr><th>Semana</th><th>Loja</th><th>Vendas</th><th>Faturamento</th><th>Ticket Médio</th><th>Tier</th><th>Meta</th><th>Super</th><th>Mega</th></tr></thead>
             <tbody id="hist-sem-tbody"><tr><td colspan="9" class="empty">Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- HISTÃ“RICO MENSAL -->
+    <!-- HISTÓRICO MENSAL -->
     <div id="hist-mensal-view" style="display:none;">
       <div class="card" style="margin-bottom:16px">
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
           <div class="form-group" style="margin:0">
             <label class="form-label">Loja</label>
             <select class="form-select" id="hist-men-loja" onchange="loadHistMensal()" style="width:140px">
-              <option value="">Todas</option><option>Loja Areal</option><option>Loja TrÃªs Rios</option>
+              <option value="">Todas</option><option>Loja Areal</option><option>Loja Três Rios</option>
             </select>
           </div>
           <div class="form-group" style="margin:0">
@@ -664,7 +664,7 @@ tr:hover td { background: var(--surface2); }
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>MÃªs</th><th>Loja</th><th>Vendas</th><th>Faturamento</th><th>Ticket MÃ©dio</th><th>Tier</th><th>Meta</th><th>Super</th><th>Mega</th></tr></thead>
+            <thead><tr><th>Mês</th><th>Loja</th><th>Vendas</th><th>Faturamento</th><th>Ticket Médio</th><th>Tier</th><th>Meta</th><th>Super</th><th>Mega</th></tr></thead>
             <tbody id="hist-men-tbody"><tr><td colspan="9" class="empty">Carregando...</td></tr></tbody>
           </table>
         </div>
@@ -680,7 +680,7 @@ tr:hover td { background: var(--surface2); }
 
     <div class="tab-pills" style="margin-bottom:20px">
       <button class="tab-pill active" id="lpill-areal"    onclick="setListaView('areal',this)"><i class="ti ti-map-pin"></i>Loja Areal</button>
-      <button class="tab-pill"        id="lpill-tresrios" onclick="setListaView('tresrios',this)"><i class="ti ti-map-pin"></i>Loja TrÃªs Rios</button>
+      <button class="tab-pill"        id="lpill-tresrios" onclick="setListaView('tresrios',this)"><i class="ti ti-map-pin"></i>Loja Três Rios</button>
       <button class="tab-pill"        id="lpill-todas"    onclick="setListaView('todas',this)"><i class="ti ti-clipboard-list"></i>Consolidado</button>
     </div>
 
@@ -689,7 +689,7 @@ tr:hover td { background: var(--surface2); }
       <div id="lista-loja-areal"><div class="empty">Nenhum item</div></div>
     </div>
 
-    <!-- Loja TrÃªs Rios -->
+    <!-- Loja Três Rios -->
     <div id="lview-tresrios" style="display:none">
       <div id="lista-loja-tresrios"><div class="empty">Nenhum item</div></div>
     </div>
@@ -702,7 +702,7 @@ tr:hover td { background: var(--surface2); }
           <div id="lista-loja-areal-c"><div class="empty">Nenhum item</div></div>
         </div>
         <div>
-          <div class="card-title" style="margin-bottom:12px;padding-left:4px"><i class="ti ti-map-pin"></i>Loja TrÃªs Rios</div>
+          <div class="card-title" style="margin-bottom:12px;padding-left:4px"><i class="ti ti-map-pin"></i>Loja Três Rios</div>
           <div id="lista-loja-tresrios-c"><div class="empty">Nenhum item</div></div>
         </div>
       </div>
@@ -717,14 +717,14 @@ tr:hover td { background: var(--surface2); }
 
     <div class="tab-pills" style="margin-bottom:20px">
       <button class="tab-pill active" id="cpill-areal"    onclick="setCustosLoja('Loja Areal',this)"><i class="ti ti-map-pin"></i>Loja Areal</button>
-      <button class="tab-pill"        id="cpill-tresrios" onclick="setCustosLoja('Loja TrÃªs Rios',this)"><i class="ti ti-map-pin"></i>Loja TrÃªs Rios</button>
+      <button class="tab-pill"        id="cpill-tresrios" onclick="setCustosLoja('Loja Três Rios',this)"><i class="ti ti-map-pin"></i>Loja Três Rios</button>
     </div>
 
-    <!-- FormulÃ¡rio inline -->
+    <!-- Formulário inline -->
     <div class="card" style="margin-bottom:20px">
       <div style="display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:end">
         <div class="form-group" style="margin:0">
-          <label class="form-label">DescriÃ§Ã£o <span style="color:var(--red)">*</span></label>
+          <label class="form-label">Descrição <span style="color:var(--red)">*</span></label>
           <input type="text" class="form-input" id="cf-nome" placeholder="Ex: Aluguel, Energia, Contador...">
         </div>
         <div class="form-group" style="margin:0">
@@ -754,14 +754,14 @@ tr:hover td { background: var(--surface2); }
 
     <div class="tab-pills" style="margin-bottom:20px">
       <button class="tab-pill"        id="comppill-areal"    onclick="setComprasLoja('Loja Areal',this)"><i class="ti ti-map-pin"></i>Loja Areal</button>
-      <button class="tab-pill"        id="comppill-tresrios" onclick="setComprasLoja('Loja TrÃªs Rios',this)"><i class="ti ti-map-pin"></i>Loja TrÃªs Rios</button>
+      <button class="tab-pill"        id="comppill-tresrios" onclick="setComprasLoja('Loja Três Rios',this)"><i class="ti ti-map-pin"></i>Loja Três Rios</button>
       <button class="tab-pill active" id="comppill-todas"    onclick="setComprasLoja('todas',this)"><i class="ti ti-clipboard-list"></i>Todas</button>
     </div>
 
     <div class="card" style="margin-bottom:16px">
       <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end">
         <div>
-          <label class="form-label">Data inÃ­cio</label>
+          <label class="form-label">Data início</label>
           <input type="date" class="form-input" id="comp-dt-ini">
         </div>
         <div>
@@ -773,11 +773,11 @@ tr:hover td { background: var(--surface2); }
     </div>
 
     <div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:16px">
-      <span style="font-size:0.85rem;color:var(--text-muted)">Total no perÃ­odo</span>
+      <span style="font-size:0.85rem;color:var(--text-muted)">Total no período</span>
       <span id="compras-total" style="font-size:1.3rem;font-weight:700;color:var(--red)">R$ 0,00</span>
     </div>
 
-    <div id="compras-lista"><div class="empty">Selecione um perÃ­odo e clique em Buscar</div></div>
+    <div id="compras-lista"><div class="empty">Selecione um período e clique em Buscar</div></div>
   </div>
 
   <!-- ===== FECHAMENTOS ===== -->
@@ -790,41 +790,41 @@ tr:hover td { background: var(--surface2); }
       <button class="tab-pill active" id="fpill-semanal"  onclick="setFechView('semanal',this)"><i class="ti ti-calendar"></i>Semanal</button>
       <button class="tab-pill"        id="fpill-mensal"   onclick="setFechView('mensal',this)"><i class="ti ti-calendar-month"></i>Mensal</button>
       <button class="tab-pill"        id="fpill-anual"    onclick="setFechView('anual',this)"><i class="ti ti-calendar-stats"></i>Anual</button>
-      <button class="tab-pill"        id="fpill-periodo"  onclick="setFechView('periodo',this)"><i class="ti ti-search"></i>Por PerÃ­odo</button>
+      <button class="tab-pill"        id="fpill-periodo"  onclick="setFechView('periodo',this)"><i class="ti ti-search"></i>Por Período</button>
     </div>
 
-    <!-- Seletor de perÃ­odo -->
+    <!-- Seletor de período -->
     <div id="fech-nav-semanal" style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:20px">
-      <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="fechNav(-1)">â€¹</button>
+      <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="fechNav(-1)">‹</button>
       <div style="text-align:center">
         <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Semana</div>
-        <strong id="fech-period-label" style="color:var(--text);font-size:0.9rem">â€”</strong>
+        <strong id="fech-period-label" style="color:var(--text);font-size:0.9rem">—</strong>
       </div>
-      <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="fechNav(1)">â€º</button>
+      <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="fechNav(1)">›</button>
     </div>
 
     <div id="fech-nav-mensal" style="display:none;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:20px">
-      <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="fechNav(-1)">â€¹</button>
+      <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="fechNav(-1)">‹</button>
       <div style="text-align:center">
-        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">MÃªs</div>
-        <strong id="fech-period-label-m" style="color:var(--text);font-size:0.9rem">â€”</strong>
+        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Mês</div>
+        <strong id="fech-period-label-m" style="color:var(--text);font-size:0.9rem">—</strong>
       </div>
-      <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="fechNav(1)">â€º</button>
+      <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="fechNav(1)">›</button>
     </div>
 
     <div id="fech-nav-anual" style="display:none;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:20px">
-      <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="fechNav(-1)">â€¹</button>
+      <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="fechNav(-1)">‹</button>
       <div style="text-align:center">
         <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Ano</div>
-        <strong id="fech-period-label-a" style="color:var(--text);font-size:0.9rem">â€”</strong>
+        <strong id="fech-period-label-a" style="color:var(--text);font-size:0.9rem">—</strong>
       </div>
-      <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="fechNav(1)">â€º</button>
+      <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="fechNav(1)">›</button>
     </div>
 
     <div id="fech-nav-periodo" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:20px">
       <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end">
         <div>
-          <label class="form-label">Data inÃ­cio</label>
+          <label class="form-label">Data início</label>
           <input type="date" class="form-input" id="fech-dt-ini">
         </div>
         <div>
@@ -836,13 +836,13 @@ tr:hover td { background: var(--surface2); }
     </div>
 
     <!-- DRE consolidado -->
-    <div id="fech-resultado"><div class="empty">Selecione um perÃ­odo</div></div>
+    <div id="fech-resultado"><div class="empty">Selecione um período</div></div>
   </div>
 
   <!-- ===== CONFIG ===== -->
   <div class="tab-panel" id="tab-config">
     <div class="section-header">
-      <div class="section-title">ConfiguraÃ§Ãµes</div>
+      <div class="section-title">Configurações</div>
     </div>
     <div class="empty" style="margin-top:40px">Em breve</div>
   </div>
@@ -850,10 +850,10 @@ tr:hover td { background: var(--surface2); }
 </div><!-- /content -->
 
 
-<!-- MODAL FUNCIONÃRIA -->
+<!-- MODAL FUNCIONÁRIA -->
 <div class="modal-overlay" id="modal-func">
   <div class="modal">
-    <div class="modal-title">Nova FuncionÃ¡ria</div>
+    <div class="modal-title">Nova Funcionária</div>
     <div class="form-group">
       <label class="form-label">Nome</label>
       <input type="text" class="form-input" id="f-nome" placeholder="Nome completo">
@@ -865,7 +865,7 @@ tr:hover td { background: var(--surface2); }
       </div>
       <div class="form-group">
         <label class="form-label">Loja</label>
-        <select class="form-select" id="f-loja"><option>Loja Areal</option><option>Loja TrÃªs Rios</option></select>
+        <select class="form-select" id="f-loja"><option>Loja Areal</option><option>Loja Três Rios</option></select>
       </div>
     </div>
     <div class="modal-footer">
@@ -881,7 +881,7 @@ tr:hover td { background: var(--surface2); }
     <div class="modal-title">Adicionar Item</div>
     <div class="form-group">
       <label class="form-label">Item</label>
-      <input type="text" class="form-input" id="i-nome" placeholder="Ex: CalÃ§a jeans P">
+      <input type="text" class="form-input" id="i-nome" placeholder="Ex: Calça jeans P">
     </div>
     <div class="form-row">
       <div class="form-group">
@@ -908,7 +908,7 @@ tr:hover td { background: var(--surface2); }
       <label class="form-label">Loja</label>
       <select class="form-select" id="comp-loja">
         <option value="Loja Areal">Loja Areal</option>
-        <option value="Loja TrÃªs Rios">Loja TrÃªs Rios</option>
+        <option value="Loja Três Rios">Loja Três Rios</option>
       </select>
     </div>
     <div class="form-row">
@@ -926,8 +926,8 @@ tr:hover td { background: var(--surface2); }
       <input type="text" class="form-input" id="comp-fornecedor" placeholder="Nome do fornecedor">
     </div>
     <div class="form-group">
-      <label class="form-label">DescriÃ§Ã£o</label>
-      <input type="text" class="form-input" id="comp-descricao" placeholder="Ex: ColeÃ§Ã£o verÃ£o, acessÃ³rios...">
+      <label class="form-label">Descrição</label>
+      <input type="text" class="form-input" id="comp-descricao" placeholder="Ex: Coleção verão, acessórios...">
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modal-compra')">Cancelar</button>
@@ -943,7 +943,7 @@ const SB_URL = 'https://ofoljmhfnohxwswskplx.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mb2xqbWhmbm9oeHdzd3NrcGx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTQzMjIsImV4cCI6MjA5NTM5MDMyMn0.IRfqUSxOLuYBlE79gdCdHaMrtuoYwNrprw6FaXj_7K8';
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
-// ===== TABELA DE COMISSÃ•ES (fixo) =====
+// ===== TABELA DE COMISSÕES (fixo) =====
 const COMISSAO = {
   Gerente: {
     Meta:  { pct: 1.0, bonus: 80  },
@@ -972,7 +972,7 @@ function getSunday(monday) {
   d.setDate(d.getDate() + 6);
   return d.toISOString().split('T')[0];
 }
-function weekLabel(monday) { return fmtDate(monday) + ' â€“ ' + fmtDate(getSunday(monday)); }
+function weekLabel(monday) { return fmtDate(monday) + ' – ' + fmtDate(getSunday(monday)); }
 function currentMonday(offset = 0) {
   const d = new Date();
   d.setDate(d.getDate() + offset * 7);
@@ -1128,7 +1128,7 @@ async function loadDashSemanal() {
 
   const total = (vendas||[]).reduce((s,v)=>s+v.valor,0);
   const l1 = (vendas||[]).filter(v=>v.loja==='Loja Areal').reduce((s,v)=>s+v.valor,0);
-  const l2 = (vendas||[]).filter(v=>v.loja==='Loja TrÃªs Rios').reduce((s,v)=>s+v.valor,0);
+  const l2 = (vendas||[]).filter(v=>v.loja==='Loja Três Rios').reduce((s,v)=>s+v.valor,0);
   const n = vendas?.length||0;
 
   document.getElementById('d-total').textContent = fmt(total);
@@ -1139,7 +1139,7 @@ async function loadDashSemanal() {
 
   const { data: metas } = await sb.from('metas_semanais').select('*').eq('semana_inicio', monday);
   const ml1 = metas?.find(m=>m.loja==='Loja Areal');
-  const ml2 = metas?.find(m=>m.loja==='Loja TrÃªs Rios');
+  const ml2 = metas?.find(m=>m.loja==='Loja Três Rios');
 
   document.getElementById('d-l1-tier').innerHTML = tierBadgeHtml(calcTier(l1, ml1));
   document.getElementById('d-l2-tier').innerHTML = tierBadgeHtml(calcTier(l2, ml2));
@@ -1150,7 +1150,7 @@ async function loadDashSemanal() {
   const rankMap = {};
   (vendas||[]).forEach(v => {
     const key = v.funcionaria_id || '__sem__';
-    if (!rankMap[key]) rankMap[key] = { nome: v.funcionarias?.nome||'Sem atribuiÃ§Ã£o', loja: v.loja, total: 0 };
+    if (!rankMap[key]) rankMap[key] = { nome: v.funcionarias?.nome||'Sem atribuição', loja: v.loja, total: 0 };
     rankMap[key].total += v.valor;
   });
   const rank = Object.values(rankMap).sort((a,b)=>b.total-a.total);
@@ -1200,7 +1200,7 @@ async function loadDashMensal() {
 
   const total = (vendas||[]).reduce((s,v)=>s+v.valor,0);
   const l1 = (vendas||[]).filter(v=>v.loja==='Loja Areal').reduce((s,v)=>s+v.valor,0);
-  const l2 = (vendas||[]).filter(v=>v.loja==='Loja TrÃªs Rios').reduce((s,v)=>s+v.valor,0);
+  const l2 = (vendas||[]).filter(v=>v.loja==='Loja Três Rios').reduce((s,v)=>s+v.valor,0);
   const n = vendas?.length||0;
 
   document.getElementById('dm-total').textContent = fmt(total);
@@ -1211,7 +1211,7 @@ async function loadDashMensal() {
 
   const { data: metas } = await sb.from('metas_mensais').select('*').eq('mes',mes).eq('ano',ano);
   const ml1 = metas?.find(m=>m.loja==='Loja Areal');
-  const ml2 = metas?.find(m=>m.loja==='Loja TrÃªs Rios');
+  const ml2 = metas?.find(m=>m.loja==='Loja Três Rios');
 
   document.getElementById('dm-l1-tier').innerHTML = tierBadgeHtml(calcTier(l1,ml1));
   document.getElementById('dm-l2-tier').innerHTML = tierBadgeHtml(calcTier(l2,ml2));
@@ -1221,13 +1221,13 @@ async function loadDashMensal() {
 
 // ===== VENDAS =====
 
-// ===== FUNCIONÃRIAS =====
+// ===== FUNCIONÁRIAS =====
 let funcionarias = [];
 async function loadFuncionarias() {
   const { data } = await sb.from('funcionarias').select('*').order('nome');
   funcionarias = data || [];
   const tbody = document.getElementById('func-tbody');
-  if (!funcionarias.length) { tbody.innerHTML='<tr><td colspan="5" class="empty">Nenhuma funcionÃ¡ria</td></tr>'; return; }
+  if (!funcionarias.length) { tbody.innerHTML='<tr><td colspan="5" class="empty">Nenhuma funcionária</td></tr>'; return; }
   const funcRow = f => `
     <tr>
       <td>${f.nome}</td>
@@ -1239,7 +1239,7 @@ async function loadFuncionarias() {
         <button class="btn btn-danger btn-sm" onclick="deleteFunc('${f.id}')"><i class="ti ti-x"></i></button>
       </td>
     </tr>`;
-  tbody.innerHTML = ['Loja Areal','Loja TrÃªs Rios'].map(loja => {
+  tbody.innerHTML = ['Loja Areal','Loja Três Rios'].map(loja => {
     const doLoja = funcionarias.filter(f => f.loja === loja);
     if (!doLoja.length) return '';
     return `<tr><td colspan="5" style="background:var(--surface2);font-weight:600;font-size:0.78rem;color:var(--${loja==='Loja Areal'?'loja1':'loja2'});text-transform:uppercase;letter-spacing:0.06em">${loja}</td></tr>`
@@ -1254,7 +1254,7 @@ async function saveFunc() {
   if (!nome) { showToast('Digite o nome','error'); return; }
   const { error } = await sb.from('funcionarias').insert({ nome, cargo, loja });
   if (error) { showToast('Erro ao salvar','error'); return; }
-  showToast('FuncionÃ¡ria cadastrada!');
+  showToast('Funcionária cadastrada!');
   closeModal('modal-func');
   document.getElementById('f-nome').value='';
   loadFuncionarias();
@@ -1265,12 +1265,12 @@ async function toggleFunc(id, ativa) {
   loadFuncionarias();
 }
 async function deleteFunc(id) {
-  if (!confirm('Excluir funcionÃ¡ria?')) return;
+  if (!confirm('Excluir funcionária?')) return;
   await sb.from('funcionarias').delete().eq('id',id);
   loadFuncionarias();
 }
 
-// ===== COMISSÃ•ES =====
+// ===== COMISSÕES =====
 async function loadComissoes() {
   await loadFuncionarias();
   const monday = currentMonday(comOffset);
@@ -1282,19 +1282,19 @@ async function loadComissoes() {
   const { data: metas } = await sb.from('metas_semanais').select('*').eq('semana_inicio',monday);
 
   // Total por loja
-  const totalLoja = { 'Loja Areal': 0, 'Loja TrÃªs Rios': 0 };
+  const totalLoja = { 'Loja Areal': 0, 'Loja Três Rios': 0 };
   (vendas||[]).forEach(v => totalLoja[v.loja] = (totalLoja[v.loja]||0) + v.valor);
 
   // Tier de cada loja
   const tierLoja = {};
-  ['Loja Areal','Loja TrÃªs Rios'].forEach(l => {
+  ['Loja Areal','Loja Três Rios'].forEach(l => {
     const meta = metas?.find(m=>m.loja===l);
     tierLoja[l] = calcTier(totalLoja[l], meta);
   });
 
   const ativas = funcionarias.filter(f=>f.ativa);
   const resumoEl = document.getElementById('comissoes-resumo');
-  if (!ativas.length) { resumoEl.innerHTML='<div class="empty">Nenhuma funcionÃ¡ria ativa</div>'; return; }
+  if (!ativas.length) { resumoEl.innerHTML='<div class="empty">Nenhuma funcionária ativa</div>'; return; }
 
   let totalPagar = 0;
   const funcRow = f => {
@@ -1306,7 +1306,7 @@ async function loadComissoes() {
       vendido = totalLoja[f.loja] || 0;
       baseCalculo = vendido;
     } else {
-      // Vendedora recebe sobre as prÃ³prias vendas
+      // Vendedora recebe sobre as próprias vendas
       vendido = (vendas||[]).filter(v=>v.funcionaria_id===f.id).reduce((s,v)=>s+v.valor,0);
       baseCalculo = vendido;
     }
@@ -1323,13 +1323,13 @@ async function loadComissoes() {
       <td><span class="badge badge-muted">${f.cargo}</span></td>
       <td>${tierBadgeHtml(tier)}</td>
       <td>${fmt(vendido)}</td>
-      <td>${tier!=='Nenhum'?regra.pct+'%':'â€”'}</td>
-      <td>${tier!=='Nenhum'?fmt(comissao):'â€”'}</td>
-      <td>${tier!=='Nenhum'?fmt(bonus):'â€”'}</td>
-      <td style="font-weight:700;color:var(--accent)">${tier!=='Nenhum'?fmt(total):'â€”'}</td>
+      <td>${tier!=='Nenhum'?regra.pct+'%':'—'}</td>
+      <td>${tier!=='Nenhum'?fmt(comissao):'—'}</td>
+      <td>${tier!=='Nenhum'?fmt(bonus):'—'}</td>
+      <td style="font-weight:700;color:var(--accent)">${tier!=='Nenhum'?fmt(total):'—'}</td>
     </tr>`;
   };
-  const rows = ['Loja Areal','Loja TrÃªs Rios'].map(loja => {
+  const rows = ['Loja Areal','Loja Três Rios'].map(loja => {
     const doLoja = ativas.filter(f => f.loja === loja);
     if (!doLoja.length) return '';
     const subtotal = doLoja.reduce((s,f) => {
@@ -1347,31 +1347,31 @@ async function loadComissoes() {
   resumoEl.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px">
       <div>
-        <div class="card-title">Resumo de ComissÃµes</div>
+        <div class="card-title">Resumo de Comissões</div>
         <div style="font-size:1.4rem;font-weight:700;color:var(--accent)">Total a pagar: ${fmt(totalPagar)}</div>
         <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px">
-          Loja Areal ${tierBadgeHtml(tierLoja['Loja Areal'])} &nbsp; Loja TrÃªs Rios ${tierBadgeHtml(tierLoja['Loja TrÃªs Rios'])}
+          Loja Areal ${tierBadgeHtml(tierLoja['Loja Areal'])} &nbsp; Loja Três Rios ${tierBadgeHtml(tierLoja['Loja Três Rios'])}
         </div>
       </div>
       <button class="btn btn-primary" onclick="fecharComissoes('${monday}','${sunday}')"><i class="ti ti-check"></i> Fechar Semana</button>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>FuncionÃ¡ria</th><th>Cargo</th><th>Tier</th><th>Base CÃ¡lculo</th><th>%</th><th>ComissÃ£o</th><th>BÃ´nus Fixo</th><th>Total</th></tr></thead>
+        <thead><tr><th>Funcionária</th><th>Cargo</th><th>Tier</th><th>Base Cálculo</th><th>%</th><th>Comissão</th><th>Bônus Fixo</th><th>Total</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
 }
 
 async function fecharComissoes(monday, sunday) {
-  if (!confirm('Fechar comissÃµes desta semana?')) return;
+  if (!confirm('Fechar comissões desta semana?')) return;
   const { data: vendas } = await sb.from('vendas').select('*').gte('data_venda',monday).lte('data_venda',sunday);
   const { data: metas } = await sb.from('metas_semanais').select('*').eq('semana_inicio',monday);
 
-  const totalLoja = { 'Loja Areal': 0, 'Loja TrÃªs Rios': 0 };
+  const totalLoja = { 'Loja Areal': 0, 'Loja Três Rios': 0 };
   (vendas||[]).forEach(v => totalLoja[v.loja] = (totalLoja[v.loja]||0) + v.valor);
   const tierLoja = {};
-  ['Loja Areal','Loja TrÃªs Rios'].forEach(l => {
+  ['Loja Areal','Loja Três Rios'].forEach(l => {
     tierLoja[l] = calcTier(totalLoja[l], metas?.find(m=>m.loja===l));
   });
 
@@ -1400,7 +1400,7 @@ async function loadLista() {
 async function loadListaLojas() {
   const { data } = await sb.from('lista_loja').select('*').eq('status','pendente').order('criado_em',{ascending:false});
   const areal    = (data||[]).filter(i=>i.loja==='Loja Areal');
-  const tresrios = (data||[]).filter(i=>i.loja==='Loja TrÃªs Rios');
+  const tresrios = (data||[]).filter(i=>i.loja==='Loja Três Rios');
   renderListaLoja('lista-loja-areal',      areal);
   renderListaLoja('lista-loja-tresrios',   tresrios);
   renderListaLoja('lista-loja-areal-c',    areal);
@@ -1411,7 +1411,7 @@ function renderListaLoja(elId, items) {
   if (!el) return;
   if (!items.length) { el.innerHTML='<div class="empty">Nenhum item</div>'; return; }
   el.innerHTML = items.map(i => {
-    const sub = [i.categoria, i.tamanho, i.cor].filter(Boolean).join(' Â· ');
+    const sub = [i.categoria, i.tamanho, i.cor].filter(Boolean).join(' · ');
     return `<div class="check-item">
       <div class="check-text" style="flex:1">
         <div>${i.nome}</div>
@@ -1489,7 +1489,7 @@ async function loadCustos() {
 async function addCusto() {
   const nome  = document.getElementById('cf-nome').value.trim();
   const valor = parseBRL(document.getElementById('cf-valor').value);
-  if (!nome)  { showToast('Informe a descriÃ§Ã£o', 'error'); return; }
+  if (!nome)  { showToast('Informe a descrição', 'error'); return; }
   if (!valor) { showToast('Informe o valor', 'error'); return; }
   const { error } = await sb.from('custos_fixos').insert({ loja: custosLoja, nome, valor });
   if (error) { showToast('Erro ao salvar', 'error'); return; }
@@ -1508,7 +1508,7 @@ async function deleteCusto(id) {
 let comprasLoja = 'todas';
 
 function initCompras() {
-  // Define perÃ­odo padrÃ£o: mÃªs atual
+  // Define período padrão: mês atual
   const hoje = new Date();
   const ini = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
   const fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
@@ -1528,13 +1528,13 @@ async function loadCompras() {
   const el = document.getElementById('compras-lista');
   const dtIni = document.getElementById('comp-dt-ini').value;
   const dtFim = document.getElementById('comp-dt-fim').value;
-  if (!dtIni || !dtFim) { el.innerHTML = '<div class="empty">Selecione um perÃ­odo e clique em Buscar</div>'; return; }
+  if (!dtIni || !dtFim) { el.innerHTML = '<div class="empty">Selecione um período e clique em Buscar</div>'; return; }
 
   el.innerHTML = '<div class="empty">Carregando...</div>';
   let q = sb.from('compras').select('*').gte('data_compra', dtIni).lte('data_compra', dtFim).order('data_compra', { ascending: false });
   if (comprasLoja !== 'todas') q = q.eq('loja', comprasLoja);
   const { data, error } = await q;
-  if (error || !data?.length) { el.innerHTML = '<div class="empty">Nenhuma compra no perÃ­odo</div>'; document.getElementById('compras-total').textContent = 'R$ 0,00'; return; }
+  if (error || !data?.length) { el.innerHTML = '<div class="empty">Nenhuma compra no período</div>'; document.getElementById('compras-total').textContent = 'R$ 0,00'; return; }
 
   const total = data.reduce((s, x) => s + Number(x.valor || 0), 0);
   document.getElementById('compras-total').textContent = fmt(total);
@@ -1545,15 +1545,15 @@ async function loadCompras() {
         <th style="padding:10px 16px;text-align:left;font-weight:600">Data</th>
         <th style="padding:10px 16px;text-align:left;font-weight:600">Fornecedor</th>
         <th style="padding:10px 16px;text-align:left;font-weight:600">Loja</th>
-        <th style="padding:10px 16px;text-align:left;font-weight:600">DescriÃ§Ã£o</th>
+        <th style="padding:10px 16px;text-align:left;font-weight:600">Descrição</th>
         <th style="padding:10px 16px;text-align:right;font-weight:600">Valor</th>
         <th style="padding:10px 16px;text-align:right;font-weight:600"></th>
       </tr></thead>
       <tbody>${data.map(c => `<tr style="border-bottom:1px solid var(--border);font-size:0.875rem">
         <td style="padding:11px 16px;color:var(--text-muted)">${fmtDate(c.data_compra)}</td>
-        <td style="padding:11px 16px;font-weight:500">${c.fornecedor || 'â€”'}</td>
+        <td style="padding:11px 16px;font-weight:500">${c.fornecedor || '—'}</td>
         <td style="padding:11px 16px"><span class="badge ${c.loja === 'Loja Areal' ? 'badge-loja1' : 'badge-loja2'}">${c.loja}</span></td>
-        <td style="padding:11px 16px;color:var(--text-muted)">${c.descricao || 'â€”'}</td>
+        <td style="padding:11px 16px;color:var(--text-muted)">${c.descricao || '—'}</td>
         <td style="padding:11px 16px;text-align:right;font-weight:600;color:var(--red)">${fmt(c.valor)}</td>
         <td style="padding:11px 16px;text-align:right"><button onclick="deleteCompra('${c.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;padding:2px 6px" title="Excluir"><i class="ti ti-trash"></i></button></td>
       </tr>`).join('')}</tbody>
@@ -1582,7 +1582,7 @@ async function saveCompra() {
 async function deleteCompra(id) {
   if (!confirm('Excluir esta compra?')) return;
   await sb.from('compras').delete().eq('id', id);
-  showToast('Compra excluÃ­da');
+  showToast('Compra excluída');
   loadCompras();
 }
 
@@ -1617,7 +1617,7 @@ async function loadFechamentos() {
     const sun = new Date(mon); sun.setDate(mon.getDate()+6);
     dtIni = mon.toISOString().slice(0,10);
     dtFim = sun.toISOString().slice(0,10);
-    label = `${fmtDate(dtIni)} â€“ ${fmtDate(dtFim)}`;
+    label = `${fmtDate(dtIni)} – ${fmtDate(dtFim)}`;
     document.getElementById('fech-period-label').textContent = label;
 
   } else if (fechView === 'mensal') {
@@ -1639,15 +1639,15 @@ async function loadFechamentos() {
     dtIni = document.getElementById('fech-dt-ini').value;
     dtFim = document.getElementById('fech-dt-fim').value;
     if (!dtIni || !dtFim) { el.innerHTML = '<div class="empty">Selecione as datas e clique em Buscar</div>'; return; }
-    label = `${fmtDate(dtIni)} â€“ ${fmtDate(dtFim)}`;
+    label = `${fmtDate(dtIni)} – ${fmtDate(dtFim)}`;
   }
 
-  // Calcular dias no perÃ­odo e dias no mÃªs (para rateio do custo fixo)
+  // Calcular dias no período e dias no mês (para rateio do custo fixo)
   const d1 = new Date(dtIni), d2 = new Date(dtFim);
   const diasPeriodo = Math.round((d2 - d1) / 86400000) + 1;
 
   // Buscar dados em paralelo
-  const lojas = ['Loja Areal', 'Loja TrÃªs Rios'];
+  const lojas = ['Loja Areal', 'Loja Três Rios'];
   const [vendasRes, despesasRes, custosRes, comissoesRes, comprasRes] = await Promise.all([
     sb.from('fechamento_dia').select('loja,total_loja,total_dinheiro,total_cartao,total_pix,total_crediario')
       .gte('data_fechamento', dtIni).lte('data_fechamento', dtFim),
@@ -1678,7 +1678,7 @@ async function loadFechamentos() {
     const comissao   = comissoes.filter(x => x.funcionarias?.loja === loja).reduce((s,x) => s + Number(x.total_a_pagar||0), 0);
     const cmv        = compras.filter(x => x.loja === loja).reduce((s,x) => s + Number(x.valor||0), 0);
 
-    // Custo fixo: total mensal / 30 Ã— dias do perÃ­odo
+    // Custo fixo: total mensal / 30 × dias do período
     const custoMensal = custos.filter(x => x.loja === loja).reduce((s,x) => s + Number(x.valor||0), 0);
     const custoProp   = (custoMensal / 30) * diasPeriodo;
 
@@ -1692,18 +1692,18 @@ async function loadFechamentos() {
     <div class="card" style="margin-bottom:16px">
       <div class="card-title" style="color:${cor(d.loja)};margin-bottom:14px">${d.loja}</div>
       <div class="dre-row"><span><i class="ti ti-cash"></i>Receita bruta</span><span style="color:var(--green)">${fmt(d.receita)}</span></div>
-      <div class="dre-sub"><span>â†³ Dinheiro</span><span>${fmt(d.dinheiro)}</span></div>
-      <div class="dre-sub"><span>â†³ CartÃ£o</span><span>${fmt(d.cartao)}</span></div>
-      <div class="dre-sub"><span>â†³ Pix</span><span>${fmt(d.pix)}</span></div>
-      ${d.crediario ? `<div class="dre-sub"><span>â†³ CrediÃ¡rio</span><span>${fmt(d.crediario)}</span></div>` : ''}
+      <div class="dre-sub"><span>↳ Dinheiro</span><span>${fmt(d.dinheiro)}</span></div>
+      <div class="dre-sub"><span>↳ Cartão</span><span>${fmt(d.cartao)}</span></div>
+      <div class="dre-sub"><span>↳ Pix</span><span>${fmt(d.pix)}</span></div>
+      ${d.crediario ? `<div class="dre-sub"><span>↳ Crediário</span><span>${fmt(d.crediario)}</span></div>` : ''}
       <div class="dre-divider"></div>
       ${d.cmv ? `<div class="dre-row"><span><i class="ti ti-shopping-bag"></i>Compras (CMV)</span><span style="color:var(--red)">- ${fmt(d.cmv)}</span></div>` : ''}
-      <div class="dre-row"><span><i class="ti ti-receipt"></i>Despesas variÃ¡veis</span><span style="color:var(--red)">- ${fmt(d.desp)}</span></div>
-      <div class="dre-row"><span><i class="ti ti-users"></i>ComissÃµes</span><span style="color:var(--red)">- ${fmt(d.comissao)}</span></div>
-      <div class="dre-row"><span><i class="ti ti-building-bank"></i>Custos fixos <small style="color:var(--text-muted)">(${diasPeriodo}d Ã— ${fmt(d.custoMensal)}/mÃªs)</small></span><span style="color:var(--red)">- ${fmt(d.custoProp)}</span></div>
+      <div class="dre-row"><span><i class="ti ti-receipt"></i>Despesas variáveis</span><span style="color:var(--red)">- ${fmt(d.desp)}</span></div>
+      <div class="dre-row"><span><i class="ti ti-users"></i>Comissões</span><span style="color:var(--red)">- ${fmt(d.comissao)}</span></div>
+      <div class="dre-row"><span><i class="ti ti-building-bank"></i>Custos fixos <small style="color:var(--text-muted)">(${diasPeriodo}d × ${fmt(d.custoMensal)}/mês)</small></span><span style="color:var(--red)">- ${fmt(d.custoProp)}</span></div>
       <div class="dre-divider"></div>
       <div class="dre-row dre-total">
-        <span>Resultado lÃ­quido</span>
+        <span>Resultado líquido</span>
         <span style="color:${d.liquido >= 0 ? 'var(--green)' : 'var(--red)'};font-size:1.1rem;font-weight:700">${d.liquido >= 0 ? '' : '- '}${fmt(Math.abs(d.liquido))}</span>
       </div>
     </div>`;
@@ -1721,15 +1721,15 @@ async function loadFechamentos() {
   el.innerHTML = `
     <div class="grid-2">${dre.map(dreCard).join('')}</div>
     <div class="card" style="background:var(--surface2)">
-      <div class="card-title" style="margin-bottom:14px"><i class="ti ti-clipboard-list"></i>Consolidado â€” ${label}</div>
+      <div class="card-title" style="margin-bottom:14px"><i class="ti ti-clipboard-list"></i>Consolidado — ${label}</div>
       <div class="dre-row"><span><i class="ti ti-cash"></i>Receita total</span><span style="color:var(--green)">${fmt(tot.receita)}</span></div>
       ${tot.cmv ? `<div class="dre-row"><span><i class="ti ti-shopping-bag"></i>Compras (CMV)</span><span style="color:var(--red)">- ${fmt(tot.cmv)}</span></div>` : ''}
-      <div class="dre-row"><span><i class="ti ti-receipt"></i>Despesas variÃ¡veis</span><span style="color:var(--red)">- ${fmt(tot.desp)}</span></div>
-      <div class="dre-row"><span><i class="ti ti-users"></i>ComissÃµes</span><span style="color:var(--red)">- ${fmt(tot.comissao)}</span></div>
+      <div class="dre-row"><span><i class="ti ti-receipt"></i>Despesas variáveis</span><span style="color:var(--red)">- ${fmt(tot.desp)}</span></div>
+      <div class="dre-row"><span><i class="ti ti-users"></i>Comissões</span><span style="color:var(--red)">- ${fmt(tot.comissao)}</span></div>
       <div class="dre-row"><span><i class="ti ti-building-bank"></i>Custos fixos</span><span style="color:var(--red)">- ${fmt(tot.custoProp)}</span></div>
       <div class="dre-divider"></div>
       <div class="dre-row dre-total">
-        <span>Resultado lÃ­quido</span>
+        <span>Resultado líquido</span>
         <span style="color:${tot.liquido >= 0 ? 'var(--green)' : 'var(--red)'};font-size:1.2rem;font-weight:700">${tot.liquido >= 0 ? '' : '- '}${fmt(Math.abs(tot.liquido))}</span>
       </div>
     </div>`;
@@ -1750,7 +1750,7 @@ async function loadConfigSemanal() {
   document.getElementById('cfg-semana-label').textContent = weekLabel(monday);
   const { data: sem } = await sb.from('metas_semanais').select('*').eq('semana_inicio',monday);
   const sl1 = sem?.find(m=>m.loja==='Loja Areal');
-  const sl2 = sem?.find(m=>m.loja==='Loja TrÃªs Rios');
+  const sl2 = sem?.find(m=>m.loja==='Loja Três Rios');
   ['sl1-meta','sl1-super','sl1-mega'].forEach(id => document.getElementById(id).value = '');
   ['sl2-meta','sl2-super','sl2-mega'].forEach(id => document.getElementById(id).value = '');
   if (sl1) { setBRL('sl1-meta',sl1.valor_meta); setBRL('sl1-super',sl1.valor_super); setBRL('sl1-mega',sl1.valor_mega); }
@@ -1762,7 +1762,7 @@ async function loadConfigMensal() {
   document.getElementById('cfg-mes-label').textContent = monthLabel(ano, mes);
   const { data: men } = await sb.from('metas_mensais').select('*').eq('mes',mes).eq('ano',ano);
   const ml1 = men?.find(m=>m.loja==='Loja Areal');
-  const ml2 = men?.find(m=>m.loja==='Loja TrÃªs Rios');
+  const ml2 = men?.find(m=>m.loja==='Loja Três Rios');
   ['ml1-meta','ml1-super','ml1-mega'].forEach(id => document.getElementById(id).value = '');
   ['ml2-meta','ml2-super','ml2-mega'].forEach(id => document.getElementById(id).value = '');
   if (ml1) { setBRL('ml1-meta',ml1.valor_meta); setBRL('ml1-super',ml1.valor_super); setBRL('ml1-mega',ml1.valor_mega); }
@@ -1822,9 +1822,9 @@ async function loadMetasSemanal() {
   const sunday = getSunday(monday);
   document.getElementById('metas-week-label').textContent = weekLabel(monday);
 
-  // Preenche formulÃ¡rio com valores existentes
+  // Preenche formulário com valores existentes
   const { data: existing } = await sb.from('metas_semanais').select('*').eq('semana_inicio', monday);
-  ['Loja Areal','Loja TrÃªs Rios'].forEach(l => {
+  ['Loja Areal','Loja Três Rios'].forEach(l => {
     const suf = l === 'Loja Areal' ? 'l1' : 'l2';
     const m = existing?.find(x => x.loja === l);
     setBRL(`ms-${suf}-meta`,  m ? m.valor_meta  : null);
@@ -1832,13 +1832,13 @@ async function loadMetasSemanal() {
     setBRL(`ms-${suf}-mega`,  m ? m.valor_mega  : null);
   });
 
-  // Tabela histÃ³rico completo
+  // Tabela histórico completo
   const { data: all } = await sb.from('metas_semanais').select('*').order('semana_inicio', { ascending: false });
   const tbody = document.getElementById('metas-sem-tbody');
   if (!all?.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Nenhuma meta cadastrada</td></tr>'; return; }
   tbody.innerHTML = all.map(m => `
     <tr>
-      <td style="white-space:nowrap">${fmtDate(m.semana_inicio)} â€“ ${fmtDate(m.semana_fim)}</td>
+      <td style="white-space:nowrap">${fmtDate(m.semana_inicio)} – ${fmtDate(m.semana_fim)}</td>
       <td><span class="badge badge-${m.loja === 'Loja Areal' ? 'loja1' : 'loja2'}">${m.loja}</span></td>
       <td style="color:var(--meta-color)">${fmt(m.valor_meta)}</td>
       <td style="color:var(--super-color)">${fmt(m.valor_super)}</td>
@@ -1875,7 +1875,7 @@ async function loadMetasMensal() {
   document.getElementById('metas-month-label').textContent = monthLabel(ano, mes);
 
   const { data: existing } = await sb.from('metas_mensais').select('*').eq('mes', mes).eq('ano', ano);
-  ['Loja Areal','Loja TrÃªs Rios'].forEach(l => {
+  ['Loja Areal','Loja Três Rios'].forEach(l => {
     const suf = l === 'Loja Areal' ? 'l1' : 'l2';
     const m = existing?.find(x => x.loja === l);
     setBRL(`mm-${suf}-meta`,  m ? m.valor_meta  : null);
@@ -1919,7 +1919,7 @@ async function deleteMetaMen(id) {
   loadMetasMensal();
 }
 
-// ===== HISTÃ“RICO =====
+// ===== HISTÓRICO =====
 let histView = 'diario';
 
 function setHistView(v, btn) {
@@ -1933,7 +1933,7 @@ function setHistView(v, btn) {
   if (v === 'diario')  loadHistDiario();
   if (v === 'semanal') loadHistSemanal();
   if (v === 'mensal')  loadHistMensal();
-  // perÃ­odo: sÃ³ busca quando o usuÃ¡rio clicar em Buscar
+  // período: só busca quando o usuário clicar em Buscar
 }
 
 function initHistFilters() {
@@ -1947,7 +1947,7 @@ function initHistFilters() {
     sel.innerHTML = anos.map(a => `<option value="${a}" ${a === anoAtual ? 'selected' : ''}>${a}</option>`).join('');
   });
 
-  const meses = ['Janeiro','Fevereiro','MarÃ§o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   const selMes = document.getElementById('hist-dia-mes');
   if (selMes) selMes.innerHTML = meses.map((m,i) => `<option value="${i+1}" ${i+1===mesAtual?'selected':''}>${m}</option>`).join('');
 }
@@ -1974,7 +1974,7 @@ async function loadHistDiario() {
 
   const rows = Object.values(map).sort((a,b) => b.data.localeCompare(a.data) || a.loja.localeCompare(b.loja));
   const tbody = document.getElementById('hist-dia-tbody');
-  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Nenhum dado no perÃ­odo</td></tr>'; return; }
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Nenhum dado no período</td></tr>'; return; }
 
   // Totalizador
   const totalGeral = rows.reduce((s,r) => s + r.total, 0);
@@ -1989,7 +1989,7 @@ async function loadHistDiario() {
       <td style="color:var(--text-muted)">${fmt(r.count ? r.total/r.count : 0)}</td>
     </tr>`).join('') +
     `<tr style="border-top:2px solid var(--border)">
-      <td colspan="2" style="font-weight:600;color:var(--text-muted)">Total do perÃ­odo</td>
+      <td colspan="2" style="font-weight:600;color:var(--text-muted)">Total do período</td>
       <td style="font-weight:600">${countGeral}</td>
       <td style="font-weight:700;color:var(--accent)">${fmt(totalGeral)}</td>
       <td style="color:var(--text-muted)">${fmt(countGeral ? totalGeral/countGeral : 0)}</td>
@@ -2002,7 +2002,7 @@ async function loadHistSemanal() {
   const start = `${ano}-01-01`;
   const end   = `${ano}-12-31`;
 
-  // Busca vendas e metas do perÃ­odo
+  // Busca vendas e metas do período
   let qv = sb.from('vendas').select('*').gte('data_venda', start).lte('data_venda', end);
   if (loja) qv = qv.eq('loja', loja);
   let qm = sb.from('metas_semanais').select('*').gte('semana_inicio', start).lte('semana_inicio', end);
@@ -2019,7 +2019,7 @@ async function loadHistSemanal() {
     map[key].count++;
     map[key].total += v.valor;
   });
-  // Garante que semanas com meta mas sem venda apareÃ§am
+  // Garante que semanas com meta mas sem venda apareçam
   (metas || []).forEach(m => {
     const key = `${m.semana_inicio}__${m.loja}`;
     if (!map[key]) map[key] = { monday: m.semana_inicio, loja: m.loja, count: 0, total: 0 };
@@ -2027,22 +2027,22 @@ async function loadHistSemanal() {
 
   const rows = Object.values(map).sort((a,b) => b.monday.localeCompare(a.monday) || a.loja.localeCompare(b.loja));
   const tbody = document.getElementById('hist-sem-tbody');
-  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="9" class="empty">Nenhum dado no perÃ­odo</td></tr>'; return; }
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="9" class="empty">Nenhum dado no período</td></tr>'; return; }
 
   tbody.innerHTML = rows.map(r => {
     const meta = metas?.find(m => m.semana_inicio === r.monday && m.loja === r.loja);
     const tier = calcTier(r.total, meta);
     const ticket = r.count ? r.total / r.count : 0;
     return `<tr>
-      <td style="white-space:nowrap;font-size:0.8rem">${fmtDate(r.monday)} â€“ ${fmtDate(getSunday(r.monday))}</td>
+      <td style="white-space:nowrap;font-size:0.8rem">${fmtDate(r.monday)} – ${fmtDate(getSunday(r.monday))}</td>
       <td><span class="badge badge-${r.loja === 'Loja Areal' ? 'loja1' : 'loja2'}">${r.loja}</span></td>
       <td>${r.count}</td>
       <td style="font-weight:600;color:var(--accent)">${fmt(r.total)}</td>
       <td style="color:var(--text-muted)">${fmt(ticket)}</td>
       <td>${tierBadgeHtml(tier)}</td>
-      <td style="color:var(--meta-color)">${meta ? fmt(meta.valor_meta) : 'â€”'}</td>
-      <td style="color:var(--super-color)">${meta ? fmt(meta.valor_super) : 'â€”'}</td>
-      <td style="color:var(--mega-color)">${meta ? fmt(meta.valor_mega) : 'â€”'}</td>
+      <td style="color:var(--meta-color)">${meta ? fmt(meta.valor_meta) : '—'}</td>
+      <td style="color:var(--super-color)">${meta ? fmt(meta.valor_super) : '—'}</td>
+      <td style="color:var(--mega-color)">${meta ? fmt(meta.valor_mega) : '—'}</td>
     </tr>`;
   }).join('');
 }
@@ -2060,7 +2060,7 @@ async function loadHistMensal() {
 
   const [{ data: vendas }, { data: metas }] = await Promise.all([qv, qm]);
 
-  // Agrupa por mÃªs+loja
+  // Agrupa por mês+loja
   const map = {};
   (vendas || []).forEach(v => {
     const d = new Date(v.data_venda + 'T00:00:00');
@@ -2078,7 +2078,7 @@ async function loadHistMensal() {
 
   const rows = Object.values(map).sort((a,b) => b.mes - a.mes || a.loja.localeCompare(b.loja));
   const tbody = document.getElementById('hist-men-tbody');
-  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="9" class="empty">Nenhum dado no perÃ­odo</td></tr>'; return; }
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="9" class="empty">Nenhum dado no período</td></tr>'; return; }
 
   tbody.innerHTML = rows.map(r => {
     const meta = metas?.find(m => m.mes === r.mes && m.loja === r.loja);
@@ -2091,9 +2091,9 @@ async function loadHistMensal() {
       <td style="font-weight:600;color:var(--accent)">${fmt(r.total)}</td>
       <td style="color:var(--text-muted)">${fmt(ticket)}</td>
       <td>${tierBadgeHtml(tier)}</td>
-      <td style="color:var(--meta-color)">${meta ? fmt(meta.valor_meta) : 'â€”'}</td>
-      <td style="color:var(--super-color)">${meta ? fmt(meta.valor_super) : 'â€”'}</td>
-      <td style="color:var(--mega-color)">${meta ? fmt(meta.valor_mega) : 'â€”'}</td>
+      <td style="color:var(--meta-color)">${meta ? fmt(meta.valor_meta) : '—'}</td>
+      <td style="color:var(--super-color)">${meta ? fmt(meta.valor_super) : '—'}</td>
+      <td style="color:var(--mega-color)">${meta ? fmt(meta.valor_mega) : '—'}</td>
     </tr>`;
   }).join('');
 }
@@ -2102,8 +2102,8 @@ async function loadHistPeriodo() {
   const loja = document.getElementById('hist-per-loja').value;
   const ini  = document.getElementById('hist-per-ini').value;
   const fim  = document.getElementById('hist-per-fim').value;
-  if (!ini || !fim) { showToast('Selecione data inÃ­cio e fim', 'error'); return; }
-  if (ini > fim)    { showToast('Data inÃ­cio maior que data fim', 'error'); return; }
+  if (!ini || !fim) { showToast('Selecione data início e fim', 'error'); return; }
+  if (ini > fim)    { showToast('Data início maior que data fim', 'error'); return; }
 
   let q = sb.from('vendas').select('*, funcionarias(nome)').gte('data_venda', ini).lte('data_venda', fim).order('data_venda', { ascending: false });
   if (loja) q = q.eq('loja', loja);
@@ -2118,13 +2118,13 @@ async function loadHistPeriodo() {
   document.getElementById('per-ticket').textContent = fmt(ticket);
 
   const tbody = document.getElementById('hist-per-tbody');
-  if (!count) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Nenhuma venda no perÃ­odo</td></tr>'; return; }
+  if (!count) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Nenhuma venda no período</td></tr>'; return; }
   tbody.innerHTML = (vendas||[]).map(v => `
     <tr>
       <td style="white-space:nowrap">${new Date(v.data_venda+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'})}</td>
-      <td>${v.funcionarias?.nome || 'â€”'}</td>
+      <td>${v.funcionarias?.nome || '—'}</td>
       <td><span class="badge badge-${v.loja==='Loja Areal'?'loja1':'loja2'}">${v.loja}</span></td>
-      <td style="color:var(--text-muted)">${v.descricao || 'â€”'}</td>
+      <td style="color:var(--text-muted)">${v.descricao || '—'}</td>
       <td style="font-weight:600;color:var(--accent)">${fmt(v.valor)}</td>
     </tr>`).join('') +
     `<tr style="border-top:2px solid var(--border)">
@@ -2136,7 +2136,7 @@ async function loadHistPeriodo() {
 // ===== INIT =====
 async function init() {
   const hoje = new Date().toISOString().split('T')[0];
-  // PerÃ­odo padrÃ£o: mÃªs atual
+  // Período padrão: mês atual
   const primeiroDia = hoje.slice(0,7) + '-01';
   document.getElementById('hist-per-ini').value = primeiroDia;
   document.getElementById('hist-per-fim').value = hoje;
@@ -2147,4 +2147,3 @@ init();
 </script>
 </body>
 </html>
-

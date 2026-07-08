@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -235,11 +235,11 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
     </div>
     <div class="form-group">
       <label class="form-label">Senha</label>
-      <input type="password" class="form-input" id="login-senha" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" autocomplete="current-password">
+      <input type="password" class="form-input" id="login-senha" placeholder="••••••••" autocomplete="current-password">
     </div>
     <div class="auth-error" id="login-erro"></div>
     <button class="btn btn-primary" style="margin-top:4px" onclick="fazerLogin()">Entrar</button>
-    <div class="auth-link">NÃ£o tem conta? <button onclick="mostrarCadastro()">Cadastrar</button></div>
+    <div class="auth-link">Não tem conta? <button onclick="mostrarCadastro()">Cadastrar</button></div>
   </div>
 
   <!-- CADASTRO -->
@@ -249,7 +249,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
       <label class="form-label">Loja</label>
       <select class="form-select" id="cad-loja">
         <option value="Loja Areal"><i class="ti ti-map-pin"></i>Loja Areal</option>
-        <option value="Loja TrÃªs Rios"><i class="ti ti-map-pin"></i>Loja TrÃªs Rios</option>
+        <option value="Loja Três Rios"><i class="ti ti-map-pin"></i>Loja Três Rios</option>
       </select>
     </div>
     <div class="form-group">
@@ -258,11 +258,11 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
     </div>
     <div class="form-group">
       <label class="form-label">Senha</label>
-      <input type="password" class="form-input" id="cad-senha" placeholder="mÃ­nimo 6 caracteres" autocomplete="new-password">
+      <input type="password" class="form-input" id="cad-senha" placeholder="mínimo 6 caracteres" autocomplete="new-password">
     </div>
     <div class="auth-error" id="cad-erro"></div>
     <button class="btn btn-primary" style="margin-top:4px" onclick="fazerCadastro()">Criar conta</button>
-    <div class="auth-link">JÃ¡ tem conta? <button onclick="mostrarLogin()">Entrar</button></div>
+    <div class="auth-link">Já tem conta? <button onclick="mostrarLogin()">Entrar</button></div>
   </div>
 </div>
 
@@ -271,10 +271,10 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   <div class="header">
     <div class="header-left">
       <div class="header-logo">Shai</div>
-      <div class="header-loja" id="h-loja">â€”</div>
+      <div class="header-loja" id="h-loja">—</div>
     </div>
     <div style="text-align:right">
-      <div class="header-date" id="h-date">â€”</div>
+      <div class="header-date" id="h-date">—</div>
       <button class="change-loja-btn" onclick="fazerLogout()">sair</button>
     </div>
   </div>
@@ -291,7 +291,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
             <input type="text" class="form-input" id="total-dinheiro" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this);calcTotal()">
           </div>
           <div>
-            <label class="form-label"><i class="ti ti-credit-card"></i> CartÃ£o</label>
+            <label class="form-label"><i class="ti ti-credit-card"></i> Cartão</label>
             <input type="text" class="form-input" id="total-cartao" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this);calcTotal()">
           </div>
           <div>
@@ -299,7 +299,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
             <input type="text" class="form-input" id="total-pix" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this);calcTotal()">
           </div>
           <div>
-            <label class="form-label"><i class="ti ti-notebook"></i> CrediÃ¡rio</label>
+            <label class="form-label"><i class="ti ti-notebook"></i> Crediário</label>
             <input type="text" class="form-input" id="total-crediario" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this);calcTotal()">
           </div>
         </div>
@@ -324,22 +324,22 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   <!-- ABA: DESPESAS -->
   <div id="tab-despesas" class="content" style="display:none;padding-bottom:100px">
 
-    <!-- FormulÃ¡rio inline -->
+    <!-- Formulário inline -->
     <div class="card" style="margin-bottom:20px">
       <div class="section-title" style="margin-bottom:14px"><i class="ti ti-receipt"></i> Adicionar Despesa</div>
 
       <div class="form-label" style="margin-bottom:10px">Categoria</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-        <button class="cat-chip active" onclick="selectCat('AlimentaÃ§Ã£o',this)"><i class="ti ti-tools-kitchen-2"></i> AlimentaÃ§Ã£o</button>
+        <button class="cat-chip active" onclick="selectCat('Alimentação',this)"><i class="ti ti-tools-kitchen-2"></i> Alimentação</button>
         <button class="cat-chip" onclick="selectCat('Limpeza',this)"><i class="ti ti-spray"></i> Limpeza</button>
-        <button class="cat-chip" onclick="selectCat('ManutenÃ§Ã£o',this)"><i class="ti ti-tool"></i> ManutenÃ§Ã£o</button>
+        <button class="cat-chip" onclick="selectCat('Manutenção',this)"><i class="ti ti-tool"></i> Manutenção</button>
         <button class="cat-chip" onclick="selectCat('Outros',this)"><i class="ti ti-package"></i> Outros</button>
       </div>
-      <input type="hidden" id="d-cat" value="AlimentaÃ§Ã£o">
+      <input type="hidden" id="d-cat" value="Alimentação">
 
       <div class="form-group" id="d-outros-group" style="display:none">
         <label class="form-label">Descreva o que foi <span style="color:var(--red)">*</span></label>
-        <input type="text" class="form-input" id="d-outros-desc" placeholder="Ex: Presente cliente, Taxa bancÃ¡ria...">
+        <input type="text" class="form-input" id="d-outros-desc" placeholder="Ex: Presente cliente, Taxa bancária...">
       </div>
 
       <div class="form-group">
@@ -364,10 +364,10 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
     <div id="despesas-list"><div class="empty">Nenhuma despesa hoje</div></div>
   </div>
 
-  <!-- ABA: HISTÃ“RICO -->
+  <!-- ABA: HISTÓRICO -->
   <div id="tab-historico" class="content" style="display:none;padding-bottom:100px">
     <div class="section">
-      <div class="section-title"><i class="ti ti-history"></i> HistÃ³rico de Vendas</div>
+      <div class="section-title"><i class="ti ti-history"></i> Histórico de Vendas</div>
       <div id="historico-list"><div class="empty">Carregando...</div></div>
     </div>
   </div>
@@ -375,13 +375,13 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   <!-- ABA: LISTA DE COMPRAS -->
   <div id="tab-lista" class="content" style="display:none;padding-bottom:100px">
 
-    <!-- FormulÃ¡rio inline -->
+    <!-- Formulário inline -->
     <div class="card" style="margin-bottom:20px">
       <div class="section-title" style="margin-bottom:14px"><i class="ti ti-shopping-bag"></i> Anotar Falta</div>
 
       <div class="form-group">
         <label class="form-label">Produto <span style="color:var(--red)">*</span></label>
-        <input type="text" class="form-input" id="l-nome" placeholder="Ex: Vestido, CalÃ§a, Blusa...">
+        <input type="text" class="form-input" id="l-nome" placeholder="Ex: Vestido, Calça, Blusa...">
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -399,17 +399,17 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
         <label class="form-label">Categoria <span style="color:var(--red)">*</span></label>
         <select class="form-select" id="l-cat">
           <option>Vestido</option>
-          <option>CalÃ§a</option>
+          <option>Calça</option>
           <option>Blusa</option>
           <option>Blazer</option>
           <option>Saia</option>
-          <option>AcessÃ³rio</option>
-          <option>CalÃ§ado</option>
+          <option>Acessório</option>
+          <option>Calçado</option>
           <option>Outros</option>
         </select>
       </div>
 
-      <button class="btn btn-primary" onclick="addLista()">+ Adicionar Ã  Lista</button>
+      <button class="btn btn-primary" onclick="addLista()">+ Adicionar à Lista</button>
     </div>
 
     <!-- Lista de itens -->
@@ -426,7 +426,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
       <span class="nav-icon"><i class="ti ti-receipt"></i></span>Despesas
     </button>
     <button class="nav-item" id="nav-historico" onclick="showNav('historico')">
-      <span class="nav-icon"><i class="ti ti-history"></i></span>HistÃ³rico
+      <span class="nav-icon"><i class="ti ti-history"></i></span>Histórico
     </button>
     <button class="nav-item" id="nav-lista" onclick="showNav('lista')">
       <span class="nav-icon"><i class="ti ti-shopping-bag"></i></span>Lista
@@ -488,11 +488,11 @@ function traduzirErro(msg) {
   const m = msg.toLowerCase();
   if (m.includes('rate limit')) return 'Muitas tentativas. Aguarde alguns minutos e tente novamente.';
   if (m.includes('invalid login') || m.includes('invalid credentials')) return 'E-mail ou senha incorretos.';
-  if (m.includes('email not confirmed')) return 'E-mail ainda nÃ£o confirmado.';
-  if (m.includes('user already registered') || m.includes('already registered')) return 'Este e-mail jÃ¡ estÃ¡ cadastrado.';
-  if (m.includes('password') && m.includes('short')) return 'Senha muito curta. Use no mÃ­nimo 6 caracteres.';
-  if (m.includes('invalid email')) return 'E-mail invÃ¡lido.';
-  if (m.includes('network') || m.includes('fetch')) return 'Erro de conexÃ£o. Verifique sua internet.';
+  if (m.includes('email not confirmed')) return 'E-mail ainda não confirmado.';
+  if (m.includes('user already registered') || m.includes('already registered')) return 'Este e-mail já está cadastrado.';
+  if (m.includes('password') && m.includes('short')) return 'Senha muito curta. Use no mínimo 6 caracteres.';
+  if (m.includes('invalid email')) return 'E-mail inválido.';
+  if (m.includes('network') || m.includes('fetch')) return 'Erro de conexão. Verifique sua internet.';
   return msg;
 }
 
@@ -523,10 +523,10 @@ async function fazerCadastro() {
   const senha = document.getElementById('cad-senha').value;
   document.getElementById('cad-erro').textContent = '';
   if (!email || !senha) { document.getElementById('cad-erro').textContent = 'Preencha todos os campos.'; return; }
-  if (senha.length < 6) { document.getElementById('cad-erro').textContent = 'Senha mÃ­nima de 6 caracteres.'; return; }
+  if (senha.length < 6) { document.getElementById('cad-erro').textContent = 'Senha mínima de 6 caracteres.'; return; }
   const { data, error } = await sb.auth.signUp({ email, password: senha, options: { data: { loja } } });
   if (error) { document.getElementById('cad-erro').textContent = traduzirErro(error.message); return; }
-  showToast('Conta criada! FaÃ§a login.', 'success');
+  showToast('Conta criada! Faça login.', 'success');
   mostrarLogin();
 }
 
@@ -596,7 +596,7 @@ function calcDiff() {
   if (Math.abs(diff) < 0.01) {
     badge.innerHTML = '<span style="color:var(--green)"><i class="ti ti-check"></i> Valores conferem</span>';
   } else {
-    badge.innerHTML = `<span style="color:var(--accent)">${diff > 0 ? '+' : ''}${fmt(diff)} de diferenÃ§a</span>`;
+    badge.innerHTML = `<span style="color:var(--accent)">${diff > 0 ? '+' : ''}${fmt(diff)} de diferença</span>`;
   }
 }
 
@@ -604,7 +604,7 @@ function calcDiff() {
 async function loadDespesasHoje() {
   const { data } = await sb.from('despesas')
     .select('*').eq('loja', lojaAtual).eq('data_despesa', today).order('criado_em', { ascending: false });
-  // Junta com temporÃ¡rias
+  // Junta com temporárias
   renderDespesas([...(data || []), ...despesasTemp]);
 }
 
@@ -659,7 +659,7 @@ function addDespesa() {
 
   // reset form
   document.querySelectorAll('.cat-chip').forEach((b,i) => b.classList.toggle('active', i===0));
-  document.getElementById('d-cat').value = 'AlimentaÃ§Ã£o';
+  document.getElementById('d-cat').value = 'Alimentação';
   document.getElementById('d-outros-group').style.display = 'none';
   document.getElementById('d-outros-desc').value = '';
   document.getElementById('d-valor').value = '';
@@ -673,8 +673,8 @@ function addDespesa() {
 }
 
 function removeDespesaTemp(idx) {
-  // idx Ã© relativo Ã  lista combinada (salvas + temp)
-  // mas sÃ³ removemos as temp, entÃ£o precisamos ajustar
+  // idx é relativo à lista combinada (salvas + temp)
+  // mas só removemos as temp, então precisamos ajustar
   despesasTemp = [];
   loadDespesasHoje();
 }
@@ -683,9 +683,9 @@ function verFoto(url) {
   window.open(url, '_blank');
 }
 
-// ===== CARREGAR DADOS JÃ SALVOS HOJE =====
+// ===== CARREGAR DADOS JÁ SALVOS HOJE =====
 async function loadVendasHoje() {
-  // Carrega fechamento do dia se jÃ¡ existir
+  // Carrega fechamento do dia se já existir
   const { data: fech } = await sb.from('fechamento_dia')
     .select('*, fechamento_vendedoras(*, funcionarias(nome))')
     .eq('loja', lojaAtual).eq('data_fechamento', today).single();
@@ -732,18 +732,18 @@ async function salvarDia() {
       .filter(r => r.valor > 0);
     if (vendRows.length) await sb.from('fechamento_vendedoras').insert(vendRows);
 
-    // 3. TambÃ©m insere em vendas (tabela principal) para o dashboard funcionar
+    // 3. Também insere em vendas (tabela principal) para o dashboard funcionar
     await sb.from('vendas').delete().eq('loja', lojaAtual).eq('data_venda', today);
     const vendasRows = vendRows.map(r => ({ funcionaria_id: r.funcionaria_id, loja: lojaAtual, data_venda: today, valor: r.valor }));
     if (vendasRows.length) await sb.from('vendas').insert(vendasRows);
-    // Venda sem funcionÃ¡ria = diferenÃ§a
+    // Venda sem funcionária = diferença
     const somaVend = vendRows.reduce((s, r) => s + r.valor, 0);
     const restante = total - somaVend;
     if (restante > 0.01) {
-      await sb.from('vendas').insert({ funcionaria_id: null, loja: lojaAtual, data_venda: today, valor: restante, descricao: 'Sem atribuiÃ§Ã£o' });
+      await sb.from('vendas').insert({ funcionaria_id: null, loja: lojaAtual, data_venda: today, valor: restante, descricao: 'Sem atribuição' });
     }
 
-    // 4. Salva despesas temporÃ¡rias com upload de foto
+    // 4. Salva despesas temporárias com upload de foto
     for (const d of despesasTemp) {
       let foto_url = null;
       if (d._foto) {
@@ -787,10 +787,10 @@ async function verResumo() {
     <div class="resumo-row"><span class="resumo-label"><i class="ti ti-map-pin"></i> Loja</span><span class="resumo-valor">${lojaAtual}</span></div>
     <div style="height:8px"></div>
     <div class="resumo-row"><span class="resumo-label" style="font-weight:600"><i class="ti ti-cash"></i> Total Bruto</span><span class="resumo-valor" style="color:var(--accent);font-size:1.1rem">${fmt(total)}</span></div>
-    ${vendRows.map(r => `<div class="resumo-row" style="padding-left:12px"><span class="resumo-label">â†³ ${r.nome}</span><span class="resumo-valor">${fmt(r.val)}</span></div>`).join('')}
+    ${vendRows.map(r => `<div class="resumo-row" style="padding-left:12px"><span class="resumo-label">↳ ${r.nome}</span><span class="resumo-valor">${fmt(r.val)}</span></div>`).join('')}
     <div style="height:8px"></div>
     <div class="resumo-row"><span class="resumo-label"><i class="ti ti-receipt"></i> Total Despesas</span><span class="resumo-valor" style="color:var(--red)">${fmt(totalDesp)}</span></div>
-    <div class="resumo-row" style="padding-top:12px"><span class="resumo-label" style="font-weight:700"><i class="ti ti-wallet"></i> LÃ­quido do Dia</span><span class="resumo-valor" style="color:var(--green);font-size:1.1rem">${fmt(liquido)}</span></div>
+    <div class="resumo-row" style="padding-top:12px"><span class="resumo-label" style="font-weight:700"><i class="ti ti-wallet"></i> Líquido do Dia</span><span class="resumo-valor" style="color:var(--green);font-size:1.1rem">${fmt(liquido)}</span></div>
   `;
   openModal('modal-resumo');
 }
@@ -805,7 +805,7 @@ function showNav(tab) {
   if (tab === 'lista') loadLista();
 }
 
-// ===== HISTÃ“RICO =====
+// ===== HISTÓRICO =====
 async function loadHistorico() {
   const el = document.getElementById('historico-list');
   el.innerHTML = '<div class="empty">Carregando...</div>';
@@ -841,7 +841,7 @@ async function loadHistorico() {
           <span style="font-size:0.85rem;font-weight:600;color:var(--text)">${dataLabel}</span>
           <div style="display:flex;align-items:center;gap:10px">
             <span style="font-size:0.85rem;font-weight:600;color:var(--accent)">${fmt(vendas)}</span>
-            <span id="hist-chevron-${i}" style="color:var(--text-muted);font-size:1rem;transition:transform 0.2s">â€º</span>
+            <span id="hist-chevron-${i}" style="color:var(--text-muted);font-size:1rem;transition:transform 0.2s">›</span>
           </div>
         </button>
         <div id="hist-detail-${i}" style="display:none;width:100%;padding:0 14px 14px">
@@ -852,7 +852,7 @@ async function loadHistorico() {
             </div>
             <div style="flex:1;background:var(--surface2);border-radius:8px;padding:8px 10px">
               <div style="font-size:0.62rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px"><i class="ti ti-receipt"></i> Despesas</div>
-              <div style="font-size:0.9rem;font-weight:600;color:var(--red)">${desp > 0 ? fmt(desp) : 'â€”'}</div>
+              <div style="font-size:0.9rem;font-weight:600;color:var(--red)">${desp > 0 ? fmt(desp) : '—'}</div>
             </div>
           </div>
         </div>
@@ -866,7 +866,7 @@ function toggleHist(i) {
   const open = detail.style.display === 'none';
   detail.style.display  = open ? '' : 'none';
   chevron.style.transform = open ? 'rotate(90deg)' : '';
-  chevron.textContent     = 'â€º';
+  chevron.textContent     = '›';
 }
 
 // ===== LISTA DE COMPRAS =====
@@ -878,7 +878,7 @@ async function loadLista() {
     .order('criado_em', { ascending: false });
   if (!data?.length) { el.innerHTML = '<div class="empty">Nenhum item na lista</div>'; return; }
   el.innerHTML = data.map(item => {
-    const sub = [item.categoria, item.tamanho, item.cor].filter(Boolean).join(' Â· ');
+    const sub = [item.categoria, item.tamanho, item.cor].filter(Boolean).join(' · ');
     return `
       <div class="lista-item">
         <div class="lista-info">
@@ -924,9 +924,8 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
 });
 
 // ===== BOOT =====
-// AUTH TEMPORARIAMENTE DESATIVADO â€” reativar depois
+// AUTH TEMPORARIAMENTE DESATIVADO — reativar depois
 iniciarApp('Loja Areal');
 </script>
 </body>
 </html>
-
