@@ -338,22 +338,61 @@ textarea.form-input { resize: none; height: 76px; }
 }
 
 /* Campanhas */
-.campanha-card{border-left:3px solid #a78bfa;background:color-mix(in srgb,#a78bfa 8%,var(--surface));padding:12px 14px;border-radius:10px;margin-bottom:8px;position:relative;display:flex;flex-direction:column;gap:4px;}
-.campanha-card .camp-titulo{font-weight:600;font-size:0.9rem;color:var(--text);}
-.campanha-card .camp-desc{font-size:0.8rem;color:var(--text-muted);white-space:pre-wrap;}
-.campanha-card .camp-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px;}
-.camp-badge{font-size:0.68rem;padding:2px 8px;border-radius:20px;font-weight:700;}
-.camp-status-rascunho{background:color-mix(in srgb,var(--text-muted) 20%,transparent);color:var(--text-muted);}
-.camp-status-aprovada{background:color-mix(in srgb,var(--accent) 20%,transparent);color:var(--accent);}
-.camp-status-publicada{background:color-mix(in srgb,var(--green) 20%,transparent);color:var(--green);}
-.camp-canal{background:color-mix(in srgb,#a78bfa 20%,transparent);color:#a78bfa;}
-.camp-video-link{font-size:0.75rem;color:#a78bfa;text-decoration:none;display:flex;align-items:center;gap:4px;margin-top:2px;}
+.campanha-card{background:#1a1a1a;border-radius:14px;padding:16px;position:relative;overflow:hidden;margin-bottom:10px;}
+.campanha-card::before{content:'';position:absolute;inset:0;opacity:.07;pointer-events:none;border-radius:14px;}
+.campanha-card.canal-instagram::before{background:radial-gradient(circle at 80% 10%,#fd1d1d,#833ab4 60%);}
+.campanha-card.canal-whatsapp::before{background:radial-gradient(circle at 80% 10%,#25D366,#128C7E 60%);}
+.campanha-card.canal-ambos::before{background:radial-gradient(circle at 80% 10%,#c9a96e,#a07845 60%);}
+.camp-top-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.camp-canal-tag{display:flex;align-items:center;gap:6px;font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;}
+.camp-canal-tag.canal-instagram{color:#f77737;}
+.camp-canal-tag.canal-whatsapp{color:#25D366;}
+.camp-canal-tag.canal-ambos{color:#c9a96e;}
+.camp-status-indicator{display:flex;align-items:center;gap:5px;font-size:.7rem;color:#666;}
+.camp-status-indicator::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.camp-status-indicator.status-rascunho::before{background:#555;}
+.camp-status-indicator.status-aprovada::before{background:#c9a96e;}
+.camp-status-indicator.status-publicada::before{background:#52b88a;}
+.camp-label-titulo{font-size:.78rem;color:#555;font-weight:500;margin-bottom:6px;}
+.camp-ideia-text{font-family:Georgia,serif;font-size:1rem;color:#f0ede8;line-height:1.55;margin-bottom:14px;font-style:italic;}
+.camp-video-label{font-size:.65rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#444;margin-bottom:6px;}
+.camp-video-thumb{border-radius:10px;overflow:hidden;margin-bottom:14px;position:relative;background:#111;aspect-ratio:16/9;cursor:pointer;}
+.camp-video-thumb img{width:100%;height:100%;object-fit:cover;display:block;filter:brightness(.85);}
+.camp-video-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25);}
+.camp-video-overlay:hover{background:rgba(0,0,0,.4);}
+.camp-play-btn{width:44px;height:44px;background:rgba(255,255,255,.92);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(0,0,0,.4);}
+.camp-play-btn svg{width:18px;height:18px;fill:#111;margin-left:2px;}
+.camp-video-source-tag{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.65);color:rgba(255,255,255,.8);font-size:.65rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:4px;}
+.camp-video-tiktok{display:flex;align-items:center;gap:12px;background:#111;border:1px solid #2e2e2e;border-radius:10px;padding:12px 14px;margin-bottom:14px;text-decoration:none;}
+.camp-video-tiktok-icon{width:36px;height:36px;border-radius:8px;background:#000;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.camp-video-tiktok-text .vtt-label{font-size:.68rem;color:#555;margin-bottom:2px;}
+.camp-video-tiktok-text .vtt-url{font-size:.75rem;color:#f0ede8;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;}
+.camp-acoes-section{border-top:1px solid #2a2a2a;padding-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;}
+.camp-acoes-loja-title{display:flex;align-items:center;gap:5px;font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#555;margin-bottom:6px;}
+.camp-acoes-loja-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.camp-acoes-loja-dot.areal{background:#7b8cde;}
+.camp-acoes-loja-dot.trios{background:#de7bb8;}
+.camp-acao-item{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid #1e1e1e;cursor:pointer;}
+.camp-acao-item:last-child{border-bottom:none;}
+.camp-acao-check{width:15px;height:15px;border-radius:4px;border:1.5px solid #333;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:transparent;font-weight:700;}
+.camp-acao-check.done{background:#52b88a;border-color:#52b88a;color:white;}
+.camp-acao-text{font-size:.78rem;color:#ccc;}
+.camp-acao-text.done{text-decoration:line-through;color:#444;}
+.camp-add-acao{display:flex;align-items:center;gap:5px;font-size:.72rem;color:#444;background:none;border:none;cursor:pointer;padding:4px 0;width:100%;text-align:left;font-family:inherit;}
+.camp-add-acao:hover{color:#666;}
+.camp-add-acao-icon{width:15px;height:15px;border-radius:4px;border:1.5px dashed #333;display:flex;align-items:center;justify-content:center;font-size:.8rem;color:#444;flex-shrink:0;}
+.camp-acao-input-row{display:flex;gap:5px;margin-top:4px;}
+.camp-acao-input{background:#222;border:1px solid #333;border-radius:6px;padding:4px 8px;font-size:.78rem;color:#f0ede8;flex:1;outline:none;font-family:inherit;}
+.camp-acao-input:focus{border-color:#555;}
+.camp-acao-save-btn{background:#333;border:none;border-radius:6px;color:#f0ede8;padding:4px 10px;font-size:.75rem;cursor:pointer;font-family:inherit;}
+.camp-del{position:absolute;top:10px;right:10px;background:none;border:none;color:#333;cursor:pointer;font-size:1rem;}
+.camp-del:hover{color:#e05252;}
+.camp-section-title{font-size:.72rem;font-weight:700;color:#444;text-transform:uppercase;letter-spacing:.06em;padding:10px 0 4px;display:flex;align-items:center;gap:5px;}
 .campanha-dot{display:inline-block;width:5px;height:5px;background:#a78bfa;border-radius:50%;vertical-align:middle;margin-left:2px;}
-.btn-campanha{background:none;border:1px solid #a78bfa33;border-radius:6px;cursor:pointer;color:#a78bfa;padding:3px 8px;font-size:0.75rem;display:flex;align-items:center;gap:4px;margin-top:6px;width:fit-content;}
+.btn-campanha{background:none;border:1px solid #a78bfa33;border-radius:6px;cursor:pointer;color:#a78bfa;padding:3px 8px;font-size:.75rem;display:flex;align-items:center;gap:4px;margin-top:6px;width:fit-content;}
 .btn-campanha:hover{background:color-mix(in srgb,#a78bfa 15%,transparent);}
-.camp-section-title{font-size:0.72rem;font-weight:700;color:#a78bfa;text-transform:uppercase;letter-spacing:0.06em;padding:10px 0 4px;display:flex;align-items:center;gap:5px;}
-.camp-del{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.85rem;padding:2px;}
-.camp-del:hover{color:var(--red);}
+.camp-edit-btn{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;color:#444;background:none;border:1px solid #2a2a2a;border-radius:6px;padding:4px 9px;cursor:pointer;margin-top:12px;font-family:inherit;}
+.camp-edit-btn:hover{color:#888;border-color:#444;}
 </style>
 </head>
 <body>
@@ -511,6 +550,7 @@ let viewWeekStart = getWeekStart(new Date()); // Date object — domingo da sema
 let eventosLoja = [];
 let campanhas = [];
 let campEditId = null;
+let diaAberto = null;
 
 const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const MESES_ABREV = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
@@ -730,6 +770,7 @@ function renderMensal() {
 }
 
 function showDayEvents(dataStr, dia) {
+  diaAberto = dataStr;
   const eventos = allEventos(viewYear).filter(e => e.data===dataStr);
   const campsDay = campanhas.filter(c => c.data_campanha===dataStr);
   if (!eventos.length && !campsDay.length) {
@@ -896,6 +937,123 @@ function renderEventCards(elId, eventos) {
 }
 
 // ===== CAMPANHAS =====
+function _canalClass(canal) {
+  if (canal === 'Instagram') return 'canal-instagram';
+  if (canal === 'WhatsApp') return 'canal-whatsapp';
+  return 'canal-ambos';
+}
+
+function _canalIconSVG(canal) {
+  if (canal === 'Instagram') return '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>';
+  if (canal === 'WhatsApp') return '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>';
+  return '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>';
+}
+
+function _renderVideoPreview(url) {
+  if (!url) return '';
+  const yt = url.match(/(?:youtu\.be\/|[?&]v=|\/shorts\/)([a-zA-Z0-9_-]{11})/);
+  if (yt) {
+    const id = yt[1];
+    return `<div class="camp-video-label">Refer\u00eancia</div>
+<div class="camp-video-thumb" onclick="window.open('${url}','_blank')">
+  <img src="https://img.youtube.com/vi/${id}/mqdefault.jpg" alt="">
+  <div class="camp-video-overlay"><div class="camp-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+  <div class="camp-video-source-tag">YouTube</div>
+</div>`;
+  }
+  if (url.includes('tiktok.com') || url.includes('vm.tiktok')) {
+    const su = url.replace(/^https?:\/\/(www\.)?/,'').substring(0,38) + (url.length>42?'...':'');
+    return `<a class="camp-video-tiktok" href="${url}" target="_blank">
+  <div class="camp-video-tiktok-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.74a8.27 8.27 0 0 0 4.84 1.55V6.84a4.85 4.85 0 0 1-1.07-.15z"/></svg></div>
+  <div class="camp-video-tiktok-text"><div class="vtt-label">Refer\u00eancia de v\u00eddeo</div><div class="vtt-url">${su}</div></div>
+</a>`;
+  }
+  return `<a href="${url}" target="_blank" style="font-size:.75rem;color:#a78bfa;display:flex;align-items:center;gap:4px;margin-bottom:10px;text-decoration:none;">&#9654; Ver refer\u00eancia</a>`;
+}
+
+function _renderAcoesLoja(campId, loja, nome, dotClass, acoes) {
+  const list = (acoes && acoes[loja]) || [];
+  const items = list.map((a, i) => `<div class="camp-acao-item" onclick="toggleAcao('${campId}','${loja}',${i})">
+    <div class="camp-acao-check${a.done?' done':''}">${a.done?'\u2713':''}</div>
+    <span class="camp-acao-text${a.done?' done':''}">${a.text}</span>
+  </div>`).join('');
+  return `<div>
+  <div class="camp-acoes-loja-title"><div class="camp-acoes-loja-dot ${dotClass}"></div>${nome}</div>
+  ${items}
+  <button class="camp-add-acao" onclick="showAddAcao(this,'${campId}','${loja}')"><div class="camp-add-acao-icon">+</div> Adicionar</button>
+</div>`;
+}
+
+function renderCampanhaCards(elId, camps, append=false) {
+  const el = document.getElementById(elId);
+  const sLabel = { rascunho:'Rascunho', aprovada:'Aprovada', publicada:'Publicada' };
+  const cards = camps.map(c => {
+    const cc = _canalClass(c.canal);
+    const [,m,d] = c.data_campanha.split('-');
+    return `<div class="campanha-card ${cc}">
+      <button class="camp-del" onclick="deletarCampanha('${c.id}')">\u2715</button>
+      <div class="camp-top-row">
+        <div class="camp-canal-tag ${cc}">${_canalIconSVG(c.canal)} ${c.canal}</div>
+        <div class="camp-status-indicator status-${c.status}">${sLabel[c.status]||c.status}</div>
+      </div>
+      <div class="camp-label-titulo">${c.titulo} <span style="color:#444;font-size:.7rem">${parseInt(d)}/${parseInt(m)}</span></div>
+      ${c.ideia ? `<div class="camp-ideia-text">&ldquo;${c.ideia}&rdquo;</div>` : ''}
+      ${_renderVideoPreview(c.video_link)}
+      <div class="camp-acoes-section">
+        ${_renderAcoesLoja(c.id,'areal','Areal','areal',c.acoes||{})}
+        ${_renderAcoesLoja(c.id,'trios','Tr\u00eas Rios','trios',c.acoes||{})}
+      </div>
+      <button class="camp-edit-btn" onclick="abrirCampanha('${c.data_campanha}','${c.id}')">&#9999; Editar</button>
+    </div>`;
+  }).join('');
+  const full = `<div class="camp-section-title">&#9670; Campanhas (${camps.length})</div>${cards}`;
+  if (append) el.insertAdjacentHTML('beforeend', full);
+  else el.innerHTML = full;
+}
+
+async function toggleAcao(campId, loja, idx) {
+  const c = campanhas.find(x => x.id === campId);
+  if (!c) return;
+  const acoes = JSON.parse(JSON.stringify(c.acoes || {}));
+  if (!acoes[loja]) acoes[loja] = [];
+  acoes[loja][idx].done = !acoes[loja][idx].done;
+  c.acoes = acoes;
+  await sb.from('campanhas').update({ acoes }).eq('id', campId);
+  if (diaAberto) { showDayEvents(diaAberto, parseInt(diaAberto.split('-')[2])); }
+}
+
+function showAddAcao(btn, campId, loja) {
+  const parent = btn.parentElement;
+  btn.style.display = 'none';
+  const row = document.createElement('div');
+  row.className = 'camp-acao-input-row';
+  row.innerHTML = `<input class="camp-acao-input" type="text" placeholder="Descrever a a\u00e7\u00e3o...">
+    <button class="camp-acao-save-btn" onclick="saveNewAcao(this,'${campId}','${loja}')">OK</button>`;
+  parent.appendChild(row);
+  const inp = row.querySelector('input');
+  inp.focus();
+  inp.addEventListener('keydown', e => {
+    if (e.key==='Enter') row.querySelector('button').click();
+    if (e.key==='Escape') { row.remove(); btn.style.display=''; }
+  });
+}
+
+async function saveNewAcao(btn, campId, loja) {
+  const input = btn.previousElementSibling;
+  const text = input.value.trim();
+  if (!text) return;
+  const c = campanhas.find(x => x.id === campId);
+  if (!c) return;
+  const acoes = JSON.parse(JSON.stringify(c.acoes || {}));
+  if (!acoes[loja]) acoes[loja] = [];
+  acoes[loja].push({ text, done: false });
+  c.acoes = acoes;
+  btn.textContent = '...';
+  await sb.from('campanhas').update({ acoes }).eq('id', campId);
+  await loadEventosLoja();
+  if (diaAberto) { showDayEvents(diaAberto, parseInt(diaAberto.split('-')[2])); }
+}
+
 function abrirCampanha(data, id) {
   campEditId = id || null;
   document.getElementById('camp-data').value = data || '';
@@ -923,17 +1081,18 @@ async function salvarCampanha() {
   const ideia      = document.getElementById('camp-ideia').value.trim();
   const video_link = document.getElementById('camp-video').value.trim();
   const status     = document.getElementById('camp-status').value;
-  if (!data_campanha || !titulo) { showToast('Preencha data e título','error'); return; }
+  if (!data_campanha || !titulo) { showToast('Preencha data e t\u00edtulo','error'); return; }
   let error;
   if (campEditId) {
     ({ error } = await sb.from('campanhas').update({ titulo, canal, ideia:ideia||null, video_link:video_link||null, status }).eq('id', campEditId));
   } else {
     ({ error } = await sb.from('campanhas').insert({ data_campanha, titulo, canal, ideia:ideia||null, video_link:video_link||null, status }));
   }
-  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  if (error) { showToast('Erro: '+error.message,'error'); return; }
   closeModal('modal-campanha');
   campEditId = null;
   await loadEventosLoja();
+  if (diaAberto) { showDayEvents(diaAberto, parseInt(diaAberto.split('-')[2])); }
   showToast('Campanha salva!');
 }
 
@@ -941,34 +1100,8 @@ async function deletarCampanha(id) {
   if (!confirm('Remover esta campanha?')) return;
   await sb.from('campanhas').delete().eq('id', id);
   await loadEventosLoja();
+  if (diaAberto) { showDayEvents(diaAberto, parseInt(diaAberto.split('-')[2])); }
   showToast('Campanha removida');
-}
-
-function renderCampanhaCards(elId, camps, append=false) {
-  const el = document.getElementById(elId);
-  const statusLabel = { rascunho: 'Rascunho', aprovada: 'Aprovada', publicada: 'Publicada' };
-  const icon = c => c.canal==='Instagram' ? 'brand-instagram' : c.canal==='WhatsApp' ? 'brand-whatsapp' : 'layout-grid';
-  const cards = camps.map(c => {
-    const [,m,d] = c.data_campanha.split('-');
-    const videoBtn = c.video_link
-      ? `<a class="camp-video-link" href="${c.video_link}" target="_blank"><i class="ti ti-brand-tiktok"></i> Ver vídeo de inspiração</a>`
-      : '';
-    return `<div class="campanha-card">
-      <button class="camp-del" onclick="deletarCampanha('${c.id}')"><i class="ti ti-x"></i></button>
-      <div class="camp-titulo">${c.titulo}</div>
-      ${c.ideia ? `<div class="camp-desc">${c.ideia}</div>` : ''}
-      ${videoBtn}
-      <div class="camp-meta">
-        <span class="camp-badge camp-canal"><i class="ti ti-${icon(c)}"></i> ${c.canal}</span>
-        <span class="camp-badge camp-status-${c.status}">${statusLabel[c.status]||c.status}</span>
-        <span style="font-size:0.72rem;color:var(--text-muted);margin-left:auto">${parseInt(d)}/${parseInt(m)}</span>
-      </div>
-      <button class="btn-campanha" onclick="abrirCampanha('${c.data_campanha}','${c.id}')"><i class="ti ti-edit"></i> Editar</button>
-    </div>`;
-  }).join('');
-  const full = `<div class="camp-section-title"><i class="ti ti-speakerphone"></i> Campanhas (${camps.length})</div>${cards}`;
-  if (append) el.insertAdjacentHTML('beforeend', full);
-  else el.innerHTML = full;
 }
 
 // ===== MODAL =====
