@@ -1,16 +1,16 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Shai CalendÃ¡rio</title>
+<title>Shai Calendário</title>
 <link rel="icon" type="image/svg+xml" href="assets/icon-calendario.svg">
 <link rel="apple-touch-icon" href="assets/icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0a0a0a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Shai CalendÃ¡rio">
+<meta name="apple-mobile-web-app-title" content="Shai Calendário">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css">
@@ -60,7 +60,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 }
 .nav-arrow:active { opacity: 0.6; }
 
-/* â”€â”€ MENSAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── MENSAL ─────────────────────────────── */
 .cal-wrap { padding: 0 10px; max-width: 480px; margin: 0 auto; }
 .cal-grid {
   display: grid; grid-template-columns: repeat(7, 1fr);
@@ -101,7 +101,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .ev-pill.loja         { background: color-mix(in srgb, var(--accent) 30%, transparent); color: var(--accent); }
 .ev-pill.more         { background: none; color: var(--text-muted); font-size: 0.52rem; padding: 0 4px; }
 
-/* â”€â”€ SEMANAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── SEMANAL ─────────────────────────────── */
 #view-semana { padding: 0 10px; max-width: 480px; margin: 0 auto; display: none; }
 .week-grid {
   display: grid; grid-template-columns: repeat(7, 1fr);
@@ -135,7 +135,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .week-pill.loja         { background: color-mix(in srgb, var(--accent) 30%, transparent); color: var(--accent); }
 .week-pill.more         { background: none; color: var(--text-muted); font-size: 0.5rem; }
 
-/* â”€â”€ ANUAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── ANUAL ─────────────────────────────── */
 #view-anual { padding: 0 10px; max-width: 480px; margin: 0 auto; display: none; }
 .year-grid {
   display: grid; grid-template-columns: 1fr 1fr;
@@ -186,7 +186,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 }
 .tooltip-sep { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
 
-/* â”€â”€ LISTA DE EVENTOS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── LISTA DE EVENTOS ─────────────────────────────── */
 .events-wrap { padding: 0 14px; max-width: 480px; margin: 0 auto; }
 .section-title {
   font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em;
@@ -281,7 +281,7 @@ textarea.form-input { resize: none; height: 76px; }
 .nav-item.active { color: var(--accent); }
 .nav-icon { font-size: 1.25rem; line-height: 1; }
 
-/* â”€â”€ RESPONSIVO: NOTEBOOK (768px+) â”€â”€ */
+/* ── RESPONSIVO: NOTEBOOK (768px+) ── */
 @media (min-width: 768px) {
   .period-nav  { max-width: 900px; padding: 18px 28px 14px; }
   .cal-wrap    { max-width: 900px; padding: 0 20px; }
@@ -303,7 +303,7 @@ textarea.form-input { resize: none; height: 76px; }
   .mini-dow { font-size: 0.48rem; padding: 3px 0; }
 }
 
-/* â”€â”€ RESPONSIVO: DESKTOP GRANDE (1280px+) â”€â”€ */
+/* ── RESPONSIVO: DESKTOP GRANDE (1280px+) ── */
 @media (min-width: 1280px) {
   .period-nav  { max-width: 1600px; padding: 22px 48px 16px; }
   .cal-wrap    { max-width: 1600px; padding: 0 40px; }
@@ -344,7 +344,7 @@ textarea.form-input { resize: none; height: 76px; }
 <div class="header">
   <div>
     <div class="header-logo">Shai</div>
-    <div class="header-sub" id="header-sub">CalendÃ¡rio da Loja</div>
+    <div class="header-sub" id="header-sub">Calendário da Loja</div>
   </div>
   <button class="add-btn" onclick="openModal('modal-add')" title="Novo evento">
     <i class="ti ti-plus"></i>
@@ -364,11 +364,11 @@ textarea.form-input { resize: none; height: 76px; }
   <div class="cal-wrap">
     <div class="cal-grid" id="cal-grid">
       <div class="cal-dow">Dom</div><div class="cal-dow">Seg</div><div class="cal-dow">Ter</div>
-      <div class="cal-dow">Qua</div><div class="cal-dow">Qui</div><div class="cal-dow">Sex</div><div class="cal-dow">SÃ¡b</div>
+      <div class="cal-dow">Qua</div><div class="cal-dow">Qui</div><div class="cal-dow">Sex</div><div class="cal-dow">Sáb</div>
     </div>
   </div>
   <div class="events-wrap">
-    <div class="section-title" id="events-title"><i class="ti ti-calendar-event"></i> Eventos do mÃªs</div>
+    <div class="section-title" id="events-title"><i class="ti ti-calendar-event"></i> Eventos do mês</div>
     <div id="events-list"></div>
   </div>
 </div>
@@ -402,11 +402,11 @@ textarea.form-input { resize: none; height: 76px; }
       <input type="date" class="form-input" id="ev-data">
     </div>
     <div class="form-group">
-      <label class="form-label">TÃ­tulo</label>
-      <input type="text" class="form-input" id="ev-titulo" placeholder="Ex: LiquidaÃ§Ã£o de inverno">
+      <label class="form-label">Título</label>
+      <input type="text" class="form-input" id="ev-titulo" placeholder="Ex: Liquidação de inverno">
     </div>
     <div class="form-group">
-      <label class="form-label">DescriÃ§Ã£o (opcional)</label>
+      <label class="form-label">Descrição (opcional)</label>
       <textarea class="form-input" id="ev-desc" placeholder="Detalhes do evento..."></textarea>
     </div>
     <div class="form-group">
@@ -429,7 +429,7 @@ textarea.form-input { resize: none; height: 76px; }
     <span class="nav-icon"><i class="ti ti-calendar-week"></i></span>Semana
   </button>
   <button class="nav-item active" id="nav-mensal" onclick="setView('mensal')">
-    <span class="nav-icon"><i class="ti ti-calendar-month"></i></span>MÃªs
+    <span class="nav-icon"><i class="ti ti-calendar-month"></i></span>Mês
   </button>
   <button class="nav-item" id="nav-anual" onclick="setView('anual')">
     <span class="nav-icon"><i class="ti ti-calendar"></i></span>Ano
@@ -476,49 +476,49 @@ const [todayY, todayM, todayD] = today.split('-').map(Number);
 let currentView = 'mensal';
 let viewYear  = todayY;
 let viewMonth = todayM - 1; // 0-based
-let viewWeekStart = getWeekStart(new Date()); // Date object â€” domingo da semana atual
+let viewWeekStart = getWeekStart(new Date()); // Date object — domingo da semana atual
 let eventosLoja = [];
 
-const MESES = ['Janeiro','Fevereiro','MarÃ§o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const MESES_ABREV = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-const DOWS = ['Dom','Seg','Ter','Qua','Qui','Sex','SÃ¡b'];
+const DOWS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 
 // ===== COMEMORATIVAS =====
 // Cores por categoria:
-// #cf8080 vermelho  â†’ datas obrigatÃ³rias (maior impacto em vendas)
-// #c4a85a amarelo   â†’ ciclo da moda (coleÃ§Ã£o, liquidaÃ§Ã£o)
-// #6fa88a verde     â†’ datas de apoio (boas para campanhas)
-// #7d858c cinza     â†’ feriados nacionais sem impacto direto
+// #cf8080 vermelho  → datas obrigatórias (maior impacto em vendas)
+// #c4a85a amarelo   → ciclo da moda (coleção, liquidação)
+// #6fa88a verde     → datas de apoio (boas para campanhas)
+// #7d858c cinza     → feriados nacionais sem impacto direto
 
 const FIXAS = [
-  // â”€â”€ FERIADOS â”€â”€
-  { mes:1,  dia:1,  titulo:'Ano Novo',               desc:'Feriado â€” prepare promoÃ§Ã£o de inÃ­cio de ano',     cor:'#7d858c' },
+  // ── FERIADOS ──
+  { mes:1,  dia:1,  titulo:'Ano Novo',               desc:'Feriado — prepare promoção de início de ano',     cor:'#7d858c' },
   { mes:4,  dia:21, titulo:'Tiradentes',              desc:'Feriado nacional',                               cor:'#7d858c' },
   { mes:5,  dia:1,  titulo:'Dia do Trabalho',         desc:'Feriado nacional',                               cor:'#7d858c' },
-  { mes:9,  dia:7,  titulo:'IndependÃªncia do Brasil', desc:'Feriado nacional',                               cor:'#7d858c' },
-  { mes:10, dia:12, titulo:'Dia das CrianÃ§as',        desc:'Feriado â€” moda infantil e presentes em famÃ­lia', cor:'#7d858c' },
+  { mes:9,  dia:7,  titulo:'Independência do Brasil', desc:'Feriado nacional',                               cor:'#7d858c' },
+  { mes:10, dia:12, titulo:'Dia das Crianças',        desc:'Feriado — moda infantil e presentes em família', cor:'#7d858c' },
   { mes:11, dia:2,  titulo:'Finados',                 desc:'Feriado nacional',                               cor:'#7d858c' },
-  { mes:11, dia:15, titulo:'ProclamaÃ§Ã£o da RepÃºblica',desc:'Feriado nacional',                               cor:'#7d858c' },
+  { mes:11, dia:15, titulo:'Proclamação da República',desc:'Feriado nacional',                               cor:'#7d858c' },
 
-  // â”€â”€ DATAS OBRIGATÃ“RIAS (alto impacto em vendas de moda) â”€â”€
-  { mes:6,  dia:12, titulo:'Dia dos Namorados',       desc:'Top 3 datas do ano â€” looks, presentes, kits',   cor:'#cf8080' },
-  { mes:12, dia:25, titulo:'Natal',                   desc:'Maior data do varejo â€” prepare com 1 mÃªs de antecedÃªncia', cor:'#cf8080' },
-  { mes:12, dia:31, titulo:'RÃ©veillon',               desc:'Looks de festa e virada â€” alta demanda',         cor:'#cf8080' },
+  // ── DATAS OBRIGATÓRIAS (alto impacto em vendas de moda) ──
+  { mes:6,  dia:12, titulo:'Dia dos Namorados',       desc:'Top 3 datas do ano — looks, presentes, kits',   cor:'#cf8080' },
+  { mes:12, dia:25, titulo:'Natal',                   desc:'Maior data do varejo — prepare com 1 mês de antecedência', cor:'#cf8080' },
+  { mes:12, dia:31, titulo:'Réveillon',               desc:'Looks de festa e virada — alta demanda',         cor:'#cf8080' },
 
-  // â”€â”€ CICLO DA MODA (coleÃ§Ã£o e liquidaÃ§Ã£o) â”€â”€
-  { mes:7,  dia:1,  titulo:'FÃ©rias Escolares',        desc:'PerÃ­odo de movimento em lojas â€” famÃ­lias saem mais',  cor:'#6fa88a' },
-  { mes:1,  dia:15, titulo:'LiquidaÃ§Ã£o VerÃ£o',        desc:'Queima de sobras da coleÃ§Ã£o verÃ£o â€” descontos 30â€“50%', cor:'#c4a85a' },
-  { mes:3,  dia:1,  titulo:'LanÃ§amento ColeÃ§Ã£o Outono',desc:'InÃ­cio da temporada Outono â€” renovar vitrine',  cor:'#c4a85a' },
-  { mes:5,  dia:1,  titulo:'LanÃ§amento ColeÃ§Ã£o Inverno',desc:'InÃ­cio da temporada Inverno â€” renovar vitrine',cor:'#c4a85a' },
-  { mes:7,  dia:15, titulo:'LiquidaÃ§Ã£o Inverno',      desc:'Queima de estoque Outono/Inverno â€” descontos 30â€“50%', cor:'#c4a85a' },
-  { mes:9,  dia:22, titulo:'InÃ­cio da Primavera',     desc:'LanÃ§amento coleÃ§Ã£o Primavera/VerÃ£o â€” vitrine nova', cor:'#c4a85a' },
+  // ── CICLO DA MODA (coleção e liquidação) ──
+  { mes:7,  dia:1,  titulo:'Férias Escolares',        desc:'Período de movimento em lojas — famílias saem mais',  cor:'#6fa88a' },
+  { mes:1,  dia:15, titulo:'Liquidação Verão',        desc:'Queima de sobras da coleção verão — descontos 30–50%', cor:'#c4a85a' },
+  { mes:3,  dia:1,  titulo:'Lançamento Coleção Outono',desc:'Início da temporada Outono — renovar vitrine',  cor:'#c4a85a' },
+  { mes:5,  dia:1,  titulo:'Lançamento Coleção Inverno',desc:'Início da temporada Inverno — renovar vitrine',cor:'#c4a85a' },
+  { mes:7,  dia:15, titulo:'Liquidação Inverno',      desc:'Queima de estoque Outono/Inverno — descontos 30–50%', cor:'#c4a85a' },
+  { mes:9,  dia:22, titulo:'Início da Primavera',     desc:'Lançamento coleção Primavera/Verão — vitrine nova', cor:'#c4a85a' },
 
-  // â”€â”€ DATAS DE APOIO (boas para campanhas) â”€â”€
-  { mes:2,  dia:12, titulo:'Dia do Amor',             desc:'Antecipa Dia dos Namorados â€” looks e presentes', cor:'#6fa88a' },
-  { mes:3,  dia:8,  titulo:'Dia da Mulher',           desc:'Data forte para moda feminina â€” aÃ§Ã£o especial', cor:'#6fa88a' },
-  { mes:6,  dia:24, titulo:'Festa Junina',            desc:'Vitrine temÃ¡tica â€” estampas e looks caipiras',   cor:'#6fa88a' },
-  { mes:9,  dia:15, titulo:'Dia do Cliente',          desc:'FidelizaÃ§Ã£o, desconto especial para cadastradas',cor:'#6fa88a' },
-  { mes:10, dia:31, titulo:'Halloween',               desc:'TendÃªncia crescente â€” looks e acessÃ³rios',       cor:'#6fa88a' },
+  // ── DATAS DE APOIO (boas para campanhas) ──
+  { mes:2,  dia:12, titulo:'Dia do Amor',             desc:'Antecipa Dia dos Namorados — looks e presentes', cor:'#6fa88a' },
+  { mes:3,  dia:8,  titulo:'Dia da Mulher',           desc:'Data forte para moda feminina — ação especial', cor:'#6fa88a' },
+  { mes:6,  dia:24, titulo:'Festa Junina',            desc:'Vitrine temática — estampas e looks caipiras',   cor:'#6fa88a' },
+  { mes:9,  dia:15, titulo:'Dia do Cliente',          desc:'Fidelização, desconto especial para cadastradas',cor:'#6fa88a' },
+  { mes:10, dia:31, titulo:'Halloween',               desc:'Tendência crescente — looks e acessórios',       cor:'#6fa88a' },
 ];
 
 function getComemorativas(ano) {
@@ -526,16 +526,16 @@ function getComemorativas(ano) {
     data: `${ano}-${pad(c.mes)}-${pad(c.dia)}`,
     titulo: c.titulo, desc: c.desc, cor: c.cor, tipo: 'comemorativa'
   }));
-  // variÃ¡veis
-  r.push({ data: nthWeekday(ano,5,0,2), titulo:'Dia das MÃ£es',  desc:'Top 1 data do ano para moda feminina â€” prepare 3 semanas antes', cor:'#cf8080', tipo:'comemorativa' });
-  r.push({ data: nthWeekday(ano,8,0,2), titulo:'Dia dos Pais',  desc:'Moda masculina e acessÃ³rios â€” boa data para presentes', cor:'#cf8080', tipo:'comemorativa' });
+  // variáveis
+  r.push({ data: nthWeekday(ano,5,0,2), titulo:'Dia das Mães',  desc:'Top 1 data do ano para moda feminina — prepare 3 semanas antes', cor:'#cf8080', tipo:'comemorativa' });
+  r.push({ data: nthWeekday(ano,8,0,2), titulo:'Dia dos Pais',  desc:'Moda masculina e acessórios — boa data para presentes', cor:'#cf8080', tipo:'comemorativa' });
   const bf = lastWeekday(ano,11,5);
-  r.push({ data: bf, titulo:'Black Friday', desc:'Queima de estoque com descontos â€” prepare divulgaÃ§Ã£o com 1 semana de antecedÃªncia', cor:'#cf8080', tipo:'comemorativa' });
+  r.push({ data: bf, titulo:'Black Friday', desc:'Queima de estoque com descontos — prepare divulgação com 1 semana de antecedência', cor:'#cf8080', tipo:'comemorativa' });
   const cm = new Date(bf); cm.setDate(cm.getDate()+3);
-  r.push({ data: iso(cm), titulo:'Cyber Monday', desc:'SequÃªncia da Black Friday â€” promoÃ§Ãµes online', cor:'#c4a85a', tipo:'comemorativa' });
-  r.push({ data: pascoa(ano), titulo:'PÃ¡scoa', desc:'Feriado â€” famÃ­lia e presenteamento', cor:'#7d858c', tipo:'comemorativa' });
+  r.push({ data: iso(cm), titulo:'Cyber Monday', desc:'Sequência da Black Friday — promoções online', cor:'#c4a85a', tipo:'comemorativa' });
+  r.push({ data: pascoa(ano), titulo:'Páscoa', desc:'Feriado — família e presenteamento', cor:'#7d858c', tipo:'comemorativa' });
   const c2 = new Date(pascoa(ano)); c2.setDate(c2.getDate()-47);
-  r.push({ data: iso(c2), titulo:'Carnaval', desc:'Feriado prolongado â€” queda de movimento em loja fÃ­sica', cor:'#7d858c', tipo:'comemorativa' });
+  r.push({ data: iso(c2), titulo:'Carnaval', desc:'Feriado prolongado — queda de movimento em loja física', cor:'#7d858c', tipo:'comemorativa' });
   return r;
 }
 
@@ -581,17 +581,17 @@ async function salvarEvento() {
   const titulo = document.getElementById('ev-titulo').value.trim();
   const desc   = document.getElementById('ev-desc').value.trim();
   const cor    = corSelecionada;
-  if (!data || !titulo) { showToast('Preencha a data e o tÃ­tulo','error'); return; }
+  if (!data || !titulo) { showToast('Preencha a data e o título','error'); return; }
   const { error } = await sb.from('eventos_loja').insert({ data, titulo, descricao: desc||null, cor });
   if (error) {
     if (error.code === '42P01' || error.message?.includes('does not exist')) {
       eventosLoja.push({ id: Date.now().toString(), data, titulo, descricao:desc||null, cor, tipo:'loja' });
       closeModal('modal-add'); limparModal(); renderView();
-      showToast('Salvo localmente â€” rode o SQL no Supabase para persistir');
+      showToast('Salvo localmente — rode o SQL no Supabase para persistir');
       return;
     }
     if (error.code === '42703' || error.message?.includes('column')) {
-      // tabela existe mas sem coluna cor â€” salva sem a cor
+      // tabela existe mas sem coluna cor — salva sem a cor
       const { error: e2 } = await sb.from('eventos_loja').insert({ data, titulo, descricao: desc||null });
       if (!e2) { closeModal('modal-add'); limparModal(); await loadEventosLoja(); showToast('Evento salvo! (rode o SQL para adicionar coluna cor)'); return; }
     }
@@ -644,7 +644,7 @@ function changePeriod(delta) {
 // ===== MENSAL =====
 function renderMensal() {
   document.getElementById('period-label').textContent = `${MESES[viewMonth]} ${viewYear}`;
-  document.getElementById('header-sub').textContent = 'CalendÃ¡rio â€” MÃªs';
+  document.getElementById('header-sub').textContent = 'Calendário — Mês';
 
   const eventos = allEventos(viewYear);
   const prefix  = `${viewYear}-${pad(viewMonth+1)}`;
@@ -672,7 +672,7 @@ function renderMensal() {
     const numStyle = primCor && !isToday ? `style="background:color-mix(in srgb,${primCor} 30%,transparent);color:${primCor};font-weight:700"` : '';
     let html = `<span class="day-num" ${numStyle}>${d}</span>`;
     evs.slice(0,2).forEach(e => {
-      const lbl = e.titulo.length>10 ? e.titulo.slice(0,9)+'â€¦' : e.titulo;
+      const lbl = e.titulo.length>10 ? e.titulo.slice(0,9)+'…' : e.titulo;
       const c = e.cor || (e.tipo==='loja' ? 'var(--accent)' : 'var(--yellow)');
       html += `<div class="ev-pill" style="background:color-mix(in srgb,${c} 25%,transparent);color:${c}">${lbl}</div>`;
     });
@@ -686,7 +686,7 @@ function renderMensal() {
   }
 
   // lista abaixo
-  document.getElementById('events-title').innerHTML = '<i class="ti ti-calendar-event"></i> Eventos do mÃªs';
+  document.getElementById('events-title').innerHTML = '<i class="ti ti-calendar-event"></i> Eventos do mês';
   renderEventCards('events-list', doMes.sort((a,b)=>a.data.localeCompare(b.data)));
 }
 
@@ -698,7 +698,7 @@ function showDayEvents(dataStr, dia) {
   }
   const [,m] = dataStr.split('-');
   document.getElementById('events-title').innerHTML =
-    `<i class="ti ti-calendar-event"></i> ${dia}/${parseInt(m)} â€” ${eventos.length} evento(s)`;
+    `<i class="ti ti-calendar-event"></i> ${dia}/${parseInt(m)} — ${eventos.length} evento(s)`;
   renderEventCards('events-list', eventos);
   document.getElementById('events-list').scrollIntoView({ behavior:'smooth', block:'start' });
 }
@@ -708,8 +708,8 @@ function renderSemana() {
   const s = viewWeekStart;
   const e = new Date(s); e.setDate(e.getDate()+6);
   const fmtD = d => `${pad(d.getDate())}/${pad(d.getMonth()+1)}`;
-  document.getElementById('period-label').textContent = `${fmtD(s)} â€“ ${fmtD(e)}`;
-  document.getElementById('header-sub').textContent = 'CalendÃ¡rio â€” Semana';
+  document.getElementById('period-label').textContent = `${fmtD(s)} – ${fmtD(e)}`;
+  document.getElementById('header-sub').textContent = 'Calendário — Semana';
 
   const grid = document.getElementById('week-grid');
   grid.innerHTML = '';
@@ -733,7 +733,7 @@ function renderSemana() {
       document.getElementById('ev-data').value = dataStr;
       if (evs.length) {
         document.getElementById('week-events-title').innerHTML =
-          `<i class="ti ti-calendar-event"></i> ${d.getDate()}/${d.getMonth()+1} â€” ${evs.length} evento(s)`;
+          `<i class="ti ti-calendar-event"></i> ${d.getDate()}/${d.getMonth()+1} — ${evs.length} evento(s)`;
         renderEventCards('week-events-list', evs);
         document.getElementById('week-events-list').scrollIntoView({behavior:'smooth',block:'start'});
       } else {
@@ -743,7 +743,7 @@ function renderSemana() {
 
     let pills = '';
     evs.slice(0,3).forEach(e => {
-      const lbl = e.titulo.length>8 ? e.titulo.slice(0,7)+'â€¦' : e.titulo;
+      const lbl = e.titulo.length>8 ? e.titulo.slice(0,7)+'…' : e.titulo;
       const c = e.cor || (e.tipo==='loja' ? 'var(--accent)' : 'var(--yellow)');
       pills += `<div class="week-pill" style="background:color-mix(in srgb,${c} 25%,transparent);color:${c}">${lbl}</div>`;
     });
@@ -766,7 +766,7 @@ function renderSemana() {
 // ===== ANUAL =====
 function renderAnual() {
   document.getElementById('period-label').textContent = String(viewYear);
-  document.getElementById('header-sub').textContent = 'CalendÃ¡rio â€” Ano';
+  document.getElementById('header-sub').textContent = 'Calendário — Ano';
 
   const eventos = allEventos(viewYear);
   const grid = document.getElementById('year-grid');
@@ -818,7 +818,7 @@ function showMiniDay(dataStr) {
     openModal('modal-add'); return;
   }
   document.getElementById('year-events-title').innerHTML =
-    `<i class="ti ti-calendar-event"></i> ${parseInt(d)}/${parseInt(m)} â€” ${evs.length} evento(s)`;
+    `<i class="ti ti-calendar-event"></i> ${parseInt(d)}/${parseInt(m)} — ${evs.length} evento(s)`;
   renderEventCards('year-events-list', evs);
   document.getElementById('year-events-list').scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -826,7 +826,7 @@ function showMiniDay(dataStr) {
 // ===== EVENT CARDS =====
 function renderEventCards(elId, eventos) {
   const el = document.getElementById(elId);
-  if (!eventos.length) { el.innerHTML = '<div class="empty">Nenhum evento neste perÃ­odo</div>'; return; }
+  if (!eventos.length) { el.innerHTML = '<div class="empty">Nenhum evento neste período</div>'; return; }
   el.innerHTML = eventos.map(e => {
     const [, m, d] = e.data.split('-');
     const cor = e.cor || (e.tipo==='loja' ? 'var(--accent)' : 'var(--yellow)');
@@ -921,4 +921,3 @@ loadEventosLoja();
 </script>
 </body>
 </html>
-
