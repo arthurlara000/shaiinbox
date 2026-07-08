@@ -336,6 +336,24 @@ textarea.form-input { resize: none; height: 76px; }
   .event-date-day { font-size: 1.3rem; }
   .section-title  { font-size: 0.72rem; }
 }
+
+/* Campanhas */
+.campanha-card{border-left:3px solid #a78bfa;background:color-mix(in srgb,#a78bfa 8%,var(--surface));padding:12px 14px;border-radius:10px;margin-bottom:8px;position:relative;display:flex;flex-direction:column;gap:4px;}
+.campanha-card .camp-titulo{font-weight:600;font-size:0.9rem;color:var(--text);}
+.campanha-card .camp-desc{font-size:0.8rem;color:var(--text-muted);white-space:pre-wrap;}
+.campanha-card .camp-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px;}
+.camp-badge{font-size:0.68rem;padding:2px 8px;border-radius:20px;font-weight:700;}
+.camp-status-rascunho{background:color-mix(in srgb,var(--text-muted) 20%,transparent);color:var(--text-muted);}
+.camp-status-aprovada{background:color-mix(in srgb,var(--accent) 20%,transparent);color:var(--accent);}
+.camp-status-publicada{background:color-mix(in srgb,var(--green) 20%,transparent);color:var(--green);}
+.camp-canal{background:color-mix(in srgb,#a78bfa 20%,transparent);color:#a78bfa;}
+.camp-video-link{font-size:0.75rem;color:#a78bfa;text-decoration:none;display:flex;align-items:center;gap:4px;margin-top:2px;}
+.campanha-dot{display:inline-block;width:5px;height:5px;background:#a78bfa;border-radius:50%;vertical-align:middle;margin-left:2px;}
+.btn-campanha{background:none;border:1px solid #a78bfa33;border-radius:6px;cursor:pointer;color:#a78bfa;padding:3px 8px;font-size:0.75rem;display:flex;align-items:center;gap:4px;margin-top:6px;width:fit-content;}
+.btn-campanha:hover{background:color-mix(in srgb,#a78bfa 15%,transparent);}
+.camp-section-title{font-size:0.72rem;font-weight:700;color:#a78bfa;text-transform:uppercase;letter-spacing:0.06em;padding:10px 0 4px;display:flex;align-items:center;gap:5px;}
+.camp-del{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.85rem;padding:2px;}
+.camp-del:hover{color:var(--red);}
 </style>
 </head>
 <body>
@@ -420,6 +438,19 @@ textarea.form-input { resize: none; height: 76px; }
   </div>
 </div>
 
+
+<div class="modal-overlay" id="modal-campanha">
+  <div class="modal" style="max-height:90vh;overflow-y:auto;">
+    <div class="modal-title"><i class="ti ti-speakerphone"></i> Campanha</div>
+    <div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input" id="camp-data"></div>
+    <div class="form-group"><label class="form-label">Título</label><input type="text" class="form-input" id="camp-titulo" placeholder="Ex: Dia das Mães — Look Rosa"></div>
+    <div class="form-group"><label class="form-label">Canal</label><select class="form-select" id="camp-canal"><option value="Instagram">Instagram</option><option value="WhatsApp">WhatsApp</option><option value="Ambos">Ambos</option></select></div>
+    <div class="form-group"><label class="form-label">Ideia / Texto da campanha</label><textarea class="form-input" id="camp-ideia" placeholder="Descreva a ideia..." style="min-height:80px"></textarea></div>
+    <div class="form-group"><label class="form-label"><i class="ti ti-brand-tiktok"></i> Vídeo de inspiração (link)</label><input type="url" class="form-input" id="camp-video" placeholder="https://www.tiktok.com/..."></div>
+    <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="camp-status"><option value="rascunho">Rascunho</option><option value="aprovada">Aprovada</option><option value="publicada">Publicada</option></select></div>
+    <div class="btn-row"><button class="btn btn-ghost" onclick="closeModal('modal-campanha')">Cancelar</button><button class="btn btn-primary" onclick="salvarCampanha()">Salvar</button></div>
+  </div>
+</div>
 <div id="toast"></div>
 <div class="cal-tooltip" id="cal-tooltip"></div>
 
@@ -478,6 +509,8 @@ let viewYear  = todayY;
 let viewMonth = todayM - 1; // 0-based
 let viewWeekStart = getWeekStart(new Date()); // Date object — domingo da semana atual
 let eventosLoja = [];
+let campanhas = [];
+let campEditId = null;
 
 const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const MESES_ABREV = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
@@ -571,8 +604,12 @@ function getWeekStart(d) {
 
 // ===== SUPABASE =====
 async function loadEventosLoja() {
-  const { data } = await sb.from('eventos_loja').select('*').order('data');
-  eventosLoja = (data || []).map(e => ({ ...e, tipo:'loja' }));
+  const [evRes, campRes] = await Promise.all([
+    sb.from('eventos_loja').select('*').order('data'),
+    sb.from('campanhas').select('*').order('data_campanha')
+  ]);
+  eventosLoja = (evRes.data || []).map(e => ({ ...e, tipo:'loja' }));
+  campanhas = campRes.data || [];
   renderView();
 }
 
@@ -677,6 +714,8 @@ function renderMensal() {
       html += `<div class="ev-pill" style="background:color-mix(in srgb,${c} 25%,transparent);color:${c}">${lbl}</div>`;
     });
     if (evs.length>2) html += `<div class="ev-pill more">+${evs.length-2}</div>`;
+    const hasCamp = campanhas.some(c => c.data_campanha===dataStr);
+    if (hasCamp) html += `<span class="campanha-dot" title="Tem campanha"></span>`;
     el.innerHTML = html;
     if (evs.length) {
       el.addEventListener('mouseenter', ev => showTooltip(ev, evs));
@@ -692,7 +731,8 @@ function renderMensal() {
 
 function showDayEvents(dataStr, dia) {
   const eventos = allEventos(viewYear).filter(e => e.data===dataStr);
-  if (!eventos.length) {
+  const campsDay = campanhas.filter(c => c.data_campanha===dataStr);
+  if (!eventos.length && !campsDay.length) {
     document.getElementById('ev-data').value = dataStr;
     openModal('modal-add'); return;
   }
@@ -700,6 +740,7 @@ function showDayEvents(dataStr, dia) {
   document.getElementById('events-title').innerHTML =
     `<i class="ti ti-calendar-event"></i> ${dia}/${parseInt(m)} — ${eventos.length} evento(s)`;
   renderEventCards('events-list', eventos);
+  if (campsDay.length) renderCampanhaCards('events-list', campsDay, true);
   document.getElementById('events-list').scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
@@ -836,6 +877,7 @@ function renderEventCards(elId, eventos) {
     const del = e.tipo==='loja' && e.id
       ? `<button class="event-del" onclick="deletarEvento('${e.id}')"><i class="ti ti-x"></i></button>`
       : '';
+    const campBtn = `<button class="btn-campanha" onclick="abrirCampanha('${e.data}',null)"><i class="ti ti-speakerphone"></i> Campanha</button>`;
     return `
       <div class="event-card" style="border-left: 3px solid ${cor}">
         <div class="event-date-box" style="border-color:color-mix(in srgb,${cor} 30%,transparent)">
@@ -846,10 +888,87 @@ function renderEventCards(elId, eventos) {
           <div class="event-title">${e.titulo}</div>
           ${e.desc||e.descricao ? `<div class="event-desc">${e.desc||e.descricao}</div>` : ''}
           ${badge}
+          ${campBtn}
         </div>
         ${del}
       </div>`;
   }).join('');
+}
+
+// ===== CAMPANHAS =====
+function abrirCampanha(data, id) {
+  campEditId = id || null;
+  document.getElementById('camp-data').value = data || '';
+  if (id) {
+    const c = campanhas.find(x => x.id === id);
+    if (c) {
+      document.getElementById('camp-titulo').value = c.titulo || '';
+      document.getElementById('camp-canal').value  = c.canal  || 'Instagram';
+      document.getElementById('camp-ideia').value  = c.ideia  || '';
+      document.getElementById('camp-video').value  = c.video_link || '';
+      document.getElementById('camp-status').value = c.status || 'rascunho';
+    }
+  } else {
+    ['camp-titulo','camp-ideia','camp-video'].forEach(i => document.getElementById(i).value='');
+    document.getElementById('camp-canal').value  = 'Instagram';
+    document.getElementById('camp-status').value = 'rascunho';
+  }
+  openModal('modal-campanha');
+}
+
+async function salvarCampanha() {
+  const data_campanha = document.getElementById('camp-data').value;
+  const titulo     = document.getElementById('camp-titulo').value.trim();
+  const canal      = document.getElementById('camp-canal').value;
+  const ideia      = document.getElementById('camp-ideia').value.trim();
+  const video_link = document.getElementById('camp-video').value.trim();
+  const status     = document.getElementById('camp-status').value;
+  if (!data_campanha || !titulo) { showToast('Preencha data e título','error'); return; }
+  let error;
+  if (campEditId) {
+    ({ error } = await sb.from('campanhas').update({ titulo, canal, ideia:ideia||null, video_link:video_link||null, status }).eq('id', campEditId));
+  } else {
+    ({ error } = await sb.from('campanhas').insert({ data_campanha, titulo, canal, ideia:ideia||null, video_link:video_link||null, status }));
+  }
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  closeModal('modal-campanha');
+  campEditId = null;
+  await loadEventosLoja();
+  showToast('Campanha salva!');
+}
+
+async function deletarCampanha(id) {
+  if (!confirm('Remover esta campanha?')) return;
+  await sb.from('campanhas').delete().eq('id', id);
+  await loadEventosLoja();
+  showToast('Campanha removida');
+}
+
+function renderCampanhaCards(elId, camps, append=false) {
+  const el = document.getElementById(elId);
+  const statusLabel = { rascunho: 'Rascunho', aprovada: 'Aprovada', publicada: 'Publicada' };
+  const icon = c => c.canal==='Instagram' ? 'brand-instagram' : c.canal==='WhatsApp' ? 'brand-whatsapp' : 'layout-grid';
+  const cards = camps.map(c => {
+    const [,m,d] = c.data_campanha.split('-');
+    const videoBtn = c.video_link
+      ? `<a class="camp-video-link" href="${c.video_link}" target="_blank"><i class="ti ti-brand-tiktok"></i> Ver vídeo de inspiração</a>`
+      : '';
+    return `<div class="campanha-card">
+      <button class="camp-del" onclick="deletarCampanha('${c.id}')"><i class="ti ti-x"></i></button>
+      <div class="camp-titulo">${c.titulo}</div>
+      ${c.ideia ? `<div class="camp-desc">${c.ideia}</div>` : ''}
+      ${videoBtn}
+      <div class="camp-meta">
+        <span class="camp-badge camp-canal"><i class="ti ti-${icon(c)}"></i> ${c.canal}</span>
+        <span class="camp-badge camp-status-${c.status}">${statusLabel[c.status]||c.status}</span>
+        <span style="font-size:0.72rem;color:var(--text-muted);margin-left:auto">${parseInt(d)}/${parseInt(m)}</span>
+      </div>
+      <button class="btn-campanha" onclick="abrirCampanha('${c.data_campanha}','${c.id}')"><i class="ti ti-edit"></i> Editar</button>
+    </div>`;
+  }).join('');
+  const full = `<div class="camp-section-title"><i class="ti ti-speakerphone"></i> Campanhas (${camps.length})</div>${cards}`;
+  if (append) el.insertAdjacentHTML('beforeend', full);
+  else el.innerHTML = full;
 }
 
 // ===== MODAL =====
