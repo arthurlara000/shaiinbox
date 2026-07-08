@@ -243,9 +243,11 @@ tr:hover td { background: var(--surface2); }
   <button class="nav-tab active" onclick="showTab('dashboard',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
   <button class="nav-tab" onclick="showTab('metas',this)"><i class="ti ti-target-arrow"></i>Metas</button>
   <button class="nav-tab" onclick="showTab('historico',this)"><i class="ti ti-history"></i>Histórico</button>
-  <button class="nav-tab" onclick="showTab('comissoes',this)"><i class="ti ti-users"></i>Comissões</button>
+  <button class="nav-tab" onclick="showTab('comissoes',this)"><i class="ti ti-coin"></i>Comissões</button>
+  <button class="nav-tab" onclick="showTab('funcionarios',this)"><i class="ti ti-users"></i>Funcionários</button>
   <button class="nav-tab" onclick="showTab('lista',this)"><i class="ti ti-shopping-cart"></i>Lista de Compras</button>
   <button class="nav-tab" onclick="showTab('custos',this)"><i class="ti ti-building-bank"></i>Custos Fixos</button>
+  <button class="nav-tab" onclick="showTab('compras',this)"><i class="ti ti-shopping-bag"></i>Compras</button>
   <button class="nav-tab" onclick="showTab('fechamentos',this)"><i class="ti ti-report-money"></i>Fechamentos</button>
   <button class="nav-tab" onclick="showTab('config',this)"><i class="ti ti-settings"></i>Configurações</button>
 </div>
@@ -383,10 +385,12 @@ tr:hover td { background: var(--surface2); }
       <div class="empty">Calculando...</div>
     </div>
 
-    <div class="divider"></div>
+  </div>
 
+  <!-- ===== FUNCIONÁRIOS ===== -->
+  <div class="tab-panel" id="tab-funcionarios">
     <div class="section-header">
-      <div style="font-size:0.9rem;font-weight:600;color:var(--text-muted)">Funcionárias</div>
+      <div class="section-title">Funcionários</div>
       <button class="btn btn-primary btn-sm" onclick="openModal('modal-func')">+ Nova Funcionária</button>
     </div>
     <div class="card">
@@ -741,6 +745,41 @@ tr:hover td { background: var(--surface2); }
     </div>
   </div>
 
+  <!-- ===== COMPRAS ===== -->
+  <div class="tab-panel" id="tab-compras">
+    <div class="section-header">
+      <div class="section-title">Compras</div>
+      <button class="btn btn-primary" onclick="openModal('modal-compra')"><i class="ti ti-plus"></i>Nova Compra</button>
+    </div>
+
+    <div class="tab-pills" style="margin-bottom:20px">
+      <button class="tab-pill"        id="comppill-areal"    onclick="setComprasLoja('Loja Areal',this)"><i class="ti ti-map-pin"></i>Loja Areal</button>
+      <button class="tab-pill"        id="comppill-tresrios" onclick="setComprasLoja('Loja Três Rios',this)"><i class="ti ti-map-pin"></i>Loja Três Rios</button>
+      <button class="tab-pill active" id="comppill-todas"    onclick="setComprasLoja('todas',this)"><i class="ti ti-clipboard-list"></i>Todas</button>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end">
+        <div>
+          <label class="form-label">Data início</label>
+          <input type="date" class="form-input" id="comp-dt-ini">
+        </div>
+        <div>
+          <label class="form-label">Data fim</label>
+          <input type="date" class="form-input" id="comp-dt-fim">
+        </div>
+        <button class="btn btn-primary" onclick="loadCompras()" style="height:42px">Buscar</button>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:16px">
+      <span style="font-size:0.85rem;color:var(--text-muted)">Total no período</span>
+      <span id="compras-total" style="font-size:1.3rem;font-weight:700;color:var(--red)">R$ 0,00</span>
+    </div>
+
+    <div id="compras-lista"><div class="empty">Selecione um período e clique em Buscar</div></div>
+  </div>
+
   <!-- ===== FECHAMENTOS ===== -->
   <div class="tab-panel" id="tab-fechamentos">
     <div class="section-header">
@@ -861,6 +900,42 @@ tr:hover td { background: var(--surface2); }
   </div>
 </div>
 
+<!-- MODAL COMPRA -->
+<div class="modal-overlay" id="modal-compra">
+  <div class="modal">
+    <div class="modal-title">Registrar Compra</div>
+    <div class="form-group">
+      <label class="form-label">Loja</label>
+      <select class="form-select" id="comp-loja">
+        <option value="Loja Areal">Loja Areal</option>
+        <option value="Loja Três Rios">Loja Três Rios</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Data <span style="color:var(--red)">*</span></label>
+        <input type="date" class="form-input" id="comp-data">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Valor <span style="color:var(--red)">*</span></label>
+        <input type="text" class="form-input" id="comp-valor" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this)">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Fornecedor</label>
+      <input type="text" class="form-input" id="comp-fornecedor" placeholder="Nome do fornecedor">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descrição</label>
+      <input type="text" class="form-input" id="comp-descricao" placeholder="Ex: Coleção verão, acessórios...">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-compra')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCompra()">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -949,8 +1024,10 @@ function showTab(name, btn) {
   if (name === 'metas') loadMetasSemanal();
   if (name === 'historico') { initHistFilters(); loadHistDiario(); }
   if (name === 'comissoes') loadComissoes();
+  if (name === 'funcionarios') loadFuncionarias();
   if (name === 'lista') loadLista();
   if (name === 'custos') loadCustos();
+  if (name === 'compras') initCompras();
   if (name === 'fechamentos') { setFechView('semanal', document.getElementById('fpill-semanal')); }
   if (name === 'config') loadConfig();
 }
@@ -1427,6 +1504,88 @@ async function deleteCusto(id) {
   loadCustos();
 }
 
+// ===== COMPRAS =====
+let comprasLoja = 'todas';
+
+function initCompras() {
+  // Define período padrão: mês atual
+  const hoje = new Date();
+  const ini = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+  const fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+  document.getElementById('comp-dt-ini').value = ini.toISOString().slice(0,10);
+  document.getElementById('comp-dt-fim').value = fim.toISOString().slice(0,10);
+  loadCompras();
+}
+
+function setComprasLoja(loja, btn) {
+  comprasLoja = loja;
+  document.querySelectorAll('#tab-compras .tab-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadCompras();
+}
+
+async function loadCompras() {
+  const el = document.getElementById('compras-lista');
+  const dtIni = document.getElementById('comp-dt-ini').value;
+  const dtFim = document.getElementById('comp-dt-fim').value;
+  if (!dtIni || !dtFim) { el.innerHTML = '<div class="empty">Selecione um período e clique em Buscar</div>'; return; }
+
+  el.innerHTML = '<div class="empty">Carregando...</div>';
+  let q = sb.from('compras').select('*').gte('data_compra', dtIni).lte('data_compra', dtFim).order('data_compra', { ascending: false });
+  if (comprasLoja !== 'todas') q = q.eq('loja', comprasLoja);
+  const { data, error } = await q;
+  if (error || !data?.length) { el.innerHTML = '<div class="empty">Nenhuma compra no período</div>'; document.getElementById('compras-total').textContent = 'R$ 0,00'; return; }
+
+  const total = data.reduce((s, x) => s + Number(x.valor || 0), 0);
+  document.getElementById('compras-total').textContent = fmt(total);
+
+  el.innerHTML = `<div class="card" style="padding:0;overflow:hidden">
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="border-bottom:1px solid var(--border);font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em">
+        <th style="padding:10px 16px;text-align:left;font-weight:600">Data</th>
+        <th style="padding:10px 16px;text-align:left;font-weight:600">Fornecedor</th>
+        <th style="padding:10px 16px;text-align:left;font-weight:600">Loja</th>
+        <th style="padding:10px 16px;text-align:left;font-weight:600">Descrição</th>
+        <th style="padding:10px 16px;text-align:right;font-weight:600">Valor</th>
+        <th style="padding:10px 16px;text-align:right;font-weight:600"></th>
+      </tr></thead>
+      <tbody>${data.map(c => `<tr style="border-bottom:1px solid var(--border);font-size:0.875rem">
+        <td style="padding:11px 16px;color:var(--text-muted)">${fmtDate(c.data_compra)}</td>
+        <td style="padding:11px 16px;font-weight:500">${c.fornecedor || '—'}</td>
+        <td style="padding:11px 16px"><span class="badge ${c.loja === 'Loja Areal' ? 'badge-loja1' : 'badge-loja2'}">${c.loja}</span></td>
+        <td style="padding:11px 16px;color:var(--text-muted)">${c.descricao || '—'}</td>
+        <td style="padding:11px 16px;text-align:right;font-weight:600;color:var(--red)">${fmt(c.valor)}</td>
+        <td style="padding:11px 16px;text-align:right"><button onclick="deleteCompra('${c.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;padding:2px 6px" title="Excluir"><i class="ti ti-trash"></i></button></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+}
+
+async function saveCompra() {
+  const loja       = document.getElementById('comp-loja').value;
+  const data_compra = document.getElementById('comp-data').value;
+  const valor      = parseBRL(document.getElementById('comp-valor').value);
+  const fornecedor = document.getElementById('comp-fornecedor').value.trim();
+  const descricao  = document.getElementById('comp-descricao').value.trim();
+  if (!data_compra) { showToast('Informe a data', 'error'); return; }
+  if (!valor || isNaN(valor)) { showToast('Informe o valor', 'error'); return; }
+  const { error } = await sb.from('compras').insert({ loja, data_compra, valor, fornecedor: fornecedor || null, descricao: descricao || null });
+  if (error) { showToast('Erro ao salvar', 'error'); return; }
+  closeModal('modal-compra');
+  document.getElementById('comp-data').value = '';
+  document.getElementById('comp-valor').value = '';
+  document.getElementById('comp-fornecedor').value = '';
+  document.getElementById('comp-descricao').value = '';
+  showToast('Compra registrada!');
+  loadCompras();
+}
+
+async function deleteCompra(id) {
+  if (!confirm('Excluir esta compra?')) return;
+  await sb.from('compras').delete().eq('id', id);
+  showToast('Compra excluída');
+  loadCompras();
+}
+
 // ===== FECHAMENTOS =====
 let fechView = 'semanal';
 let fechOffset = 0;
@@ -1489,20 +1648,23 @@ async function loadFechamentos() {
 
   // Buscar dados em paralelo
   const lojas = ['Loja Areal', 'Loja Três Rios'];
-  const [vendasRes, despesasRes, custosRes, comissoesRes] = await Promise.all([
+  const [vendasRes, despesasRes, custosRes, comissoesRes, comprasRes] = await Promise.all([
     sb.from('fechamento_dia').select('loja,total_loja,total_dinheiro,total_cartao,total_pix,total_crediario')
       .gte('data_fechamento', dtIni).lte('data_fechamento', dtFim),
     sb.from('despesas').select('loja,valor')
       .gte('data_despesa', dtIni).lte('data_despesa', dtFim),
     sb.from('custos_fixos').select('loja,valor'),
     sb.from('comissao_fechamento').select('total_a_pagar, funcionarias(loja)')
-      .gte('semana_inicio', dtIni).lte('semana_inicio', dtFim)
+      .gte('semana_inicio', dtIni).lte('semana_inicio', dtFim),
+    sb.from('compras').select('loja,valor')
+      .gte('data_compra', dtIni).lte('data_compra', dtFim)
   ]);
 
   const vendas    = vendasRes.data    || [];
   const despesas  = despesasRes.data  || [];
   const custos    = custosRes.data    || [];
   const comissoes = comissoesRes.data || [];
+  const compras   = comprasRes.data   || [];
 
   // Montar DRE por loja
   const dre = lojas.map(loja => {
@@ -1514,13 +1676,14 @@ async function loadFechamentos() {
     const crediario  = v.reduce((s,x) => s + Number(x.total_crediario||0), 0);
     const desp       = despesas.filter(x => x.loja === loja).reduce((s,x) => s + Number(x.valor||0), 0);
     const comissao   = comissoes.filter(x => x.funcionarias?.loja === loja).reduce((s,x) => s + Number(x.total_a_pagar||0), 0);
+    const cmv        = compras.filter(x => x.loja === loja).reduce((s,x) => s + Number(x.valor||0), 0);
 
     // Custo fixo: total mensal / 30 × dias do período
     const custoMensal = custos.filter(x => x.loja === loja).reduce((s,x) => s + Number(x.valor||0), 0);
     const custoProp   = (custoMensal / 30) * diasPeriodo;
 
-    const liquido = receita - desp - comissao - custoProp;
-    return { loja, receita, dinheiro, cartao, pix, crediario, desp, comissao, custoMensal, custoProp, liquido };
+    const liquido = receita - cmv - desp - comissao - custoProp;
+    return { loja, receita, dinheiro, cartao, pix, crediario, cmv, desp, comissao, custoMensal, custoProp, liquido };
   });
 
   const cor = loja => loja === 'Loja Areal' ? 'var(--loja1)' : 'var(--loja2)';
@@ -1534,6 +1697,7 @@ async function loadFechamentos() {
       <div class="dre-sub"><span>↳ Pix</span><span>${fmt(d.pix)}</span></div>
       ${d.crediario ? `<div class="dre-sub"><span>↳ Crediário</span><span>${fmt(d.crediario)}</span></div>` : ''}
       <div class="dre-divider"></div>
+      ${d.cmv ? `<div class="dre-row"><span><i class="ti ti-shopping-bag"></i>Compras (CMV)</span><span style="color:var(--red)">- ${fmt(d.cmv)}</span></div>` : ''}
       <div class="dre-row"><span><i class="ti ti-receipt"></i>Despesas variáveis</span><span style="color:var(--red)">- ${fmt(d.desp)}</span></div>
       <div class="dre-row"><span><i class="ti ti-users"></i>Comissões</span><span style="color:var(--red)">- ${fmt(d.comissao)}</span></div>
       <div class="dre-row"><span><i class="ti ti-building-bank"></i>Custos fixos <small style="color:var(--text-muted)">(${diasPeriodo}d × ${fmt(d.custoMensal)}/mês)</small></span><span style="color:var(--red)">- ${fmt(d.custoProp)}</span></div>
@@ -1547,17 +1711,19 @@ async function loadFechamentos() {
   // Consolidado
   const tot = {
     receita:   dre.reduce((s,d) => s+d.receita,   0),
+    cmv:       dre.reduce((s,d) => s+d.cmv,        0),
     desp:      dre.reduce((s,d) => s+d.desp,       0),
     comissao:  dre.reduce((s,d) => s+d.comissao,   0),
     custoProp: dre.reduce((s,d) => s+d.custoProp,  0),
   };
-  tot.liquido = tot.receita - tot.desp - tot.comissao - tot.custoProp;
+  tot.liquido = tot.receita - tot.cmv - tot.desp - tot.comissao - tot.custoProp;
 
   el.innerHTML = `
     <div class="grid-2">${dre.map(dreCard).join('')}</div>
     <div class="card" style="background:var(--surface2)">
       <div class="card-title" style="margin-bottom:14px"><i class="ti ti-clipboard-list"></i>Consolidado — ${label}</div>
       <div class="dre-row"><span><i class="ti ti-cash"></i>Receita total</span><span style="color:var(--green)">${fmt(tot.receita)}</span></div>
+      ${tot.cmv ? `<div class="dre-row"><span><i class="ti ti-shopping-bag"></i>Compras (CMV)</span><span style="color:var(--red)">- ${fmt(tot.cmv)}</span></div>` : ''}
       <div class="dre-row"><span><i class="ti ti-receipt"></i>Despesas variáveis</span><span style="color:var(--red)">- ${fmt(tot.desp)}</span></div>
       <div class="dre-row"><span><i class="ti ti-users"></i>Comissões</span><span style="color:var(--red)">- ${fmt(tot.comissao)}</span></div>
       <div class="dre-row"><span><i class="ti ti-building-bank"></i>Custos fixos</span><span style="color:var(--red)">- ${fmt(tot.custoProp)}</span></div>
