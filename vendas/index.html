@@ -267,7 +267,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 </div>
 
 <!-- APP PRINCIPAL -->
-<div id="app">
+<div id="app" style="display:none">
   <div class="header">
     <div class="header-left">
       <div class="header-logo">Shai</div>
@@ -924,8 +924,15 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
 });
 
 // ===== BOOT =====
-// AUTH TEMPORARIAMENTE DESATIVADO — reativar depois
-iniciarApp('Loja Areal');
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    iniciarApp(session.user.user_metadata?.loja || 'Loja Areal');
+  } else {
+    document.getElementById('auth-screen').style.display = 'flex';
+    mostrarLogin();
+  }
+})();
 </script>
 </body>
 </html>
