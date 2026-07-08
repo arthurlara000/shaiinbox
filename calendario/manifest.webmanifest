@@ -2,7 +2,7 @@
   "id": "shai-calendario",
   "name": "Shai Calendário",
   "short_name": "Calendário",
-  "start_url": "/calendario.html",
+  "start_url": "/index.html",
   "scope": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",
