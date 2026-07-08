@@ -1,0 +1,3 @@
+[build]
+  command = "node -e \"const e=process.env.SITE_ENTRY; if(e){ require('fs').writeFileSync('_redirects', '/ /'+e+' 302\\n'); }\""
+  publish = "."
