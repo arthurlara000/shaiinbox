@@ -1,0 +1,12 @@
+{
+  "name": "Shai Calendário",
+  "short_name": "Calendário",
+  "start_url": "/calendario.html",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "icons": [
+    { "src": "assets/icon-calendario.svg", "type": "image/svg+xml", "sizes": "any" },
+    { "src": "assets/icon.png", "type": "image/png", "sizes": "512x512", "purpose": "any maskable" }
+  ]
+}
