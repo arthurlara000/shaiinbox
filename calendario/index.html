@@ -3410,7 +3410,11 @@ function _renderPlanBadges() {
   const els = edEvent.canvas || [];
   const fimY = els.length ? Math.max(...els.map(e => (e.y || 0) + (e.h || 170))) : 600;
   const altura = Math.max(900, fimY + 400);
-  const divisorTop = _modoCampanha() ? 140 : 70; // campanha: divisor começa abaixo das linhas do organograma
+  // campanha: divisor começa abaixo do cabeçalho das categorias (que desce conforme o título cresce)
+  const catsB = els.filter(e => e.tpl === 'cat');
+  const divisorTop = _modoCampanha()
+    ? (catsB.length ? Math.min(...catsB.map(c => c.y || 90)) + 50 : 140)
+    : 70;
   const colW = _campColW();
   for (let c = 1; c <= _bMaxCol(); c++) {
     const d = document.createElement('div');
@@ -3456,7 +3460,8 @@ function _renderOrgLinks(world) {
     world.appendChild(d);
   };
   const tcx = (t.x || 0) + (t.w || 260) / 2;
-  const tBot = (t.y || 0) + (t.h || 44);
+  const tn = document.querySelector(`[data-id="${t.id}"]`);
+  const tBot = (t.y || 0) + ((tn && tn.offsetHeight) || t.h || 44); // altura real (bloco/cartão + botão braço)
   const catTop = Math.min(...cats.map(c => c.y || 90));
   const midY = tBot + Math.max(8, (catTop - tBot) / 2);
   const centers = cats.map(c => (c.x || 0) + (c.w || 170) / 2);
@@ -3523,18 +3528,24 @@ function _reflowCampanha() {
     const node = document.querySelector(`[data-id="${e.id}"]`);
     if (node) { node.style.left = e.x + 'px'; node.style.top = e.y + 'px'; }
   };
-  // cabeçalhos e título no novo grid
-  const baseY = {};
-  cats.forEach((h, i) => {
-    h.x = PLAN_X0 + i * colW + 10 + off;
-    baseY[i] = (h.y || 0) + (h.h || 36) + 18;
-    mv(h);
-  });
+  // título primeiro: a altura real dele (estilo bloco/cartão + botão braço) empurra as categorias
   const t = edEvent.canvas.find(e => e.tpl === 'titulo');
+  let catY = 90;
   if (t) {
     t.x = PLAN_X0 + (cats.length * colW) / 2 - (t.w || 260) / 2;
     mv(t);
+    const tn = document.querySelector(`[data-id="${t.id}"]`);
+    if (tn && tn.offsetHeight) catY = (t.y || 20) + tn.offsetHeight + 34; // 34px de folga p/ as linhas
   }
+  // cabeçalhos no novo grid, abaixo do título
+  const baseY = {};
+  cats.forEach((h, i) => {
+    h.x = PLAN_X0 + i * colW + 10 + off;
+    h.y = catY;
+    mv(h);
+    const hn = document.querySelector(`[data-id="${h.id}"]`);
+    baseY[i] = catY + ((hn && hn.offsetHeight) || h.h || 36) + 18;
+  });
   // empilha cada coluna (botão + sempre por último)
   Object.keys(cols).forEach(col => {
     const fila = cols[col].sort((a, b) =>
