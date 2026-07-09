@@ -14,7 +14,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
 document.addEventListener('DOMContentLoaded',()=>{const ta=document.getElementById('camp-ideia');if(ta)ta.addEventListener('input',()=>{const el=document.getElementById('camp-ideia-count');if(el)el.textContent=ta.value.length;});});
 </script>
 <style>
@@ -61,6 +62,17 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   cursor: pointer; color: var(--text-muted); font-size: 1rem;
 }
 .nav-arrow:active { opacity: 0.6; }
+.period-controls { display: flex; gap: 8px; align-items: center; }
+.view-toggle {
+  display: flex; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+}
+.view-toggle button {
+  border: none; background: none; padding: 6px 13px;
+  font-size: 0.72rem; font-weight: 600; color: var(--text-muted);
+  cursor: pointer; font-family: inherit;
+}
+.view-toggle button.active { background: var(--accent); color: var(--bg); }
 
 /* ── MENSAL ─────────────────────────────── */
 .cal-wrap { padding: 0 10px; max-width: 480px; margin: 0 auto; }
@@ -102,40 +114,8 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .ev-pill.comemorativa { background: color-mix(in srgb, var(--yellow) 22%, transparent); color: var(--yellow); }
 .ev-pill.loja         { background: color-mix(in srgb, var(--accent) 30%, transparent); color: var(--accent); }
 .ev-pill.more         { background: none; color: var(--text-muted); font-size: 0.52rem; padding: 0 4px; }
-
-/* ── SEMANAL ─────────────────────────────── */
-#view-semana { padding: 0 10px; max-width: 480px; margin: 0 auto; display: none; }
-.week-grid {
-  display: grid; grid-template-columns: repeat(7, 1fr);
-  gap: 1px; border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
-  background: var(--border); margin-bottom: 20px;
-}
-.week-col {
-  background: var(--surface2); display: flex; flex-direction: column;
-  align-items: center; min-height: 140px; cursor: pointer; transition: background 0.12s;
-}
-.week-col:active { background: var(--surface); }
-.week-col.today-col { background: color-mix(in srgb, var(--accent) 9%, var(--surface2)); }
-.week-dow {
-  font-size: 0.58rem; font-weight: 600; color: var(--text-muted);
-  text-transform: uppercase; letter-spacing: 0.06em;
-  padding: 7px 0 4px; background: var(--surface); width: 100%; text-align: center;
-}
-.week-day-num {
-  font-size: 0.85rem; font-weight: 600; padding: 6px 0 4px; color: var(--text-muted);
-  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
-}
-.week-col.today-col .week-day-num {
-  background: var(--accent); color: var(--bg); border-radius: 50%; font-weight: 700;
-}
-.week-pills { padding: 0 3px; display: flex; flex-direction: column; gap: 2px; width: 100%; }
-.week-pill {
-  border-radius: 3px; padding: 2px 3px; font-size: 0.52rem; font-weight: 600;
-  line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.week-pill.comemorativa { background: color-mix(in srgb, var(--yellow) 22%, transparent); color: var(--yellow); }
-.week-pill.loja         { background: color-mix(in srgb, var(--accent) 30%, transparent); color: var(--accent); }
-.week-pill.more         { background: none; color: var(--text-muted); font-size: 0.5rem; }
+.ev-pill.plano        { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
+.ev-pill.plano i      { font-size: 0.5rem; }
 
 /* ── ANUAL ─────────────────────────────── */
 #view-anual { padding: 0 10px; max-width: 480px; margin: 0 auto; display: none; }
@@ -354,6 +334,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 }
 .cn-del:hover { background: var(--red); border-color: var(--red); color: #fff; }
 .cn-el.selected .cn-del { display: flex; }
+.cn-el:hover .cn-del { display: flex; }
 
 /* moldura de vídeo/ideia */
 .cn-video {
@@ -411,6 +392,34 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .cn-video-frame img { pointer-events: none; user-select: none; }
 .cn-video-setup .ti-loader-2 { animation: cnspin 1s linear infinite; }
 @keyframes cnspin { to { transform: rotate(360deg); } }
+
+/* botão + de adicionar módulo na coluna */
+.cn-add { cursor: default; display: flex; justify-content: center; }
+.cn-add-btn {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1.5px dashed var(--text-muted); background: transparent;
+  color: var(--text-muted); font-size: 1rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .15s, color .15s;
+}
+.cn-add-btn:hover { border-color: var(--accent); color: var(--accent); }
+.cn-add-menu {
+  display: none; position: absolute; top: 42px; left: 50%; transform: translateX(-50%);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 6px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.16);
+  flex-direction: column; z-index: 30; min-width: 160px;
+}
+.cn-add-menu.open { display: flex; }
+.cn-add-menu.up { top: auto; bottom: 42px; }
+.cn-add-opt {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 12px; border: none; background: none; border-radius: 8px;
+  font-family: inherit; font-size: .82rem; color: var(--text);
+  cursor: pointer; text-align: left; white-space: nowrap;
+}
+.cn-add-opt:hover { background: var(--surface2); }
+.cn-add-opt i { color: var(--text-muted); }
 
 /* alças de resize nos cantos */
 .cn-h {
@@ -530,6 +539,23 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .fmt-c:hover { transform: scale(1.18); }
 .fmt-c.active { border-color: var(--text); transform: scale(1.12); }
 
+/* modo planejamento: só módulos padrão (sem criação livre nem resize) */
+#event-detail.modo-plano #tool-postit,
+#event-detail.modo-plano #tool-text,
+#event-detail.modo-plano #tool-video,
+#event-detail.modo-plano #tool-photo,
+#event-detail.modo-plano #tool-template,
+#event-detail.modo-plano .ed-tool-sep { display: none; }
+#event-detail.modo-plano .cn-h { display: none !important; }
+.plan-week-nav, .plan-reset { display: none; }
+#event-detail.modo-plano .plan-week-nav {
+  display: flex; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 8px;
+}
+#event-detail.modo-plano .plan-reset { display: flex; }
+#event-detail.modo-plano .plan-reset:hover { background: var(--surface2); color: var(--red); }
+#event-detail.modo-plano .ed-topbar-badge { display: none; }
+
 /* bottom toolbar */
 #ed-toolbar {
   flex-shrink: 0;
@@ -587,6 +613,8 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   background: rgba(0,0,0,0.7); align-items: flex-end; justify-content: center;
 }
 .modal-overlay.open { display: flex; }
+.modal-overlay.center { align-items: center; padding: 0 16px; }
+.modal-overlay.center .modal { border-radius: 20px; max-width: 440px; padding-bottom: 22px; }
 .modal {
   background: var(--surface); border-radius: 24px 24px 0 0;
   padding: 26px 22px calc(22px + env(safe-area-inset-bottom, 0px));
@@ -611,6 +639,18 @@ textarea.form-input { resize: none; height: 76px; }
 .btn:active { opacity: 0.75; }
 .btn-primary { background: var(--accent); color: var(--bg); }
 .btn-ghost { background: var(--surface2); color: var(--text-muted); }
+
+/* MODAL PLANEJADO DO DIA */
+.plano-item { margin-bottom: 12px; }
+.plano-texto {
+  font-family: Georgia, serif; font-style: italic;
+  background: var(--surface2); border-radius: 10px;
+  padding: 10px 13px; font-size: 0.9rem; line-height: 1.55; color: var(--text);
+}
+.plano-foto {
+  width: 72px; height: 72px; object-fit: cover;
+  border-radius: 10px; display: block;
+}
 
 /* TOAST */
 #toast {
@@ -641,7 +681,6 @@ textarea.form-input { resize: none; height: 76px; }
 @media (min-width: 768px) {
   .period-nav  { max-width: 900px; padding: 18px 28px 14px; }
   .cal-wrap    { max-width: 900px; padding: 0 20px; }
-  #view-semana { max-width: 900px; padding: 0 20px; }
   #view-anual  { max-width: 900px; padding: 0 20px; }
   .events-wrap { max-width: 900px; padding: 0 24px; }
 
@@ -649,9 +688,6 @@ textarea.form-input { resize: none; height: 76px; }
   .ev-pill { font-size: 0.63rem; padding: 2px 5px; }
   .day-num { font-size: 0.8rem; width: 22px; height: 22px; }
   .cal-day.today .day-num { width: 22px; height: 22px; }
-
-  .week-col  { min-height: 180px; }
-  .week-pill { font-size: 0.6rem; }
 
   .year-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
   .mini-month-title { font-size: 0.75rem; }
@@ -663,7 +699,6 @@ textarea.form-input { resize: none; height: 76px; }
 @media (min-width: 1280px) {
   .period-nav  { max-width: 1600px; padding: 22px 48px 16px; }
   .cal-wrap    { max-width: 1600px; padding: 0 40px; }
-  #view-semana { max-width: 1600px; padding: 0 40px; }
   #view-anual  { max-width: 1600px; padding: 0 40px; }
   .events-wrap { max-width: 1600px; padding: 0 44px; }
 
@@ -674,11 +709,6 @@ textarea.form-input { resize: none; height: 76px; }
   .ev-pill { font-size: 0.7rem; padding: 3px 6px; border-radius: 4px; }
   .day-num { font-size: 0.9rem; width: 26px; height: 26px; }
   .cal-day.today .day-num { width: 26px; height: 26px; }
-
-  .week-col     { min-height: 260px; }
-  .week-day-num { font-size: 1rem; width: 32px; height: 32px; }
-  .week-pill    { font-size: 0.65rem; padding: 3px 5px; }
-  .week-dow     { font-size: 0.65rem; padding: 10px 0 5px; }
 
   .year-grid { grid-template-columns: repeat(4, 1fr); gap: 16px; }
   .mini-month { padding: 14px 12px; }
@@ -793,10 +823,16 @@ textarea.form-input { resize: none; height: 76px; }
 
 <div class="app-body">
 <!-- PERIOD NAV -->
-<div class="period-nav">
-  <button class="nav-arrow" onclick="changePeriod(-1)"><i class="ti ti-chevron-left"></i></button>
+<div class="period-nav" id="period-nav">
   <div class="period-label" id="period-label"></div>
-  <button class="nav-arrow" onclick="changePeriod(1)"><i class="ti ti-chevron-right"></i></button>
+  <div class="period-controls">
+    <div class="view-toggle">
+      <button id="vt-mensal" class="active" onclick="setView('mensal')">Mês</button>
+      <button id="vt-anual" onclick="setView('anual')">Ano</button>
+    </div>
+    <button class="nav-arrow" onclick="changePeriod(-1)"><i class="ti ti-chevron-left"></i></button>
+    <button class="nav-arrow" onclick="changePeriod(1)"><i class="ti ti-chevron-right"></i></button>
+  </div>
 </div>
 
 <!-- VIEW: MENSAL -->
@@ -813,21 +849,19 @@ textarea.form-input { resize: none; height: 76px; }
   </div>
 </div>
 
-<!-- VIEW: SEMANAL -->
-<div id="view-semana">
-  <div class="week-grid" id="week-grid"></div>
-  <div class="events-wrap">
-    <div class="section-title" id="week-events-title"><i class="ti ti-calendar-event"></i> Eventos da semana</div>
-    <div id="week-events-list"></div>
-  </div>
-</div>
-
 <!-- VIEW: ANUAL -->
 <div id="view-anual">
   <div class="year-grid" id="year-grid"></div>
   <div class="events-wrap">
     <div class="section-title" id="year-events-title"><i class="ti ti-calendar-event"></i> Todos os eventos</div>
     <div id="year-events-list"></div>
+  </div>
+</div>
+
+<!-- VIEW: CAMPANHAS -->
+<div id="view-campanhas" style="display:none">
+  <div class="events-wrap">
+    <div id="campanhas-list"></div>
   </div>
 </div>
 
@@ -842,6 +876,9 @@ textarea.form-input { resize: none; height: 76px; }
       <div class="ed-topbar-title" id="ed-titulo"></div>
       <div class="ed-topbar-sub" id="ed-sub"></div>
     </div>
+    <button class="ed-topbar-action plan-week-nav" onclick="mudarSemana(-1)" title="Semana anterior"><i class="ti ti-chevron-left"></i></button>
+    <button class="ed-topbar-action plan-week-nav" onclick="mudarSemana(1)" title="Próxima semana"><i class="ti ti-chevron-right"></i></button>
+    <button class="ed-topbar-action plan-reset" onclick="zerarSemana()" title="Zerar planejamento da semana"><i class="ti ti-eraser"></i></button>
     <div class="ed-topbar-badge" id="ed-badge"></div>
     <button class="ed-topbar-action" onclick="abrirEdCampanha()" title="Campanhas"><i class="ti ti-speakerphone"></i></button>
     <button class="ed-topbar-action" onclick="abrirEdAcoes()" title="Ações por loja"><i class="ti ti-checklist"></i></button>
@@ -928,6 +965,9 @@ textarea.form-input { resize: none; height: 76px; }
     </button>
     <input type="file" id="cn-photo-file" accept="image/*" style="display:none" onchange="_photoPicked(this)">
     <div class="ed-tool-sep"></div>
+    <button class="ed-tool" id="tool-template" onclick="inserirTemplateSemanal()" title="Modelo: planejamento semanal">
+      <i class="ti ti-layout-board-split"></i>
+    </button>
     <div class="ed-pc-wrap" id="ed-pc-wrap">
       <div class="ed-pc ed-pc-current" id="ed-pc-current" onclick="togglePostitPop(event)" style="background:#fef3a7" title="Cor do post-it"></div>
       <div class="ed-pc-pop" id="ed-pc-pop">
@@ -1012,19 +1052,31 @@ textarea.form-input { resize: none; height: 76px; }
     <div class="btn-row"><button class="btn btn-ghost" onclick="closeModal('modal-campanha')">Cancelar</button><button class="btn btn-primary" onclick="salvarCampanha()">Salvar</button></div>
   </div>
 </div>
+<!-- MODAL: PLANEJADO DO DIA -->
+<div class="modal-overlay center" id="modal-plano">
+  <div class="modal" style="max-height:85vh;overflow-y:auto;">
+    <div class="modal-title"><i class="ti ti-layout-board-split"></i> <span id="plano-titulo"></span></div>
+    <div id="plano-list"></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal('modal-plano')">Fechar</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-plano');abrirQuadroDaData(planoDataAtual)">Abrir planejamento</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 <div class="cal-tooltip" id="cal-tooltip"></div>
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
-  <button class="nav-item" id="nav-semana" onclick="setView('semana')">
-    <span class="nav-icon"><i class="ti ti-calendar-week"></i></span>Semana
+  <button class="nav-item" id="nav-planejar" onclick="abrirPlanejamentoSemanal()">
+    <span class="nav-icon"><i class="ti ti-layout-board-split"></i></span>Planejar
   </button>
   <button class="nav-item active" id="nav-mensal" onclick="setView('mensal')">
-    <span class="nav-icon"><i class="ti ti-calendar-month"></i></span>Mês
+    <span class="nav-icon"><i class="ti ti-calendar-month"></i></span>Calendário
   </button>
-  <button class="nav-item" id="nav-anual" onclick="setView('anual')">
-    <span class="nav-icon"><i class="ti ti-calendar"></i></span>Ano
+  <button class="nav-item" id="nav-campanhas" onclick="setView('campanhas')">
+    <span class="nav-icon"><i class="ti ti-speakerphone"></i></span>Campanhas
   </button>
 </div>
 
@@ -1033,7 +1085,7 @@ const SB_URL = 'https://ofoljmhfnohxwswskplx.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mb2xqbWhmbm9oeHdzd3NrcGx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTQzMjIsImV4cCI6MjA5NTM5MDMyMn0.IRfqUSxOLuYBlE79gdCdHaMrtuoYwNrprw6FaXj_7K8';
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
-const today = new Date().toISOString().split('T')[0];
+const today = iso(new Date());
 
 // ===== PALETA DE CORES =====
 const CORES = [
@@ -1068,7 +1120,6 @@ const [todayY, todayM, todayD] = today.split('-').map(Number);
 let currentView = 'mensal';
 let viewYear  = todayY;
 let viewMonth = todayM - 1; // 0-based
-let viewWeekStart = getWeekStart(new Date()); // Date object — domingo da semana atual
 let eventosLoja = [];
 let campanhas = [];
 let campEditId = null;
@@ -1151,17 +1202,27 @@ function pascoa(ano) {
   const mes=Math.floor((h+l-7*m+114)/31), dia=((h+l-7*m+114)%31)+1;
   return iso(new Date(ano, mes-1, dia));
 }
-function iso(d) { return d.toISOString().split('T')[0]; }
+// data local (não UTC) — toISOString vira o dia seguinte depois das 21h no Brasil
+function iso(d) { return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
 function pad(n) { return String(n).padStart(2,'0'); }
 
 function allEventos(ano) {
-  return [...getComemorativas(ano), ...eventosLoja];
-}
-
-function getWeekStart(d) {
-  const s = new Date(d);
-  s.setDate(s.getDate() - s.getDay());
-  return s;
+  // registros espelho (mesma data+título de uma comemorativa) guardam o canvas
+  // da comemorativa — funde no evento gerado e tira da lista de eventos da loja
+  const com = getComemorativas(ano);
+  const loja = [];
+  const shadows = {};
+  eventosLoja.forEach(e => {
+    if (e.titulo === 'Planejamento semanal') return; // quadros não são eventos do calendário
+    const m = com.find(c => c.data === e.data && c.titulo === e.titulo);
+    if (m) shadows[e.data + '|' + e.titulo] = e;
+    else loja.push(e);
+  });
+  const comMerged = com.map(c => {
+    const s = shadows[c.data + '|' + c.titulo];
+    return s ? { ...c, id: s.id, canvas: s.canvas } : c;
+  });
+  return [...comMerged, ...loja];
 }
 
 // ===== SUPABASE =====
@@ -1187,9 +1248,9 @@ function _restoreOpenEvent() {
   let ev;
   if (ref.startsWith('c:')) {
     const [, data, titulo] = ref.split(':');
-    ev = allEventos(viewYear).find(e => !e.id && e.data === data && e.titulo === decodeURIComponent(titulo));
+    ev = allEventos(viewYear).find(e => e.data === data && e.titulo === decodeURIComponent(titulo));
   } else {
-    ev = eventosLoja.find(e => e.id === ref);
+    ev = allEventos(viewYear).find(e => e.id === ref) || eventosLoja.find(e => e.id === ref);
   }
   if (!ev) { _setHash(''); return; }
   const idx = _evCache.push(ev) - 1;
@@ -1232,19 +1293,21 @@ async function deletarEvento(id) {
 // ===== VIEW SWITCHER =====
 function setView(v) {
   currentView = v;
-  ['semana','mensal','anual'].forEach(x => {
-    document.getElementById('nav-' + x).classList.toggle('active', x===v);
-  });
-  document.getElementById('view-mensal').style.display = v==='mensal' ? 'block' : 'none';
-  document.getElementById('view-semana').style.display = v==='semana' ? 'block' : 'none';
-  document.getElementById('view-anual').style.display  = v==='anual'  ? 'block' : 'none';
+  document.getElementById('view-mensal').style.display    = v==='mensal'    ? 'block' : 'none';
+  document.getElementById('view-anual').style.display     = v==='anual'     ? 'block' : 'none';
+  document.getElementById('view-campanhas').style.display = v==='campanhas' ? 'block' : 'none';
+  document.getElementById('period-nav').style.display     = v==='campanhas' ? 'none' : 'flex';
+  document.getElementById('vt-mensal').classList.toggle('active', v==='mensal');
+  document.getElementById('vt-anual').classList.toggle('active', v==='anual');
+  document.getElementById('nav-mensal').classList.toggle('active', v==='mensal' || v==='anual');
+  document.getElementById('nav-campanhas').classList.toggle('active', v==='campanhas');
   renderView();
 }
 
 function renderView() {
   if (currentView === 'mensal') renderMensal();
-  else if (currentView === 'semana') renderSemana();
-  else renderAnual();
+  else if (currentView === 'anual') renderAnual();
+  else renderCampanhasView();
 }
 
 function changePeriod(delta) {
@@ -1252,9 +1315,6 @@ function changePeriod(delta) {
     viewMonth += delta;
     if (viewMonth > 11) { viewMonth=0; viewYear++; }
     if (viewMonth < 0)  { viewMonth=11; viewYear--; }
-  } else if (currentView === 'semana') {
-    viewWeekStart = new Date(viewWeekStart);
-    viewWeekStart.setDate(viewWeekStart.getDate() + delta*7);
   } else {
     viewYear += delta;
   }
@@ -1277,6 +1337,8 @@ function renderMensal() {
   const grid = document.getElementById('cal-grid');
   while (grid.children.length > 7) grid.removeChild(grid.lastChild);
 
+  const planoMap = _planejadoMap();
+
   for (let i=0; i<firstDay; i++) {
     const el = document.createElement('div'); el.className='cal-day empty'; grid.appendChild(el);
   }
@@ -1297,6 +1359,8 @@ function renderMensal() {
       html += `<div class="ev-pill" style="background:color-mix(in srgb,${c} 25%,transparent);color:${c}">${lbl}</div>`;
     });
     if (evs.length>2) html += `<div class="ev-pill more">+${evs.length-2}</div>`;
+    const planos = planoMap[dataStr];
+    if (planos && planos.length) html += `<div class="ev-pill plano"><i class="ti ti-player-play"></i> ${planos.length} post${planos.length>1?'s':''}</div>`;
     const hasCamp = campanhas.some(c => c.data_campanha===dataStr);
     if (hasCamp) html += `<span class="campanha-dot" title="Tem campanha"></span>`;
     el.innerHTML = html;
@@ -1316,9 +1380,14 @@ function showDayEvents(dataStr, dia) {
   diaAberto = dataStr;
   const eventos = allEventos(viewYear).filter(e => e.data===dataStr);
   const campsDay = campanhas.filter(c => c.data_campanha===dataStr);
+  const planos = _planejadoMap()[dataStr] || [];
+  if (planos.length) abrirPlanoDia(dataStr, planos);
   if (!eventos.length && !campsDay.length) {
-    document.getElementById('ev-data').value = dataStr;
-    openModal('modal-add'); return;
+    if (!planos.length) {
+      document.getElementById('ev-data').value = dataStr;
+      openModal('modal-add');
+    }
+    return;
   }
   const [,m] = dataStr.split('-');
   document.getElementById('events-title').innerHTML =
@@ -1328,64 +1397,22 @@ function showDayEvents(dataStr, dia) {
   document.getElementById('events-list').scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
-// ===== SEMANAL =====
-function renderSemana() {
-  const s = viewWeekStart;
-  const e = new Date(s); e.setDate(e.getDate()+6);
-  const fmtD = d => `${pad(d.getDate())}/${pad(d.getMonth()+1)}`;
-  document.getElementById('period-label').textContent = `${fmtD(s)} – ${fmtD(e)}`;
-  document.getElementById('header-sub').textContent = 'Calendário — Semana';
-
-  const grid = document.getElementById('week-grid');
-  grid.innerHTML = '';
-
-  const dias = Array.from({length:7}, (_,i) => {
-    const d = new Date(s); d.setDate(s.getDate()+i); return d;
-  });
-
-  const anos = [...new Set(dias.map(d => d.getFullYear()))];
-  const eventos = anos.flatMap(a => allEventos(a));
-
-  dias.forEach(d => {
-    const dataStr = iso(d);
-    const isToday = dataStr===today;
-    const evs = eventos.filter(e => e.data===dataStr)
-                       .sort((a,b)=>(a.tipo==='loja'?0:1)-(b.tipo==='loja'?0:1));
-
-    const col = document.createElement('div');
-    col.className = 'week-col' + (isToday?' today-col':'');
-    col.onclick = () => {
-      document.getElementById('ev-data').value = dataStr;
-      if (evs.length) {
-        document.getElementById('week-events-title').innerHTML =
-          `<i class="ti ti-calendar-event"></i> ${d.getDate()}/${d.getMonth()+1} — ${evs.length} evento(s)`;
-        renderEventCards('week-events-list', evs);
-        document.getElementById('week-events-list').scrollIntoView({behavior:'smooth',block:'start'});
-      } else {
-        openModal('modal-add');
-      }
-    };
-
-    let pills = '';
-    evs.slice(0,3).forEach(e => {
-      const lbl = e.titulo.length>8 ? e.titulo.slice(0,7)+'…' : e.titulo;
-      const c = e.cor || (e.tipo==='loja' ? 'var(--accent)' : 'var(--yellow)');
-      pills += `<div class="week-pill" style="background:color-mix(in srgb,${c} 25%,transparent);color:${c}">${lbl}</div>`;
-    });
-    if (evs.length>3) pills += `<div class="week-pill more">+${evs.length-3}</div>`;
-
-    col.innerHTML = `
-      <div class="week-dow">${DOWS[d.getDay()]}</div>
-      <div class="week-day-num">${d.getDate()}</div>
-      <div class="week-pills">${pills}</div>`;
-    grid.appendChild(col);
-  });
-
-  const weekEndISO = iso(e);
-  const semEvs = eventos.filter(ev => ev.data >= iso(s) && ev.data <= weekEndISO)
-                        .sort((a,b) => a.data.localeCompare(b.data));
-  document.getElementById('week-events-title').innerHTML = '<i class="ti ti-calendar-event"></i> Eventos da semana';
-  renderEventCards('week-events-list', semEvs);
+// ===== CAMPANHAS (funil) =====
+function renderCampanhasView() {
+  document.getElementById('header-sub').textContent = 'Campanhas';
+  const el = document.getElementById('campanhas-list');
+  if (!campanhas.length) {
+    el.innerHTML = '<div class="empty">Nenhuma campanha ainda — toque num dia do calendário para criar</div>';
+    return;
+  }
+  const grupos = [['rascunho','Rascunho'], ['aprovada','Aprovada'], ['publicada','Publicada']];
+  el.innerHTML = grupos.map(([st, label]) => {
+    const cs = campanhas.filter(c => (c.status || 'rascunho') === st)
+      .sort((a, b) => a.data_campanha.localeCompare(b.data_campanha));
+    if (!cs.length) return '';
+    return `<div class="camp-section-title"><span class="camp-status-indicator status-${st}">${label} (${cs.length})</span></div>`
+      + cs.map(_campanhaCardHTML).join('');
+  }).join('');
 }
 
 // ===== ANUAL =====
@@ -1535,7 +1562,9 @@ function openEventDetail(idx) {
   edPanX = 0; edPanY = 0; _applyPan();
   _renderCanvas();
 
-  document.getElementById('event-detail').classList.add('open');
+  const detail = document.getElementById('event-detail');
+  detail.classList.toggle('modo-plano', _modoPlanejamento());
+  detail.classList.add('open');
 }
 
 function closeEventDetail() {
@@ -1599,6 +1628,10 @@ document.addEventListener('click', (e) => {
     const lpop = document.getElementById('fmt-lh-pop');
     if (lpop) lpop.classList.remove('open');
   }
+  if (!e.target.closest('.cn-add')) {
+    document.querySelectorAll('.cn-add-menu').forEach(m => m.classList.remove('open'));
+    document.querySelectorAll('.cn-add').forEach(w => w.style.zIndex = '');
+  }
 });
 
 // ── CRIAR ELEMENTO ────────────────────────────────────
@@ -1611,6 +1644,13 @@ document.addEventListener('DOMContentLoaded', () => {
   canvas.addEventListener('touchstart', canvasTouchStart, { passive: false });
   window.addEventListener('touchmove', canvasTouchMove, { passive: false });
   window.addEventListener('touchend', canvasTouchEnd);
+  // rolagem com roda do mouse / trackpad
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    edPanX -= e.deltaX;
+    edPanY -= e.deltaY;
+    _applyPan();
+  }, { passive: false });
 });
 
 function canvasClick(e) {
@@ -1627,7 +1667,26 @@ function _canvasPoint(cx, cy) {
   return { x: cx - rect.left - edPanX, y: cy - rect.top - edPanY };
 }
 
+// planejamento semanal: rolagem tipo página (trava no topo, desce conforme o conteúdo)
+function _modoPlanejamento() {
+  return !!(edEvent && edEvent.titulo === 'Planejamento semanal');
+}
+
+function _clampPan() {
+  if (!_modoPlanejamento()) return;
+  const canvas = document.getElementById('ed-canvas');
+  const els = (edEvent && edEvent.canvas) || [];
+  const fimY = els.length ? Math.max(...els.map(e => (e.y || 0) + (e.h || 100))) : 0;
+  const fimX = els.length ? Math.max(...els.map(e => (e.x || 0) + (e.w || 200))) : 0;
+  const folga = Math.round(canvas.clientHeight * 0.7); // espaço livre p/ criar abaixo do conteúdo
+  const minPanY = Math.min(0, canvas.clientHeight - fimY - folga);
+  const minPanX = Math.min(0, canvas.clientWidth - fimX - 40);  // horizontal só se não couber
+  edPanY = Math.max(minPanY, Math.min(0, edPanY));
+  edPanX = Math.max(minPanX, Math.min(0, edPanX));
+}
+
 function _applyPan() {
+  _clampPan();
   document.getElementById('ed-world').style.transform = `translate(${edPanX}px,${edPanY}px)`;
   document.getElementById('ed-canvas').style.backgroundPosition = `${edPanX}px ${edPanY}px`;
 }
@@ -1713,6 +1772,7 @@ function _renderCanvas() {
         <div class="cn-content${el.hl ? ' hl' : ''}" contenteditable="false" data-ph="Escreva aqui..."
           style="${_textStyle(el)}"
           onclick="_contentClick(event,'${el.id}',this)"
+          oninput="_growToContent('${el.id}')"
           onblur="_saveElContent('${el.id}',this)">${el.content||''}</div>
         ${_handlesHTML(el.id)}
       </div>`;
@@ -1737,6 +1797,21 @@ function _renderCanvas() {
         ${_handlesHTML(el.id)}
       </div>`;
     }
+    if (el.type === 'add') {
+      return `<div class="cn-el cn-add" data-id="${el.id}"
+        style="left:${el.x}px;top:${el.y}px;width:${el.w||190}px">
+        <button class="cn-add-btn" title="Adicionar módulo"
+          onclick="event.stopPropagation();toggleAddMenu('${el.id}')"
+          onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+          <i class="ti ti-plus"></i>
+        </button>
+        <div class="cn-add-menu" id="addmenu-${el.id}">
+          <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','photo')"><i class="ti ti-photo"></i> Caixa de foto</button>
+          <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','video')"><i class="ti ti-video"></i> Caixa de vídeo</button>
+          <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','text')"><i class="ti ti-letter-t"></i> Caixa de texto</button>
+        </div>
+      </div>`;
+    }
     return `<div class="cn-el cn-text${sel}" data-id="${el.id}"
       style="left:${el.x}px;top:${el.y}px;width:${el.w||200}px${el.h?`;height:${el.h}px`:''};${_wrapStyle(el)}"
       onmousedown="elMouseDown(event,'${el.id}')"
@@ -1745,10 +1820,15 @@ function _renderCanvas() {
       <div class="cn-content${el.hl ? ' hl' : ''}" contenteditable="false" data-ph="Texto livre..."
         style="${_textStyle(el)}"
         onclick="_contentClick(event,'${el.id}',this)"
+        oninput="_growToContent('${el.id}')"
         onblur="_saveElContent('${el.id}',this)">${el.content||''}</div>
       ${_handlesHTML(el.id)}
     </div>`;
   }).join('');
+  // caixas salvas com texto cortado: cresce para mostrar tudo
+  setTimeout(() => els.forEach(el => {
+    if (el.type === 'postit' || el.type === 'text') _growToContent(el.id);
+  }), 0);
 }
 
 function _wrapStyle(el) {
@@ -1786,7 +1866,7 @@ function _videoFrameHTML(el) {
   if (!el.url || el._edit) {
     const v = (el.url || '').replace(/"/g, '&quot;');
     return `<div class="cn-video-frame"><div class="cn-video-setup"
-      onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+      onmousedown="event.stopPropagation();_selectEl('${el.id}')" ontouchstart="event.stopPropagation();_selectEl('${el.id}')">
       <i class="ti ti-video"></i>
       <input class="cn-video-input" placeholder="Cole o link (TikTok, Reels, YouTube...)" value="${v}"
         onkeydown="if(event.key==='Enter'){event.preventDefault();saveVideoUrl('${el.id}',this)}">
@@ -1849,13 +1929,13 @@ function _photoFrameHTML(el) {
   }
   if (!el.url) {
     return `<div class="cn-video-frame"><div class="cn-video-setup"
-      onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+      onmousedown="event.stopPropagation();_selectEl('${el.id}')" ontouchstart="event.stopPropagation();_selectEl('${el.id}')">
       <i class="ti ti-photo"></i>
       <button class="cn-video-ok" onclick="pickPhoto('${el.id}')">Escolher foto</button>
     </div></div>`;
   }
   const edit = `<button class="cn-video-edit" title="Trocar foto" onclick="event.stopPropagation();pickPhoto('${el.id}')" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-photo"></i></button>`;
-  return `<div class="cn-video-frame"><img src="${el.url}" draggable="false" style="width:100%;height:100%;object-fit:cover;display:block;">${edit}</div>`;
+  return `<div class="cn-video-frame"><img src="${el.url}" draggable="false" style="width:100%;height:100%;object-fit:contain;display:block;background:#e8e3db;">${edit}</div>`;
 }
 
 let edPhotoTarget = null;
@@ -1933,7 +2013,23 @@ function _saveElContent(id, node) {
   if (el) {
     el.content = node.textContent;
     if (el.type === 'text') _fitToContent(id);
+    else _growToContent(id);
     _scheduleCanvasSave();
+  }
+}
+
+// aumenta a altura da caixa para o texto aparecer inteiro (nunca corta)
+function _growToContent(id) {
+  const wrap = document.querySelector(`[data-id="${id}"]`);
+  if (!wrap || !edEvent || !edEvent.canvas) return;
+  const el = edEvent.canvas.find(x => x.id === id);
+  if (!el) return;
+  const content = wrap.querySelector('.cn-content');
+  if (!content || !content.scrollHeight) return;
+  if (content.scrollHeight > content.clientHeight + 1) {
+    const h = wrap.offsetHeight + (content.scrollHeight - content.clientHeight);
+    wrap.style.height = h + 'px';
+    el.h = h;
   }
 }
 
@@ -1961,7 +2057,16 @@ function _fitToContent(id) {
 
 function deleteEl(id) {
   if (!edEvent || !edEvent.canvas) return;
+  const el = edEvent.canvas.find(e => e.id === id);
   edEvent.canvas = edEvent.canvas.filter(e => e.id !== id);
+  // no planejamento: deixa a opção de repor o módulo no lugar
+  if (el && _modoPlanejamento() && ['video','photo','text'].includes(el.type)) {
+    const addAbaixo = edEvent.canvas.find(a => a.type === 'add' && !a.once
+      && Math.abs((a.x||0) - (el.x||0)) < 20
+      && Math.abs((a.y||0) - ((el.y||0) + (el.h||0) + 16)) < 40);
+    if (addAbaixo) addAbaixo.y = el.y; // era o último da coluna: o + só sobe
+    else edEvent.canvas.push({ id: _uid(), type: 'add', x: el.x, y: el.y, w: el.w || 190, h: 40, once: true });
+  }
   if (edSelectedId === id) { edSelectedId = null; _showFmtbar(null); }
   _renderCanvas();
   _scheduleCanvasSave();
@@ -2293,18 +2398,229 @@ function _scheduleCanvasSave() {
 async function salvarESair() {
   if (document.activeElement) document.activeElement.blur(); // commita texto em edição
   clearTimeout(edCanvasSaveTimer);
-  await _saveCanvas();
-  showToast('Salvo!');
+  const ok = await _saveCanvas();
+  if (ok) showToast('Salvo!');
   closeEventDetail();
+  renderView();
 }
 
 async function _saveCanvas() {
-  if (!edEvent || !edEvent.id) return;
-  await sb.from('eventos_loja').update({ canvas: edEvent.canvas || [] }).eq('id', edEvent.id);
-  const i = eventosLoja.findIndex(x => x.id === edEvent.id);
-  if (i >= 0) eventosLoja[i].canvas = edEvent.canvas;
+  if (!edEvent) return false;
+  if (!edEvent.id) {
+    // comemorativa: cria um registro espelho em eventos_loja para guardar o canvas
+    const { data: row, error } = await sb.from('eventos_loja')
+      .insert({ data: edEvent.data, titulo: edEvent.titulo, descricao: edEvent.desc || null, cor: edEvent.cor || null, canvas: edEvent.canvas || [] })
+      .select().single();
+    if (error) { showToast('Erro ao salvar: ' + error.message, 'error'); return false; }
+    edEvent.id = row.id;
+    eventosLoja.push({ ...row, tipo: 'loja' });
+  } else {
+    const { error } = await sb.from('eventos_loja').update({ canvas: edEvent.canvas || [] }).eq('id', edEvent.id);
+    if (error) { showToast('Erro ao salvar: ' + error.message, 'error'); return false; }
+    const i = eventosLoja.findIndex(x => x.id === edEvent.id);
+    if (i >= 0) eventosLoja[i].canvas = edEvent.canvas;
+  }
   const s = document.getElementById('ed-canvas-save');
   if (s) { s.classList.add('show'); setTimeout(() => s.classList.remove('show'), 1800); }
+  return true;
+}
+
+// ── PLANEJADO POR DIA (colunas do quadro → dias reais) ─
+const DIAS_TPL = ['Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira'];
+
+function _planejadoPorDia(board) {
+  const out = {};
+  if (!board || !board.canvas) return out;
+  const [y, m, d] = board.data.split('-').map(Number);
+  board.canvas.forEach(el => {
+    if (el.type === 'add') return;
+    const txt = (el.content || '').trim();
+    const cheio = (el.url && el.url.trim()) || txt;
+    if (!cheio) return;
+    // ignora os cabeçalhos do modelo (título e nomes dos dias)
+    if (/^planejamento semanal$/i.test(txt)) return;
+    if (DIAS_TPL.some(n => n.toLowerCase() === txt.toLowerCase())) return;
+    const col = Math.round(((el.x || 0) - 40) / 240);
+    if (col < 0 || col > 4) return;
+    const ds = iso(new Date(y, m - 1, d + col));
+    (out[ds] = out[ds] || []).push(el);
+  });
+  return out;
+}
+
+let planoDataAtual = null;
+
+function abrirPlanoDia(dataStr, planos) {
+  planoDataAtual = dataStr;
+  const [y, m, d] = dataStr.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  document.getElementById('plano-titulo').textContent =
+    `Planejado — ${DOWS[dt.getDay()]} ${d}/${m}`;
+  const list = document.getElementById('plano-list');
+  list.innerHTML = [...planos].sort((a, b) => (a.y || 0) - (b.y || 0)).map(el => {
+    if (el.type === 'video' && el.url) return `<div class="plano-item">${_renderVideoPreview(el.url)}</div>`;
+    if (el.type === 'photo' && el.url) return `<div class="plano-item"><img class="plano-foto" src="${el.url}"></div>`;
+    if ((el.content || '').trim()) return `<div class="plano-item plano-texto">${el.content}</div>`;
+    return '';
+  }).join('') || '<div class="empty">Nada planejado para este dia</div>';
+  openModal('modal-plano');
+}
+
+function abrirQuadroDaData(dataStr) {
+  if (!dataStr) return;
+  const [y, m, d] = dataStr.split('-').map(Number);
+  abrirPlanejamentoSemanal(new Date(y, m - 1, d));
+}
+
+function _planejadoMap() {
+  const map = {};
+  eventosLoja.filter(e => e.titulo === 'Planejamento semanal').forEach(b => {
+    const porDia = _planejadoPorDia(b);
+    Object.keys(porDia).forEach(ds => { (map[ds] = map[ds] || []).push(...porDia[ds]); });
+  });
+  return map;
+}
+
+// ── TEMPLATE: PLANEJAMENTO SEMANAL ────────────────────
+// abre (ou cria) o quadro de planejamento da semana — base opcional (Date)
+function abrirPlanejamentoSemanal(base) {
+  const seg = (base instanceof Date) ? new Date(base) : new Date();
+  seg.setDate(seg.getDate() - ((seg.getDay() + 6) % 7)); // segunda-feira da semana
+  const dataStr = iso(seg);
+  let ev = eventosLoja.find(e => e.titulo === 'Planejamento semanal' && e.data === dataStr);
+  if (!ev) {
+    ev = { data: dataStr, titulo: 'Planejamento semanal', descricao: null, cor: '#5b4fcf', tipo: 'loja', canvas: [] };
+  }
+  const idx = _evCache.push(ev) - 1;
+  openEventDetail(idx);
+  if (!ev.canvas || !ev.canvas.length) inserirTemplateSemanal();
+  // subtítulo com o intervalo da semana
+  const sex = new Date(seg); sex.setDate(seg.getDate() + 4);
+  const f = dt => `${pad(dt.getDate())}/${pad(dt.getMonth() + 1)}`;
+  document.getElementById('ed-sub').textContent = `Semana ${f(seg)} – ${f(sex)}`;
+}
+
+// quadro sem nenhum conteúdo do usuário (só o modelo)
+function _quadroPristino(ev) {
+  return !(ev.canvas || []).some(el => {
+    if (el.type === 'add') return false;
+    if (el.url && el.url.trim()) return true;
+    const txt = (el.content || '').trim();
+    if (!txt) return false;
+    if (/^planejamento semanal$/i.test(txt)) return false;
+    if (DIAS_TPL.some(n => n.toLowerCase() === txt.toLowerCase())) return false;
+    return true;
+  });
+}
+
+function zerarSemana() {
+  if (!edEvent || !_modoPlanejamento()) return;
+  if (!confirm('Zerar o planejamento desta semana? Todos os módulos serão apagados.')) return;
+  edEvent.canvas = [];
+  edSelectedId = null;
+  _showFmtbar(null);
+  inserirTemplateSemanal(); // recria só a estrutura (dias + botões +) e salva se já existe registro
+  edPanX = 0; edPanY = 0; _applyPan();
+  showToast('Planejamento da semana zerado');
+}
+
+async function mudarSemana(delta) {
+  if (!edEvent || !_modoPlanejamento()) return;
+  clearTimeout(edCanvasSaveTimer);
+  // salva a semana atual antes de trocar (se tem registro ou conteúdo)
+  if (edEvent.id || !_quadroPristino(edEvent)) await _saveCanvas();
+  const [y, m, d] = edEvent.data.split('-').map(Number);
+  abrirPlanejamentoSemanal(new Date(y, m - 1, d + delta * 7));
+}
+
+function inserirTemplateSemanal() {
+  if (!edEvent) return;
+  if (!edEvent.canvas) edEvent.canvas = [];
+  // evita empilhar modelos sem querer
+  if (edEvent.canvas.some(e => (e.content || '').trim().toLowerCase() === 'planejamento semanal')) {
+    if (!confirm('Este quadro já tem o modelo da semana. Adicionar outro modelo embaixo?')) return;
+  }
+  // se o canvas já tem conteúdo, monta o modelo abaixo do que existe
+  const baseY = edEvent.canvas.length
+    ? Math.max(...edEvent.canvas.map(e => (e.y || 0) + (e.h || 200))) + 80
+    : 20;
+  const DIAS = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira'];
+  const COL_W = 240, X0 = 40;
+  const els = [];
+  els.push({ id: _uid(), type: 'text', x: X0 + (DIAS.length * COL_W) / 2 - 130, y: baseY,
+    w: 260, h: 44, content: 'Planejamento semanal', bold: true, fs: 20, align: 'center',
+    hl: true, hlc: '255,210,50', color: '' });
+  DIAS.forEach((dia, i) => {
+    const x = X0 + i * COL_W;
+    els.push({ id: _uid(), type: 'text', x: x + 10, y: baseY + 70,
+      w: 170, h: 36, content: dia, bold: true, fs: 16,
+      hl: true, hlc: '110,225,120', color: '' });
+    els.push({ id: _uid(), type: 'add', x, y: baseY + 130, w: 190, h: 40 });
+  });
+  edEvent.canvas.push(...els);
+  _renderCanvas();
+  // só persiste se o quadro já existe no banco — visitar uma semana nova não cria registro
+  if (edEvent.id) _scheduleCanvasSave();
+  selectTool('cursor');
+  showToast('Modelo de planejamento semanal adicionado!');
+}
+
+// ── MÓDULOS EMPILHADOS (botão + da coluna) ────────────
+function toggleAddMenu(id) {
+  document.querySelectorAll('.cn-add-menu').forEach(m => {
+    if (m.id !== 'addmenu-' + id) m.classList.remove('open');
+  });
+  document.querySelectorAll('.cn-add').forEach(w => w.style.zIndex = '');
+  const menu = document.getElementById('addmenu-' + id);
+  if (!menu) return;
+  const abriu = menu.classList.toggle('open');
+  const wrap = menu.closest('.cn-el');
+  if (abriu && wrap) {
+    wrap.style.zIndex = 60; // menu acima de qualquer módulo vizinho
+    // perto do fundo da tela: abre o menu para cima para não cortar
+    const canvasRect = document.getElementById('ed-canvas').getBoundingClientRect();
+    const espacoAbaixo = canvasRect.bottom - wrap.getBoundingClientRect().bottom;
+    menu.classList.toggle('up', espacoAbaixo < 190);
+  }
+}
+
+function addModulo(addId, tipo) {
+  if (!edEvent || !edEvent.canvas) return;
+  const add = edEvent.canvas.find(x => x.id === addId);
+  if (!add) return;
+  const h = tipo === 'text' ? 60 : 170;
+  const el = { id: _uid(), type: tipo, x: add.x, y: add.y, w: add.w || 190, h, content: '', color: '' };
+  edEvent.canvas.push(el);
+  if (add.once) edEvent.canvas = edEvent.canvas.filter(x => x.id !== add.id); // + de reposição: usa uma vez e some
+  else add.y += h + 16; // + da coluna desce para baixo do módulo novo
+  _renderCanvas();
+  _scheduleCanvasSave();
+  _ensureVisible(add); // rola a tela para mostrar o módulo novo e o +
+  setTimeout(() => {
+    const node = document.querySelector(`[data-id="${el.id}"] .cn-content`);
+    if (node && tipo === 'text') { node.contentEditable = 'true'; node.focus(); }
+    const vin = document.querySelector(`[data-id="${el.id}"] .cn-video-input`);
+    if (vin) vin.focus();
+  }, 30);
+}
+
+// rola o canvas (pan) até o elemento ficar visível na tela
+function _ensureVisible(el) {
+  const canvas = document.getElementById('ed-canvas');
+  const world = document.getElementById('ed-world');
+  const ch = canvas.clientHeight;
+  const margem = 20;
+  const topo = el.y + edPanY;
+  const fundo = el.y + (el.h || 100) + edPanY;
+  let novoPanY = edPanY;
+  if (fundo + margem > ch) novoPanY = edPanY - (fundo + margem - ch);
+  else if (topo < margem) novoPanY = edPanY + (margem - topo);
+  if (novoPanY === edPanY) return;
+  edPanY = novoPanY;
+  world.style.transition = 'transform .25s ease';
+  canvas.style.transition = 'background-position .25s ease';
+  _applyPan();
+  setTimeout(() => { world.style.transition = ''; canvas.style.transition = ''; }, 300);
 }
 
 // ── CAMPANHAS / AÇÕES (via modal existente) ───────────
@@ -2434,29 +2750,30 @@ function _renderAcoesLoja(campId, loja, nome, dotClass, acoes) {
 </div>`;
 }
 
+function _campanhaCardHTML(c) {
+  const sLabel = { rascunho:'Rascunho', aprovada:'Aprovada', publicada:'Publicada' };
+  const cc = _canalClass(c.canal);
+  const [,m,d] = c.data_campanha.split('-');
+  return `<div class="campanha-card ${cc}">
+    <button class="camp-del" onclick="deletarCampanha('${c.id}')">\u2715</button>
+    <div class="camp-top-row">
+      <div class="camp-canal-tag ${cc}">${_canalIconSVG(c.canal)} ${c.canal}</div>
+      <div class="camp-status-indicator status-${c.status}">${sLabel[c.status]||c.status}</div>
+    </div>
+    <div class="camp-label-titulo">${c.titulo} <span style="color:#444;font-size:.7rem">${parseInt(d)}/${parseInt(m)}</span></div>
+    ${c.ideia ? `<div class="camp-ideia-text">&ldquo;${c.ideia}&rdquo;</div>` : ''}
+    ${_renderVideoPreview(c.video_link)}
+    <div class="camp-acoes-section">
+      ${_renderAcoesLoja(c.id,'areal','Areal','areal',c.acoes||{})}
+      ${_renderAcoesLoja(c.id,'trios','Tr\u00eas Rios','trios',c.acoes||{})}
+    </div>
+    <button class="camp-edit-btn" onclick="abrirCampanha('${c.data_campanha}','${c.id}')">&#9999; Editar</button>
+  </div>`;
+}
+
 function renderCampanhaCards(elId, camps, append=false) {
   const el = document.getElementById(elId);
-  const sLabel = { rascunho:'Rascunho', aprovada:'Aprovada', publicada:'Publicada' };
-  const cards = camps.map(c => {
-    const cc = _canalClass(c.canal);
-    const [,m,d] = c.data_campanha.split('-');
-    return `<div class="campanha-card ${cc}">
-      <button class="camp-del" onclick="deletarCampanha('${c.id}')">\u2715</button>
-      <div class="camp-top-row">
-        <div class="camp-canal-tag ${cc}">${_canalIconSVG(c.canal)} ${c.canal}</div>
-        <div class="camp-status-indicator status-${c.status}">${sLabel[c.status]||c.status}</div>
-      </div>
-      <div class="camp-label-titulo">${c.titulo} <span style="color:#444;font-size:.7rem">${parseInt(d)}/${parseInt(m)}</span></div>
-      ${c.ideia ? `<div class="camp-ideia-text">&ldquo;${c.ideia}&rdquo;</div>` : ''}
-      ${_renderVideoPreview(c.video_link)}
-      <div class="camp-acoes-section">
-        ${_renderAcoesLoja(c.id,'areal','Areal','areal',c.acoes||{})}
-        ${_renderAcoesLoja(c.id,'trios','Tr\u00eas Rios','trios',c.acoes||{})}
-      </div>
-      <button class="camp-edit-btn" onclick="abrirCampanha('${c.data_campanha}','${c.id}')">&#9999; Editar</button>
-    </div>`;
-  }).join('');
-  const full = `<div class="camp-section-title">&#9670; Campanhas (${camps.length})</div>${cards}`;
+  const full = `<div class="camp-section-title">&#9670; Campanhas (${camps.length})</div>${camps.map(_campanhaCardHTML).join('')}`;
   if (append) el.insertAdjacentHTML('beforeend', full);
   else el.innerHTML = full;
 }
@@ -2469,7 +2786,8 @@ async function toggleAcao(campId, loja, idx) {
   acoes[loja][idx].done = !acoes[loja][idx].done;
   c.acoes = acoes;
   await sb.from('campanhas').update({ acoes }).eq('id', campId);
-  if (diaAberto) { showDayEvents(diaAberto, parseInt(diaAberto.split('-')[2])); }
+  if (currentView === 'campanhas') { renderView(); }
+  else if (diaAberto) { showDayEvents(diaAberto, parseInt(diaAberto.split('-')[2])); }
 }
 
 function showAddAcao(btn, campId, loja) {
