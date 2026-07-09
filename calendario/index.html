@@ -421,6 +421,69 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .cn-add-opt:hover { background: var(--surface2); }
 .cn-add-opt i { color: var(--text-muted); }
 
+/* checklist e enquete — sem moldura, só o conteúdo no quadro */
+.cn-card {
+  background: transparent; border-radius: 12px; padding: 4px 6px;
+  min-height: 170px; min-width: 170px; box-sizing: border-box;
+  font-family: 'DM Sans', sans-serif; color: #1a1814;
+}
+.cn-card-head {
+  display: flex; align-items: center; gap: 6px;
+  font-size: .62rem; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: #9a938a; margin-bottom: 8px;
+}
+.ck-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+.ck-box {
+  width: 18px; height: 18px; border-radius: 5px; flex-shrink: 0; margin-top: 1px;
+  border: 1.5px solid #c5bfb5; background: #fff; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: transparent; font-size: .68rem; padding: 0;
+  transition: background .12s, border-color .12s;
+}
+.ck-box.done { background: #52b88a; border-color: #52b88a; color: #fff; }
+.ck-txt {
+  flex: 1; outline: none; font-size: .82rem; line-height: 1.45;
+  min-height: 18px; word-break: break-word; white-space: pre-wrap;
+  cursor: text; user-select: text;
+}
+.ck-txt.done { text-decoration: line-through; color: #a49d92; }
+.ck-txt:empty::before, .pq-txt:empty::before, .pq-q:empty::before {
+  content: attr(data-ph); opacity: .4; pointer-events: none;
+}
+.ck-rm {
+  border: none; background: none; color: #c5bfb5; cursor: pointer;
+  font-size: .74rem; padding: 0 2px; display: none; flex-shrink: 0; margin-top: 2px;
+}
+.ck-rm:hover { color: var(--red); }
+.ck-row:hover .ck-rm, .pq-row:hover .ck-rm { display: block; }
+.ck-add-row {
+  border: none; background: none; color: #9a938a; cursor: pointer;
+  font-size: .74rem; font-family: inherit; padding: 2px 0;
+  display: flex; align-items: center; gap: 5px;
+}
+.ck-add-row:hover { color: var(--accent); }
+.pq-q {
+  outline: none; font-size: .86rem; font-weight: 600; line-height: 1.4;
+  margin-bottom: 8px; word-break: break-word; white-space: pre-wrap;
+  cursor: text; user-select: text;
+}
+.pq-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+  background: #fff; border-radius: 20px; padding: 5px 8px 5px 5px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+.pq-letra {
+  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+  background: color-mix(in srgb, var(--accent) 22%, #fff); color: #8a6f3f;
+  font-size: .62rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.pq-txt {
+  flex: 1; outline: none; font-size: .8rem; line-height: 1.4;
+  min-height: 17px; word-break: break-word; white-space: pre-wrap;
+  cursor: text; user-select: text;
+}
+
 /* alças de resize nos cantos */
 .cn-h {
   position: absolute; width: 10px; height: 10px;
@@ -435,6 +498,26 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .cn-h-ne { top: -5px;    right: -5px; cursor: ne-resize; }
 .cn-h-sw { bottom: -5px; left: -5px;  cursor: sw-resize; }
 .cn-h-se { bottom: -5px; right: -5px; cursor: se-resize; }
+
+/* planejamento: estrutura fixa — sem arrastar nem redimensionar */
+.modo-plano .cn-el { cursor: default; }
+.modo-plano .cn-h { display: none !important; }
+
+/* selos de comemorativa/campanha no cabeçalho do dia */
+.plan-badges {
+  position: absolute; display: flex; flex-direction: column; gap: 3px;
+  width: 190px; pointer-events: none; z-index: 2;
+}
+.plan-badge {
+  display: flex; align-items: center; gap: 5px;
+  font-size: .62rem; font-weight: 700; padding: 3px 9px; border-radius: 20px;
+  white-space: nowrap; overflow: hidden; width: fit-content; max-width: 100%;
+  box-sizing: border-box;
+}
+.plan-badge span { overflow: hidden; text-overflow: ellipsis; }
+.plan-badge i { flex-shrink: 0; }
+.plan-badge.comemorativa { background: #f3e2b3; color: #7a5f1e; }
+.plan-badge.campanha { background: #e2d2b4; color: #6d5423; }
 
 /* barra de formatação */
 #ed-fmtbar {
@@ -547,7 +630,8 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 #event-detail.modo-plano #tool-template,
 #event-detail.modo-plano .ed-tool-sep { display: none; }
 #event-detail.modo-plano .cn-h { display: none !important; }
-.plan-week-nav, .plan-reset { display: none; }
+.plan-week-nav, .plan-reset, .plan-copy { display: none; }
+#event-detail.modo-plano .plan-copy { display: flex; }
 #event-detail.modo-plano .plan-week-nav {
   display: flex; background: var(--surface2);
   border: 1px solid var(--border); border-radius: 8px;
@@ -640,17 +724,60 @@ textarea.form-input { resize: none; height: 76px; }
 .btn-primary { background: var(--accent); color: var(--bg); }
 .btn-ghost { background: var(--surface2); color: var(--text-muted); }
 
-/* MODAL PLANEJADO DO DIA */
-.plano-item { margin-bottom: 12px; }
-.plano-texto {
-  font-family: Georgia, serif; font-style: italic;
-  background: var(--surface2); border-radius: 10px;
-  padding: 10px 13px; font-size: 0.9rem; line-height: 1.55; color: var(--text);
+/* MODAL PLANEJADO DO DIA — cada post agrupado num card */
+#plano-list {
+  background-color: #f0ede8;
+  background-image: radial-gradient(circle, #ccc8c0 1px, transparent 1px);
+  background-size: 24px 24px;
+  border: 1px solid var(--border); border-radius: 14px;
+  padding: 14px 12px; margin-bottom: 4px;
+  display: flex; flex-direction: column; gap: 12px;
+  color: #1a1814;
 }
-.plano-foto {
-  width: 72px; height: 72px; object-fit: cover;
-  border-radius: 10px; display: block;
+.plano-count {
+  font-size: .66rem; font-weight: 700; background: #eeedfe; color: #3c3489;
+  padding: 3px 10px; border-radius: 20px; flex-shrink: 0;
 }
+.plano-post {
+  background: #fff; border-radius: 14px; padding: 14px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.08);
+  font-family: 'DM Sans', sans-serif;
+}
+.plano-post-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.plano-post-num {
+  font-size: .64rem; font-weight: 700; letter-spacing: .08em; color: var(--accent);
+}
+.plano-post-tipo {
+  display: flex; align-items: center; gap: 4px;
+  font-size: .64rem; font-weight: 700; letter-spacing: .05em;
+  color: var(--text-muted); text-transform: uppercase;
+}
+.plano-post-row { display: flex; gap: 12px; align-items: flex-start; }
+.plano-post-img {
+  width: 130px; max-width: 40%; border-radius: 10px; display: block;
+  background: #e8e3db; flex-shrink: 0;
+}
+.plano-post-texto {
+  flex: 1; min-width: 0; font-size: .84rem; line-height: 1.5;
+  white-space: pre-wrap; word-break: break-word; padding-top: 2px;
+}
+.plano-mod-postit {
+  border-radius: 4px; padding: 9px 11px; width: fit-content; max-width: 100%;
+  box-shadow: 2px 4px 12px rgba(0,0,0,.15); font-size: .84rem; line-height: 1.5;
+  white-space: pre-wrap; word-break: break-word;
+}
+.plano-post .camp-video-label { display: none; }
+.plano-post .pq-row { background: #f4f1ec; box-shadow: none; }
+.plano-post .ck-row, .plano-post .pq-row { margin-bottom: 5px; }
+.plano-post-ck { border-top: 1px solid #ede9e2; margin-top: 12px; padding-top: 10px; }
+.plano-post-ck:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+.plano-post-ck-head {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+}
+.plano-post-ck-prog { font-size: .66rem; font-weight: 700; color: var(--green); }
 
 /* TOAST */
 #toast {
@@ -878,6 +1005,7 @@ textarea.form-input { resize: none; height: 76px; }
     </div>
     <button class="ed-topbar-action plan-week-nav" onclick="mudarSemana(-1)" title="Semana anterior"><i class="ti ti-chevron-left"></i></button>
     <button class="ed-topbar-action plan-week-nav" onclick="mudarSemana(1)" title="Próxima semana"><i class="ti ti-chevron-right"></i></button>
+    <button class="ed-topbar-action plan-copy" onclick="copiarSemanaAnterior()" title="Copiar estrutura da semana anterior"><i class="ti ti-copy"></i></button>
     <button class="ed-topbar-action plan-reset" onclick="zerarSemana()" title="Zerar planejamento da semana"><i class="ti ti-eraser"></i></button>
     <div class="ed-topbar-badge" id="ed-badge"></div>
     <button class="ed-topbar-action" onclick="abrirEdCampanha()" title="Campanhas"><i class="ti ti-speakerphone"></i></button>
@@ -1055,7 +1183,10 @@ textarea.form-input { resize: none; height: 76px; }
 <!-- MODAL: PLANEJADO DO DIA -->
 <div class="modal-overlay center" id="modal-plano">
   <div class="modal" style="max-height:85vh;overflow-y:auto;">
-    <div class="modal-title"><i class="ti ti-layout-board-split"></i> <span id="plano-titulo"></span></div>
+    <div class="modal-title" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <span><i class="ti ti-layout-board-split"></i> <span id="plano-titulo"></span></span>
+      <span class="plano-count" id="plano-count"></span>
+    </div>
     <div id="plano-list"></div>
     <div class="btn-row">
       <button class="btn btn-ghost" onclick="closeModal('modal-plano')">Fechar</button>
@@ -1763,6 +1894,11 @@ function _renderCanvas() {
   const els = (edEvent && edEvent.canvas) || [];
   world.innerHTML = els.map(el => {
     const sel = edSelectedId === el.id ? ' selected' : '';
+    // caixa de foto/vídeo vazia que herdou tamanho estreito: volta ao mínimo usável
+    if ((el.type === 'photo' || el.type === 'video') && !el.url) {
+      if (el.w) el.w = Math.max(el.w, 170);
+      if (el.h) el.h = Math.max(el.h, 150);
+    }
     if (el.type === 'postit') {
       return `<div class="cn-el cn-postit${sel}" data-id="${el.id}"
         style="left:${el.x}px;top:${el.y}px;background:${el.color||'#fef3a7'};width:${el.w||180}px${el.h?`;height:${el.h}px`:''};${_wrapStyle(el)}"
@@ -1809,7 +1945,62 @@ function _renderCanvas() {
           <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','photo')"><i class="ti ti-photo"></i> Caixa de foto</button>
           <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','video')"><i class="ti ti-video"></i> Caixa de vídeo</button>
           <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','text')"><i class="ti ti-letter-t"></i> Caixa de texto</button>
+          <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','checklist')"><i class="ti ti-list-check"></i> Checklist</button>
+          <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','enquete')"><i class="ti ti-chart-bar"></i> Enquete</button>
         </div>
+      </div>`;
+    }
+    if (el.type === 'checklist') {
+      const items = el.items && el.items.length ? el.items : (el.items = [{ t: '', done: false }]);
+      const rows = items.map((it, i) => `
+        <div class="ck-row">
+          <button class="ck-box${it.done ? ' done' : ''}" title="Marcar como feito"
+            onclick="event.stopPropagation();ckToggle('${el.id}',${i})"
+            onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-check"></i></button>
+          <div class="ck-txt${it.done ? ' done' : ''}" contenteditable="true" data-ph="Item..."
+            onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"
+            onkeydown="ckKey(event,'${el.id}',${i})"
+            onblur="ckSaveItem('${el.id}',${i},this)">${_esc(it.t || '')}</div>
+          <button class="ck-rm" title="Remover item"
+            onclick="event.stopPropagation();ckDelItem('${el.id}',${i})"
+            onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-x"></i></button>
+        </div>`).join('');
+      return `<div class="cn-el cn-card${sel}" data-id="${el.id}"
+        style="left:${el.x}px;top:${el.y}px;width:${el.w || 190}px"
+        onmousedown="elMouseDown(event,'${el.id}')"
+        ontouchstart="elTouchStart(event,'${el.id}')">
+        <button class="cn-del" title="Excluir" onclick="event.stopPropagation();deleteEl('${el.id}')" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-trash"></i></button>
+        <div class="cn-card-head"><i class="ti ti-list-check"></i> Checklist</div>
+        ${rows}
+        <button class="ck-add-row" onclick="event.stopPropagation();ckAddItem('${el.id}')"
+          onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-plus"></i> item</button>
+      </div>`;
+    }
+    if (el.type === 'enquete') {
+      const opts = el.opts && el.opts.length ? el.opts : (el.opts = [{ t: '' }, { t: '' }]);
+      const rows = opts.map((o, i) => `
+        <div class="pq-row">
+          <span class="pq-letra">${String.fromCharCode(65 + i)}</span>
+          <div class="pq-txt" contenteditable="true" data-ph="Opção..."
+            onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"
+            onkeydown="pqKey(event,'${el.id}',${i})"
+            onblur="pqSaveOpt('${el.id}',${i},this)">${_esc(o.t || '')}</div>
+          <button class="ck-rm" title="Remover opção"
+            onclick="event.stopPropagation();pqDelOpt('${el.id}',${i})"
+            onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-x"></i></button>
+        </div>`).join('');
+      return `<div class="cn-el cn-card${sel}" data-id="${el.id}"
+        style="left:${el.x}px;top:${el.y}px;width:${el.w || 190}px"
+        onmousedown="elMouseDown(event,'${el.id}')"
+        ontouchstart="elTouchStart(event,'${el.id}')">
+        <button class="cn-del" title="Excluir" onclick="event.stopPropagation();deleteEl('${el.id}')" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-trash"></i></button>
+        <div class="cn-card-head"><i class="ti ti-chart-bar"></i> Enquete</div>
+        <div class="pq-q" contenteditable="true" data-ph="Pergunta..."
+          onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"
+          onblur="pqSaveQ('${el.id}',this)">${_esc(el.q || '')}</div>
+        ${rows}
+        <button class="ck-add-row" onclick="event.stopPropagation();pqAddOpt('${el.id}')"
+          onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-plus"></i> opção</button>
       </div>`;
     }
     return `<div class="cn-el cn-text${sel}" data-id="${el.id}"
@@ -1825,10 +2016,15 @@ function _renderCanvas() {
       ${_handlesHTML(el.id)}
     </div>`;
   }).join('');
+  _renderPlanBadges();
   // caixas salvas com texto cortado: cresce para mostrar tudo
-  setTimeout(() => els.forEach(el => {
-    if (el.type === 'postit' || el.type === 'text') _growToContent(el.id);
-  }), 0);
+  setTimeout(() => {
+    els.forEach(el => {
+      if (el.type === 'postit' || el.type === 'text') _growToContent(el.id);
+      if (el.type === 'checklist' || el.type === 'enquete') _syncCardH(el.id);
+    });
+    _reflowPlanejamento();
+  }, 0);
 }
 
 function _wrapStyle(el) {
@@ -2030,6 +2226,7 @@ function _growToContent(id) {
     const h = wrap.offsetHeight + (content.scrollHeight - content.clientHeight);
     wrap.style.height = h + 'px';
     el.h = h;
+    _reflowPlanejamento(); // empurra o que está embaixo na coluna
   }
 }
 
@@ -2053,20 +2250,13 @@ function _fitToContent(id) {
   wrap.style.height = h + 'px';
   content.style.height = '100%';
   el.w = w; el.h = h;
+  _reflowPlanejamento();
 }
 
 function deleteEl(id) {
   if (!edEvent || !edEvent.canvas) return;
-  const el = edEvent.canvas.find(e => e.id === id);
+  // no planejamento a coluna se reempilha sozinha e fecha o buraco (reflow no render)
   edEvent.canvas = edEvent.canvas.filter(e => e.id !== id);
-  // no planejamento: deixa a opção de repor o módulo no lugar
-  if (el && _modoPlanejamento() && ['video','photo','text'].includes(el.type)) {
-    const addAbaixo = edEvent.canvas.find(a => a.type === 'add' && !a.once
-      && Math.abs((a.x||0) - (el.x||0)) < 20
-      && Math.abs((a.y||0) - ((el.y||0) + (el.h||0) + 16)) < 40);
-    if (addAbaixo) addAbaixo.y = el.y; // era o último da coluna: o + só sobe
-    else edEvent.canvas.push({ id: _uid(), type: 'add', x: el.x, y: el.y, w: el.w || 190, h: 40, once: true });
-  }
   if (edSelectedId === id) { edSelectedId = null; _showFmtbar(null); }
   _renderCanvas();
   _scheduleCanvasSave();
@@ -2212,6 +2402,7 @@ function elMouseDown(e, id) {
   e.stopPropagation();
   edWasSelected = (edSelectedId === id);
   _selectEl(id);
+  if (_modoPlanejamento()) return; // estrutura fixa: seleciona mas não arrasta
   const node = document.querySelector(`[data-id="${id}"]`);
   if (!node) return;
   edDragging = id;
@@ -2329,6 +2520,7 @@ function elTouchStart(e, id) {
   e.stopPropagation();
   edWasSelected = (edSelectedId === id);
   _selectEl(id);
+  if (_modoPlanejamento()) return; // estrutura fixa: seleciona mas não arrasta
   const node = document.querySelector(`[data-id="${id}"]`);
   if (!node) return;
   edDragging = id;
@@ -2426,7 +2618,7 @@ async function _saveCanvas() {
 }
 
 // ── PLANEJADO POR DIA (colunas do quadro → dias reais) ─
-const DIAS_TPL = ['Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira'];
+const DIAS_TPL = ['Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
 
 function _planejadoPorDia(board) {
   const out = {};
@@ -2435,13 +2627,16 @@ function _planejadoPorDia(board) {
   board.canvas.forEach(el => {
     if (el.type === 'add') return;
     const txt = (el.content || '').trim();
-    const cheio = (el.url && el.url.trim()) || txt;
+    const cheio = (el.url && el.url.trim()) || txt
+      || (el.items || []).some(i => (i.t || '').trim())
+      || (el.q || '').trim()
+      || (el.opts || []).some(o => (o.t || '').trim());
     if (!cheio) return;
     // ignora os cabeçalhos do modelo (título e nomes dos dias)
     if (/^planejamento semanal$/i.test(txt)) return;
     if (DIAS_TPL.some(n => n.toLowerCase() === txt.toLowerCase())) return;
     const col = Math.round(((el.x || 0) - 40) / 240);
-    if (col < 0 || col > 4) return;
+    if (col < 0 || col > 5) return;
     const ds = iso(new Date(y, m - 1, d + col));
     (out[ds] = out[ds] || []).push(el);
   });
@@ -2457,12 +2652,69 @@ function abrirPlanoDia(dataStr, planos) {
   document.getElementById('plano-titulo').textContent =
     `Planejado — ${DOWS[dt.getDay()]} ${d}/${m}`;
   const list = document.getElementById('plano-list');
-  list.innerHTML = [...planos].sort((a, b) => (a.y || 0) - (b.y || 0)).map(el => {
-    if (el.type === 'video' && el.url) return `<div class="plano-item">${_renderVideoPreview(el.url)}</div>`;
-    if (el.type === 'photo' && el.url) return `<div class="plano-item"><img class="plano-foto" src="${el.url}"></div>`;
-    if ((el.content || '').trim()) return `<div class="plano-item plano-texto">${el.content}</div>`;
-    return '';
+  // agrupa os módulos da coluna em posts: cada foto/vídeo/enquete abre um post
+  // e puxa os textos e checklists que vêm logo depois
+  const ordenados = [...planos].sort((a, b) => (a.y || 0) - (b.y || 0));
+  const isMedia = e => (e.type === 'video' || e.type === 'photo') && e.url;
+  const isTexto = e => (e.type === 'text' || e.type === 'postit') && (e.content || '').trim();
+  const temConteudo = e => isMedia(e) || isTexto(e)
+    || (e.type === 'checklist' && (e.items || []).some(i => (i.t || '').trim()))
+    || (e.type === 'enquete' && ((e.q || '').trim() || (e.opts || []).some(o => (o.t || '').trim())));
+  const posts = [];
+  ordenados.filter(temConteudo).forEach(el => {
+    if (isMedia(el) || el.type === 'enquete' || !posts.length) posts.push([el]);
+    else posts[posts.length - 1].push(el);
+  });
+
+  const textoHTML = el => el.type === 'postit'
+    ? `<div class="plano-mod-postit" style="background:${el.color || '#fef3a7'}">${el.content}</div>`
+    : `<div class="plano-post-texto">${el.content}</div>`;
+  const ckHTML = el => {
+    const its = (el.items || []).filter(i => (i.t || '').trim());
+    const feitos = its.filter(i => i.done).length;
+    return `<div class="plano-post-ck">
+      <div class="plano-post-ck-head">
+        <div class="cn-card-head" style="margin-bottom:0"><i class="ti ti-list-check"></i> Checklist</div>
+        <div class="plano-post-ck-prog">${feitos}/${its.length}</div>
+      </div>` +
+      its.map(i => `<div class="ck-row"><span class="ck-box${i.done ? ' done' : ''}"><i class="ti ti-check"></i></span><div class="ck-txt${i.done ? ' done' : ''}">${_esc(i.t)}</div></div>`).join('') + `</div>`;
+  };
+  const enqHTML = el => {
+    const ops = (el.opts || []).filter(o => (o.t || '').trim());
+    const q = (el.q || '').trim();
+    return (q ? `<div class="pq-q">${_esc(q)}</div>` : '') +
+      ops.map((o, i) => `<div class="pq-row"><span class="pq-letra">${String.fromCharCode(65 + i)}</span><div class="pq-txt">${_esc(o.t)}</div></div>`).join('');
+  };
+
+  list.innerHTML = posts.map((p, n) => {
+    const media = p.find(isMedia);
+    const textos = p.filter(isTexto);
+    const cks = p.filter(e => e.type === 'checklist');
+    const enqs = p.filter(e => e.type === 'enquete');
+    const tipo = media
+      ? (media.type === 'photo' ? '<i class="ti ti-photo"></i> Foto' : '<i class="ti ti-video"></i> Vídeo')
+      : (enqs.length ? '<i class="ti ti-chart-bar"></i> Enquete' : '<i class="ti ti-letter-t"></i> Texto');
+    let corpo = '';
+    if (media && media.type === 'photo') {
+      corpo += textos.length
+        ? `<div class="plano-post-row"><img class="plano-post-img" src="${media.url}">${textoHTML(textos[0])}</div>` +
+          textos.slice(1).map(textoHTML).join('')
+        : `<img class="plano-post-img" src="${media.url}">`;
+    } else if (media) {
+      corpo += _renderVideoPreview(media.url) + textos.map(textoHTML).join('');
+    } else {
+      corpo += textos.map(textoHTML).join('');
+    }
+    corpo += enqs.map(enqHTML).join('');
+    corpo += cks.map(ckHTML).join('');
+    return `<div class="plano-post">
+      <div class="plano-post-head">
+        <div class="plano-post-num">POST ${n + 1}</div>
+        <div class="plano-post-tipo">${tipo}</div>
+      </div>${corpo}</div>`;
   }).join('') || '<div class="empty">Nada planejado para este dia</div>';
+  const cnt = document.getElementById('plano-count');
+  if (cnt) cnt.textContent = posts.length ? posts.length + (posts.length > 1 ? ' posts' : ' post') : '';
   openModal('modal-plano');
 }
 
@@ -2491,13 +2743,23 @@ function abrirPlanejamentoSemanal(base) {
   if (!ev) {
     ev = { data: dataStr, titulo: 'Planejamento semanal', descricao: null, cor: '#5b4fcf', tipo: 'loja', canvas: [] };
   }
+  // quadros antigos (seg–sex): ganham a coluna de sábado
+  if (ev.canvas && ev.canvas.length) {
+    const temSab = ev.canvas.some(e => (e.content || '').trim().toLowerCase() === 'sábado');
+    const sexta = ev.canvas.find(e => (e.content || '').trim().toLowerCase() === 'sexta-feira');
+    if (!temSab && sexta) {
+      ev.canvas.push({ id: _uid(), type: 'text', x: PLAN_X0 + 5 * PLAN_COLW + 10, y: sexta.y, w: 170, h: 36,
+        content: 'Sábado', bold: true, fs: 16, hl: true, hlc: '110,225,120', color: '' });
+      ev.canvas.push({ id: _uid(), type: 'add', x: PLAN_X0 + 5 * PLAN_COLW, y: (sexta.y || 90) + 60, w: 190, h: 40 });
+    }
+  }
   const idx = _evCache.push(ev) - 1;
   openEventDetail(idx);
   if (!ev.canvas || !ev.canvas.length) inserirTemplateSemanal();
-  // subtítulo com o intervalo da semana
-  const sex = new Date(seg); sex.setDate(seg.getDate() + 4);
+  // subtítulo com o intervalo da semana (segunda a sábado)
+  const sab = new Date(seg); sab.setDate(seg.getDate() + 5);
   const f = dt => `${pad(dt.getDate())}/${pad(dt.getMonth() + 1)}`;
-  document.getElementById('ed-sub').textContent = `Semana ${f(seg)} – ${f(sex)}`;
+  document.getElementById('ed-sub').textContent = `Semana ${f(seg)} – ${f(sab)}`;
 }
 
 // quadro sem nenhum conteúdo do usuário (só o modelo)
@@ -2505,6 +2767,8 @@ function _quadroPristino(ev) {
   return !(ev.canvas || []).some(el => {
     if (el.type === 'add') return false;
     if (el.url && el.url.trim()) return true;
+    if ((el.items || []).some(i => (i.t || '').trim())) return true;
+    if ((el.q || '').trim() || (el.opts || []).some(o => (o.t || '').trim())) return true;
     const txt = (el.content || '').trim();
     if (!txt) return false;
     if (/^planejamento semanal$/i.test(txt)) return false;
@@ -2522,6 +2786,40 @@ function zerarSemana() {
   inserirTemplateSemanal(); // recria só a estrutura (dias + botões +) e salva se já existe registro
   edPanX = 0; edPanY = 0; _applyPan();
   showToast('Planejamento da semana zerado');
+}
+
+// copia a estrutura da semana anterior: tipos de módulo por dia,
+// checklists com itens desmarcados, textos mantidos, fotos/vídeos/enquetes vazios
+function copiarSemanaAnterior() {
+  if (!edEvent || !_modoPlanejamento()) return;
+  const [y, m, d] = edEvent.data.split('-').map(Number);
+  const dataAnt = iso(new Date(y, m - 1, d - 7));
+  const ant = eventosLoja.find(e => e.titulo === 'Planejamento semanal' && e.data === dataAnt);
+  if (!ant || _quadroPristino(ant)) { showToast('A semana anterior não tem planejamento'); return; }
+  if (!_quadroPristino(edEvent) &&
+      !confirm('Substituir o planejamento atual pela estrutura da semana anterior?')) return;
+  const isHeader = e => e.type === 'text' &&
+    DIAS_TPL.some(n => n.toLowerCase() === (e.content || '').trim().toLowerCase());
+  const isTitulo = e => e.type === 'text' && /^planejamento semanal$/i.test((e.content || '').trim());
+  edEvent.canvas = [];
+  edSelectedId = null;
+  _showFmtbar(null);
+  inserirTemplateSemanal();
+  (ant.canvas || []).forEach(e => {
+    if (e.type === 'add' || isHeader(e) || isTitulo(e)) return;
+    const novo = { id: _uid(), type: e.type, x: e.x, y: e.y, w: e.w || 190, h: e.h || 170, content: '', color: e.color || '' };
+    if (e.type === 'checklist') novo.items = (e.items || []).map(i => ({ t: i.t, done: false }));
+    if (e.type === 'enquete') { novo.q = ''; novo.opts = (e.opts || []).map(() => ({ t: '' })); }
+    if (e.type === 'text' || e.type === 'postit') {
+      novo.content = e.content;
+      ['font','fs','bold','align','lh','tc','hl','hlc'].forEach(k => { if (e[k] !== undefined) novo[k] = e[k]; });
+    }
+    edEvent.canvas.push(novo);
+  });
+  _renderCanvas();
+  _scheduleCanvasSave();
+  edPanX = 0; edPanY = 0; _applyPan();
+  showToast('Estrutura da semana anterior copiada!');
 }
 
 async function mudarSemana(delta) {
@@ -2544,7 +2842,7 @@ function inserirTemplateSemanal() {
   const baseY = edEvent.canvas.length
     ? Math.max(...edEvent.canvas.map(e => (e.y || 0) + (e.h || 200))) + 80
     : 20;
-  const DIAS = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira'];
+  const DIAS = DIAS_TPL;
   const COL_W = 240, X0 = 40;
   const els = [];
   els.push({ id: _uid(), type: 'text', x: X0 + (DIAS.length * COL_W) / 2 - 130, y: baseY,
@@ -2580,7 +2878,7 @@ function toggleAddMenu(id) {
     // perto do fundo da tela: abre o menu para cima para não cortar
     const canvasRect = document.getElementById('ed-canvas').getBoundingClientRect();
     const espacoAbaixo = canvasRect.bottom - wrap.getBoundingClientRect().bottom;
-    menu.classList.toggle('up', espacoAbaixo < 190);
+    menu.classList.toggle('up', espacoAbaixo < 280);
   }
 }
 
@@ -2588,8 +2886,11 @@ function addModulo(addId, tipo) {
   if (!edEvent || !edEvent.canvas) return;
   const add = edEvent.canvas.find(x => x.id === addId);
   if (!add) return;
-  const h = tipo === 'text' ? 60 : 170;
-  const el = { id: _uid(), type: tipo, x: add.x, y: add.y, w: add.w || 190, h, content: '', color: '' };
+  const h = tipo === 'text' ? 60 : 170; // checklist e enquete abrem no tamanho padrão das caixas de foto/vídeo
+  // + de reposição pode ter herdado largura estreita de uma caixa excluída — módulo novo nunca abre menor que o padrão
+  const el = { id: _uid(), type: tipo, x: add.x, y: add.y, w: Math.max(add.w || 190, 170), h, content: '', color: '' };
+  if (tipo === 'checklist') el.items = [{ t: '', done: false }];
+  if (tipo === 'enquete') el.opts = [{ t: '' }, { t: '' }];
   edEvent.canvas.push(el);
   if (add.once) edEvent.canvas = edEvent.canvas.filter(x => x.id !== add.id); // + de reposição: usa uma vez e some
   else add.y += h + 16; // + da coluna desce para baixo do módulo novo
@@ -2601,7 +2902,164 @@ function addModulo(addId, tipo) {
     if (node && tipo === 'text') { node.contentEditable = 'true'; node.focus(); }
     const vin = document.querySelector(`[data-id="${el.id}"] .cn-video-input`);
     if (vin) vin.focus();
+    const foco = document.querySelector(`[data-id="${el.id}"] .ck-txt, [data-id="${el.id}"] .pq-q`);
+    if (foco) foco.focus();
   }, 30);
+}
+
+// ── CHECKLIST E ENQUETE ───────────────────────────────
+function _esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function _cardEl(id) { return edEvent && edEvent.canvas ? edEvent.canvas.find(x => x.id === id) : null; }
+
+// tamanho real do card (muda com os itens) — usado no empilhamento e no pan
+function _syncCardH(id) {
+  const wrap = document.querySelector(`[data-id="${id}"]`);
+  const el = _cardEl(id);
+  if (wrap && el) { el.h = wrap.offsetHeight; el.w = wrap.offsetWidth; }
+  _reflowPlanejamento();
+}
+
+// planejamento: reempilha cada coluna abaixo do nome do dia —
+// módulos ficam fixos na coluna e só empurram o que está embaixo
+const PLAN_X0 = 40, PLAN_COLW = 240, PLAN_GAP = 14;
+
+// selos de comemorativa/campanha abaixo do nome de cada dia (decoração, não salva no canvas)
+let _planBadgeH = {};
+function _renderPlanBadges() {
+  _planBadgeH = {};
+  if (!_modoPlanejamento() || !edEvent) return;
+  const world = document.getElementById('ed-world');
+  const [y0, m0, d0] = edEvent.data.split('-').map(Number);
+  const isHeader = e => e.type === 'text' &&
+    DIAS_TPL.some(n => n.toLowerCase() === (e.content || '').trim().toLowerCase());
+  (edEvent.canvas || []).filter(isHeader).forEach(h => {
+    const col = Math.min(5, Math.max(0, Math.round(((h.x || 0) - 10 - PLAN_X0) / PLAN_COLW)));
+    const dt = new Date(y0, m0 - 1, d0 + col);
+    const ds = iso(dt);
+    const badges = [];
+    getComemorativas(dt.getFullYear()).filter(c => c.data === ds)
+      .forEach(c => badges.push({ ic: 'ti-calendar-star', txt: c.titulo, cls: 'comemorativa' }));
+    campanhas.filter(c => c.data_campanha === ds)
+      .forEach(c => badges.push({ ic: 'ti-speakerphone', txt: c.titulo, cls: 'campanha' }));
+    if (!badges.length) return;
+    const div = document.createElement('div');
+    div.className = 'plan-badges';
+    div.style.left = (PLAN_X0 + col * PLAN_COLW) + 'px';
+    div.style.top = ((h.y || 0) + (h.h || 36) + 6) + 'px';
+    div.innerHTML = badges.map(b =>
+      `<div class="plan-badge ${b.cls}"><i class="ti ${b.ic}"></i><span>${_esc(b.txt)}</span></div>`).join('');
+    world.appendChild(div);
+    _planBadgeH[col] = badges.length * 25 + 4;
+  });
+}
+function _reflowPlanejamento() {
+  if (!_modoPlanejamento() || !edEvent || !edEvent.canvas) return;
+  const isHeader = e => e.type === 'text' &&
+    DIAS_TPL.some(n => n.toLowerCase() === (e.content || '').trim().toLowerCase());
+  const isTitulo = e => e.type === 'text' && /^planejamento semanal$/i.test((e.content || '').trim());
+  // base de cada coluna = logo abaixo do cabeçalho do dia
+  const baseY = {};
+  edEvent.canvas.filter(isHeader).forEach(h => {
+    const col = Math.min(5, Math.max(0, Math.round(((h.x || 0) - 10 - PLAN_X0) / PLAN_COLW)));
+    baseY[col] = Math.max(baseY[col] || 0, (h.y || 0) + (h.h || 36) + 18);
+  });
+  // selos de comemorativa/campanha abaixo do cabeçalho empurram a coluna
+  Object.keys(baseY).forEach(c => baseY[c] += (_planBadgeH[c] || 0));
+  // agrupa módulos por coluna (botão + sempre por último)
+  const cols = {};
+  edEvent.canvas.forEach(e => {
+    if (isHeader(e) || isTitulo(e)) return;
+    const col = Math.min(5, Math.max(0, Math.round(((e.x || 0) - PLAN_X0) / PLAN_COLW)));
+    (cols[col] = cols[col] || []).push(e);
+  });
+  Object.keys(cols).forEach(col => {
+    const fila = cols[col].sort((a, b) =>
+      (a.type === 'add') - (b.type === 'add') || (a.y || 0) - (b.y || 0));
+    let y = baseY[col] !== undefined ? baseY[col] : 130;
+    fila.forEach(e => {
+      e.x = PLAN_X0 + col * PLAN_COLW;
+      e.y = y;
+      const node = document.querySelector(`[data-id="${e.id}"]`);
+      if (node) { node.style.left = e.x + 'px'; node.style.top = e.y + 'px'; }
+      y += (e.h || 170) + PLAN_GAP;
+    });
+  });
+}
+
+function _focusCardField(id, cls, idx) {
+  setTimeout(() => {
+    const n = document.querySelectorAll(`[data-id="${id}"] ${cls}`)[idx];
+    if (n) n.focus();
+  }, 30);
+}
+
+function ckToggle(id, i) {
+  const el = _cardEl(id); if (!el || !el.items || !el.items[i]) return;
+  el.items[i].done = !el.items[i].done;
+  _renderCanvas();
+  _scheduleCanvasSave();
+}
+function ckSaveItem(id, i, node) {
+  const el = _cardEl(id); if (!el || !el.items || !el.items[i]) return;
+  el.items[i].t = node.textContent;
+  _syncCardH(id);
+  _scheduleCanvasSave();
+}
+function ckAddItem(id) {
+  const el = _cardEl(id); if (!el) return;
+  (el.items = el.items || []).push({ t: '', done: false });
+  _renderCanvas();
+  _scheduleCanvasSave();
+  _focusCardField(id, '.ck-txt', el.items.length - 1);
+}
+function ckDelItem(id, i) {
+  const el = _cardEl(id); if (!el || !el.items) return;
+  el.items.splice(i, 1);
+  if (!el.items.length) el.items.push({ t: '', done: false });
+  _renderCanvas();
+  _scheduleCanvasSave();
+}
+function ckKey(e, id, i) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    ckSaveItem(id, i, e.target);
+    ckAddItem(id);
+  }
+}
+
+function pqSaveQ(id, node) {
+  const el = _cardEl(id); if (!el) return;
+  el.q = node.textContent;
+  _syncCardH(id);
+  _scheduleCanvasSave();
+}
+function pqSaveOpt(id, i, node) {
+  const el = _cardEl(id); if (!el || !el.opts || !el.opts[i]) return;
+  el.opts[i].t = node.textContent;
+  _syncCardH(id);
+  _scheduleCanvasSave();
+}
+function pqAddOpt(id) {
+  const el = _cardEl(id); if (!el) return;
+  (el.opts = el.opts || []).push({ t: '' });
+  _renderCanvas();
+  _scheduleCanvasSave();
+  _focusCardField(id, '.pq-txt', el.opts.length - 1);
+}
+function pqDelOpt(id, i) {
+  const el = _cardEl(id); if (!el || !el.opts) return;
+  el.opts.splice(i, 1);
+  while (el.opts.length < 2) el.opts.push({ t: '' });
+  _renderCanvas();
+  _scheduleCanvasSave();
+}
+function pqKey(e, id, i) {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  pqSaveOpt(id, i, e.target);
+  const el = _cardEl(id);
+  if (el && i === el.opts.length - 1) pqAddOpt(id);
+  else _focusCardField(id, '.pq-txt', i + 1);
 }
 
 // rola o canvas (pan) até o elemento ficar visível na tela
