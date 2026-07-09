@@ -503,6 +503,25 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .modo-plano .cn-el { cursor: default; }
 .modo-plano .cn-h { display: none !important; }
 
+/* celular: um dia por vez com swipe — pílula de navegação */
+#plan-dia-nav { display: none; }
+@media (max-width: 767px) {
+  #event-detail.modo-plano #plan-dia-nav {
+    display: flex; position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    z-index: 20; align-items: center; gap: 2px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+    padding: 3px 4px; box-shadow: 0 2px 10px rgba(0,0,0,.10);
+  }
+  #plan-dia-nav button {
+    border: none; background: none; padding: 5px 9px; color: var(--text-muted);
+    font-size: .95rem; display: flex; align-items: center; cursor: pointer;
+  }
+  #plan-dia-nav span {
+    font-size: .8rem; font-weight: 700; min-width: 118px; text-align: center;
+    color: var(--text);
+  }
+}
+
 /* selos de comemorativa/campanha no cabeçalho do dia */
 .plan-badges {
   position: absolute; display: flex; flex-direction: column; gap: 3px;
@@ -1014,7 +1033,14 @@ textarea.form-input { resize: none; height: 76px; }
   </div>
 
   <!-- canvas -->
-  <div id="ed-canvas"><div id="ed-world"></div></div>
+  <div id="ed-canvas">
+    <div id="ed-world"></div>
+    <div id="plan-dia-nav">
+      <button onclick="irParaDia(planDiaMobile-1,true)" title="Dia anterior"><i class="ti ti-chevron-left"></i></button>
+      <span id="plan-dia-nav-label"></span>
+      <button onclick="irParaDia(planDiaMobile+1,true)" title="Próximo dia"><i class="ti ti-chevron-right"></i></button>
+    </div>
+  </div>
 
   <!-- barra de formatação (aparece ao selecionar elemento) -->
   <div id="ed-fmtbar">
@@ -1696,6 +1722,7 @@ function openEventDetail(idx) {
   const detail = document.getElementById('event-detail');
   detail.classList.toggle('modo-plano', _modoPlanejamento());
   detail.classList.add('open');
+  if (_planMobile()) irParaDia(_colHoje(), false); // celular: abre no dia de hoje
 }
 
 function closeEventDetail() {
@@ -1811,8 +1838,9 @@ function _clampPan() {
   const fimX = els.length ? Math.max(...els.map(e => (e.x || 0) + (e.w || 200))) : 0;
   const folga = Math.round(canvas.clientHeight * 0.7); // espaço livre p/ criar abaixo do conteúdo
   const minPanY = Math.min(0, canvas.clientHeight - fimY - folga);
-  const minPanX = Math.min(0, canvas.clientWidth - fimX - 40);  // horizontal só se não couber
   edPanY = Math.max(minPanY, Math.min(0, edPanY));
+  if (_planMobile()) return; // celular: X controlado pelo snap de dia (swipe)
+  const minPanX = Math.min(0, canvas.clientWidth - fimX - 40);  // horizontal só se não couber
   edPanX = Math.max(minPanX, Math.min(0, edPanX));
 }
 
@@ -2520,7 +2548,16 @@ function elTouchStart(e, id) {
   e.stopPropagation();
   edWasSelected = (edSelectedId === id);
   _selectEl(id);
-  if (_modoPlanejamento()) return; // estrutura fixa: seleciona mas não arrasta
+  if (_modoPlanejamento()) {
+    // celular: swipe começando em cima de um módulo também navega/rola o quadro
+    if (_planMobile()) {
+      const t = e.touches[0];
+      edPanning = true;
+      edPanStartX = t.clientX; edPanStartY = t.clientY;
+      edPanOX = edPanX; edPanOY = edPanY;
+    }
+    return; // estrutura fixa: seleciona mas não arrasta
+  }
   const node = document.querySelector(`[data-id="${id}"]`);
   if (!node) return;
   edDragging = id;
@@ -2579,7 +2616,17 @@ function canvasTouchMove(e) {
   _moveDragging(t.clientX, t.clientY);
 }
 
-function canvasTouchEnd() { canvasMouseUp({}); }
+function canvasTouchEnd() {
+  // celular no planejamento: solta o dedo → encaixa no dia mais próximo
+  if (_planMobile() && edPanning) {
+    edPanning = false;
+    const dx = edPanX - edPanOX, dy = edPanY - edPanOY;
+    let alvo = planDiaMobile;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) alvo += dx < 0 ? 1 : -1;
+    irParaDia(alvo, true, Math.abs(dy) > Math.abs(dx));
+  }
+  canvasMouseUp({});
+}
 
 // ── SALVAR ────────────────────────────────────────────
 function _scheduleCanvasSave() {
@@ -2922,6 +2969,45 @@ function _syncCardH(id) {
 // planejamento: reempilha cada coluna abaixo do nome do dia —
 // módulos ficam fixos na coluna e só empurram o que está embaixo
 const PLAN_X0 = 40, PLAN_COLW = 240, PLAN_GAP = 14;
+
+// ── CELULAR: UM DIA POR VEZ COM SWIPE ─────────────────
+let planDiaMobile = 0;
+function _planMobile() { return _modoPlanejamento() && window.innerWidth < 768; }
+
+// centraliza a coluna do dia na tela; keepY mantém a rolagem vertical
+function irParaDia(col, anim, keepY) {
+  if (!_planMobile()) return;
+  planDiaMobile = Math.max(0, Math.min(5, col));
+  const canvas = document.getElementById('ed-canvas');
+  if (anim) {
+    const w = document.getElementById('ed-world');
+    w.style.transition = 'transform .22s ease';
+    canvas.style.transition = 'background-position .22s ease';
+    setTimeout(() => { w.style.transition = ''; canvas.style.transition = ''; }, 260);
+  }
+  edPanX = Math.round((canvas.clientWidth - 190) / 2 - (PLAN_X0 + planDiaMobile * PLAN_COLW));
+  if (!keepY) edPanY = 0;
+  _applyPan();
+  _updateDiaNav();
+}
+
+function _updateDiaNav() {
+  const el = document.getElementById('plan-dia-nav-label');
+  if (!el || !edEvent) return;
+  const [y, m, d] = edEvent.data.split('-').map(Number);
+  const dt = new Date(y, m - 1, d + planDiaMobile);
+  const nome = DIAS_TPL[planDiaMobile].replace('-feira', '');
+  el.textContent = `${nome} ${pad(dt.getDate())}/${pad(dt.getMonth() + 1)}`;
+}
+
+// coluna de hoje (se hoje cair na semana do quadro; senão segunda)
+function _colHoje() {
+  if (!edEvent) return 0;
+  const [y, m, d] = edEvent.data.split('-').map(Number);
+  const [ty, tm, td] = today.split('-').map(Number);
+  const diff = Math.round((new Date(ty, tm - 1, td) - new Date(y, m - 1, d)) / 86400000);
+  return (diff >= 0 && diff <= 5) ? diff : 0;
+}
 
 // selos de comemorativa/campanha abaixo do nome de cada dia (decoração, não salva no canvas)
 let _planBadgeH = {};
