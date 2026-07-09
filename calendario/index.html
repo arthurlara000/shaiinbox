@@ -2553,6 +2553,7 @@ function elTouchStart(e, id) {
     if (_planMobile()) {
       const t = e.touches[0];
       edPanning = true;
+      edSwipeUsado = false;
       edPanStartX = t.clientX; edPanStartY = t.clientY;
       edPanOX = edPanX; edPanOY = edPanY;
     }
@@ -2579,6 +2580,7 @@ function canvasTouchStart(e) {
   const t = e.touches[0];
   if (edTool === 'cursor') {
     edPanning = true;
+    edSwipeUsado = false;
     edPanStartX = t.clientX; edPanStartY = t.clientY;
     edPanOX = edPanX; edPanOY = edPanY;
     return;
@@ -2591,6 +2593,20 @@ function canvasTouchMove(e) {
   if (edPanning) {
     e.preventDefault();
     const t = e.touches[0];
+    // celular no planejamento: tela fixa na horizontal — só a rolagem
+    // vertical acompanha o dedo; um passe lateral pula de dia na hora
+    if (_planMobile()) {
+      const dx = t.clientX - edPanStartX, dy = t.clientY - edPanStartY;
+      edPanY = edPanOY + dy;
+      edDragMoved = true;
+      _applyPan();
+      if (!edSwipeUsado && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+        edSwipeUsado = true;
+        edPanning = false; // um pulo por gesto
+        irParaDia(planDiaMobile + (dx < 0 ? 1 : -1), true);
+      }
+      return;
+    }
     edPanX = edPanOX + t.clientX - edPanStartX;
     edPanY = edPanOY + t.clientY - edPanStartY;
     edDragMoved = true;
@@ -2616,17 +2632,7 @@ function canvasTouchMove(e) {
   _moveDragging(t.clientX, t.clientY);
 }
 
-function canvasTouchEnd() {
-  // celular no planejamento: solta o dedo → encaixa no dia mais próximo
-  if (_planMobile() && edPanning) {
-    edPanning = false;
-    const dx = edPanX - edPanOX, dy = edPanY - edPanOY;
-    let alvo = planDiaMobile;
-    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) alvo += dx < 0 ? 1 : -1;
-    irParaDia(alvo, true, Math.abs(dy) > Math.abs(dx));
-  }
-  canvasMouseUp({});
-}
+function canvasTouchEnd() { canvasMouseUp({}); }
 
 // ── SALVAR ────────────────────────────────────────────
 function _scheduleCanvasSave() {
@@ -2972,6 +2978,7 @@ const PLAN_X0 = 40, PLAN_COLW = 240, PLAN_GAP = 14;
 
 // ── CELULAR: UM DIA POR VEZ COM SWIPE ─────────────────
 let planDiaMobile = 0;
+let edSwipeUsado = false; // garante um pulo de dia por gesto
 function _planMobile() { return _modoPlanejamento() && window.innerWidth < 768; }
 
 // centraliza a coluna do dia na tela; keepY mantém a rolagem vertical
