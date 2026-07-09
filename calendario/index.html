@@ -89,8 +89,8 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 }
 .cal-day {
   min-height: 62px; display: flex; flex-direction: column; align-items: flex-start;
-  padding: 5px 3px 3px; background: var(--surface2); cursor: pointer; gap: 2px;
-  transition: background 0.12s;
+  padding: 5px 3px 6px; background: var(--surface2); cursor: pointer; gap: 2px;
+  transition: background 0.12s; position: relative;
 }
 .cal-day:active { background: var(--surface); }
 .cal-day.empty { cursor: default; background: var(--bg); }
@@ -227,7 +227,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   font-size: 0.95rem; font-weight: 700;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.ed-topbar-sub { font-size: 0.68rem; color: var(--text-muted); margin-top: 1px; }
+.ed-topbar-sub { font-size: 0.68rem; color: var(--text-muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ed-topbar-badge {
   font-size: 0.58rem; font-weight: 700; text-transform: uppercase;
   letter-spacing: 0.06em; padding: 3px 8px; border-radius: 20px; flex-shrink: 0;
@@ -521,10 +521,25 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
     font-size: .8rem; font-weight: 700; min-width: 118px; text-align: center;
     color: var(--text);
   }
+  /* campanha no celular: o título sai do quadro e vira a pílula (setas dos lados) */
+  #event-detail.modo-camp .cn-camp-titulo { display: none; }
+  #event-detail.modo-camp #plan-dia-nav span {
+    font-family: 'Playfair Display', serif; font-size: .88rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;
+  }
 }
 
 /* esqueleto do quadro (título e dias): fixo, sem editar/apagar/selecionar */
 .cn-tpl { cursor: default !important; pointer-events: none; user-select: none; }
+/* título do quadro de campanha: fixo, mas o seletor de estilo/cor e o + braço funcionam */
+.cn-tpl .cat-style-btn, .cn-tpl .cat-pop, .cn-tpl .titulo-add-braco { pointer-events: auto; }
+.titulo-add-braco {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 7px;
+  background: none; border: 1.5px dashed #c0b9ae; border-radius: 14px;
+  color: #8a847c; font-size: .7rem; font-weight: 600; padding: 3px 12px;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+}
+.titulo-add-braco:hover { color: var(--accent); border-color: var(--accent); }
 
 /* status do post: ideia → gravado → postado */
 .cn-st {
@@ -549,6 +564,52 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .plan-divisor {
   position: absolute; width: 0; pointer-events: none; z-index: 1;
   border-left: 1.5px dashed #d9d3c9;
+}
+
+/* linhas de organograma: objetivo interligado às categorias (quadro de campanha) */
+.org-link {
+  position: absolute; pointer-events: none; z-index: 1;
+  background: #cbc4b9; border-radius: 2px;
+}
+
+/* categoria do quadro de campanha: 3 estilos de caixa + cor */
+.cn-cat.estilo-cartao {
+  background: #fff; border: 1px solid #dbd5cc; border-top: 4px solid var(--catcor, #3a9a6a);
+  border-radius: 10px; padding: 7px 10px; box-shadow: 0 1px 4px rgba(0,0,0,.06); text-align: center;
+}
+.cn-cat.estilo-bloco {
+  background: color-mix(in srgb, var(--catcor, #6ee178) 30%, #fff);
+  border-radius: 10px; padding: 7px 10px; text-align: center;
+}
+.cn-cat.estilo-bloco .cn-content { color: color-mix(in srgb, var(--catcor, #6ee178) 45%, #1a1814); }
+.cat-style-btn {
+  position: absolute; top: -11px; right: -11px; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--surface); border: 1px solid var(--border); color: var(--text-muted);
+  font-size: .72rem; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 7; box-shadow: 0 1px 4px rgba(0,0,0,.12); padding: 0;
+}
+.cat-style-btn:hover { color: var(--accent); border-color: var(--accent); }
+.cat-pop {
+  position: absolute; top: calc(100% + 8px); left: 0; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 12px; padding: 11px; display: none;
+  flex-direction: column; gap: 8px; z-index: 80; box-shadow: 0 6px 22px rgba(0,0,0,.14); min-width: 168px;
+}
+.cat-pop.open { display: flex; }
+.cat-pop-lbl { font-size: .58rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text-muted); }
+.cat-pop-row { display: flex; gap: 6px; align-items: center; }
+.cat-est {
+  border: 1.5px solid var(--border); background: var(--surface2); border-radius: 8px;
+  padding: 5px 9px; cursor: pointer; font-size: .72rem; font-weight: 700; font-family: inherit; color: var(--text);
+}
+.cat-est.on { border-color: var(--accent); }
+.cat-est .demo-marca  { background: rgba(110,225,120,.55); padding: 1px 5px; }
+.cat-est .demo-cartao { background: #fff; border: 1px solid #dbd5cc; border-top: 3px solid #3a9a6a; border-radius: 0 0 4px 4px; padding: 1px 5px; }
+.cat-est .demo-bloco  { background: #d6f5e3; border-radius: 4px; padding: 1px 5px; color: #0f4a2a; }
+.cat-cor { width: 20px; height: 20px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; }
+.cat-cor.on { border-color: #1a1814; }
+.cat-aplicar {
+  background: none; border: none; color: var(--accent); font-size: .7rem; font-weight: 600;
+  cursor: pointer; font-family: inherit; padding: 2px 0 0; text-align: left;
 }
 
 /* selos de comemorativa/campanha no cabeçalho do dia */
@@ -678,8 +739,12 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 #event-detail.modo-plano #tool-template,
 #event-detail.modo-plano .ed-tool-sep { display: none; }
 #event-detail.modo-plano .cn-h { display: none !important; }
-.plan-week-nav, .plan-reset, .plan-copy { display: none; }
+.plan-week-nav, .plan-reset, .plan-copy, .camp-add-cat, .camp-trash { display: none; }
 #event-detail.modo-plano .plan-copy { display: flex; }
+/* quadro de campanha: sem navegação de semana/copiar; ganha nova categoria e excluir */
+#event-detail.modo-camp .plan-week-nav, #event-detail.modo-camp .plan-copy { display: none !important; }
+#event-detail.modo-camp .camp-add-cat, #event-detail.modo-camp .camp-trash { display: flex; }
+#event-detail.modo-camp .camp-trash:hover { background: var(--surface2); color: var(--red); }
 #event-detail.modo-plano .plan-week-nav {
   display: flex; background: var(--surface2);
   border: 1px solid var(--border); border-radius: 8px;
@@ -1007,6 +1072,40 @@ textarea.form-input { resize: none; height: 76px; }
 .camp-status-pill.active.pill-rascunho{border-color:#9a9490;color:#3a3836;background:color-mix(in srgb,#9a9490 15%,transparent);}
 .camp-status-pill.active.pill-aprovada{border-color:#5b4fcf;color:#5b4fcf;background:color-mix(in srgb,#5b4fcf 12%,transparent);}
 .camp-status-pill.active.pill-publicada{border-color:#52b88a;color:#52b88a;background:color-mix(in srgb,#52b88a 12%,transparent);}
+
+/* ── Campanhas: modo planejamento (contagem regressiva + fases) ── */
+.camp-nova-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:12px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;margin:12px 0 4px;}
+.camp-nova-btn:active{opacity:.85;}
+.camp-grupo-head{display:flex;align-items:center;gap:7px;font-size:.72rem;font-weight:700;color:#9a9490;text-transform:uppercase;letter-spacing:.06em;padding:18px 0 8px;}
+.camp-grupo-head i{font-size:.95rem;}
+.camp-grupo-head.atencao{color:#c44848;}
+.camp-click{cursor:pointer;}
+.camp-countdown{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;text-align:right;}
+.camp-countdown-num{font-size:1.6rem;font-weight:700;line-height:1;color:var(--accent);font-family:'Playfair Display',serif;}
+.camp-countdown-lbl{font-size:.58rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#9a9490;margin-top:2px;}
+.camp-countdown.urgente .camp-countdown-num{color:#c44848;}
+.camp-countdown.hoje .camp-countdown-num{font-size:1.05rem;}
+.camp-titulo-big{font-family:'Playfair Display',serif;font-size:1.18rem;color:#1a1814;line-height:1.25;}
+.camp-data-sub{font-size:.72rem;color:#9a9490;margin-top:2px;}
+.camp-progress-row{display:flex;align-items:center;gap:10px;margin-top:10px;}
+.camp-progress{flex:1;height:6px;border-radius:3px;background:#e8e3db;overflow:hidden;}
+.camp-progress-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .3s;}
+.camp-progress-fill.completo{background:#3a9a6a;}
+.camp-progress-txt{font-size:.68rem;font-weight:600;color:#9a9490;flex-shrink:0;white-space:nowrap;}
+.camp-chips-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;align-items:center;}
+.camp-fase-chip{display:inline-flex;align-items:center;gap:5px;font-size:.68rem;font-weight:700;color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);border-radius:12px;padding:3px 10px;}
+.camp-atraso-chip{display:inline-flex;align-items:center;gap:4px;font-size:.68rem;font-weight:700;color:#c44848;background:color-mix(in srgb,#c44848 10%,transparent);border-radius:12px;padding:3px 10px;}
+.camp-expand-hint{text-align:center;color:#c8c2ba;font-size:.7rem;margin-top:8px;line-height:1;display:flex;align-items:center;justify-content:center;gap:5px;}
+
+/* faixa de preparação no calendário mensal */
+.camp-prep-strip{position:absolute;left:3px;right:3px;bottom:2px;height:3px;border-radius:2px;background:#a78bfa;opacity:.5;pointer-events:none;}
+.camp-prep-strip.d2{bottom:6px;background:#7bcfde;}
+.camp-prep-strip.diaD{height:5px;opacity:1;}
+/* pills de antecedência no modal */
+.camp-ant-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+.camp-ant-pill{padding:6px 14px;border-radius:20px;border:1.5px solid #dbd5cc;background:#f4f2ee;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;color:#9a9490;}
+.camp-ant-pill:hover{border-color:#9a9490;color:#3a3836;}
+.camp-ant-pill.active{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);}
 </style>
 </head>
 <body>
@@ -1062,6 +1161,7 @@ textarea.form-input { resize: none; height: 76px; }
 <!-- VIEW: CAMPANHAS -->
 <div id="view-campanhas" style="display:none">
   <div class="events-wrap">
+    <button class="camp-nova-btn" onclick="abrirCampanha(today)"><i class="ti ti-speakerphone"></i> Nova campanha</button>
     <div id="campanhas-list"></div>
   </div>
 </div>
@@ -1081,6 +1181,8 @@ textarea.form-input { resize: none; height: 76px; }
     <button class="ed-topbar-action plan-week-nav" onclick="mudarSemana(1)" title="Próxima semana"><i class="ti ti-chevron-right"></i></button>
     <button class="ed-topbar-action plan-copy" onclick="copiarSemanaAnterior()" title="Copiar estrutura da semana anterior"><i class="ti ti-copy"></i></button>
     <button class="ed-topbar-action plan-reset" onclick="zerarSemana()" title="Zerar planejamento da semana"><i class="ti ti-eraser"></i></button>
+    <button class="ed-topbar-action camp-add-cat" onclick="addCategoriaCampanha()" title="Nova categoria"><i class="ti ti-columns-3"></i></button>
+    <button class="ed-topbar-action camp-trash" onclick="excluirCampanhaQuadro()" title="Excluir campanha"><i class="ti ti-trash"></i></button>
     <div class="ed-topbar-badge" id="ed-badge"></div>
     <button class="ed-topbar-action" onclick="abrirEdCampanha()" title="Campanhas"><i class="ti ti-speakerphone"></i></button>
     <button class="ed-topbar-action" onclick="abrirEdAcoes()" title="Ações por loja"><i class="ti ti-checklist"></i></button>
@@ -1223,8 +1325,16 @@ textarea.form-input { resize: none; height: 76px; }
 <div class="modal-overlay" id="modal-campanha">
   <div class="modal" style="max-height:90vh;overflow-y:auto;">
     <div class="modal-title"><i class="ti ti-speakerphone"></i> Campanha</div>
-    <div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input" id="camp-data"></div>
-    <div class="form-group"><label class="form-label">Título</label><input type="text" class="form-input" id="camp-titulo" placeholder="Ex: Dia das Mães — Look Rosa"></div>
+    <div class="form-group"><label class="form-label">Data da campanha (dia D)</label><input type="date" class="form-input" id="camp-data"></div>
+    <div class="form-group"><label class="form-label">Título</label><input type="text" class="form-input" id="camp-titulo" placeholder="Ex: Black Friday 2026"></div>
+    <div class="form-group">
+      <label class="form-label">Começar a preparar</label>
+      <div class="camp-ant-pills">
+        <button type="button" class="camp-ant-pill" data-ant="15" onclick="setAntPill(this)">15 dias antes</button>
+        <button type="button" class="camp-ant-pill active" data-ant="30" onclick="setAntPill(this)">1 mês antes</button>
+        <button type="button" class="camp-ant-pill" data-ant="60" onclick="setAntPill(this)">2 meses antes</button>
+      </div>
+    </div>
     <div class="form-group">
       <label class="form-label">Canal</label>
       <div class="camp-canal-pills">
@@ -1466,6 +1576,12 @@ let _restoredOnce = false;
 function _restoreOpenEvent() {
   if (_restoredOnce) return;
   _restoredOnce = true;
+  const mc = location.hash.match(/^#camp=(.+)$/);
+  if (mc) {
+    if (campanhas.find(x => x.id === mc[1])) abrirQuadroCampanha(mc[1]);
+    else _setHash('');
+    return;
+  }
   const m = location.hash.match(/^#ev=(.+)$/);
   if (!m) return;
   const ref = m[1];
@@ -1563,6 +1679,18 @@ function renderMensal() {
 
   const planoMap = _planejadoMap();
 
+  // dias dentro da janela de preparação de alguma campanha
+  const prepMap = {};
+  campanhas.forEach(c => {
+    if (!c.data_campanha) return;
+    const { antecedencia } = _prepDe(c);
+    const [cy, cm, cd] = c.data_campanha.split('-').map(Number);
+    for (let i = 0; i <= antecedencia; i++) {
+      const ds = iso(new Date(cy, cm-1, cd - i));
+      (prepMap[ds] = prepMap[ds] || []).push({ titulo: c.titulo, diaD: i === 0 });
+    }
+  });
+
   for (let i=0; i<firstDay; i++) {
     const el = document.createElement('div'); el.className='cal-day empty'; grid.appendChild(el);
   }
@@ -1597,6 +1725,9 @@ function renderMensal() {
     }
     const hasCamp = campanhas.some(c => c.data_campanha===dataStr);
     if (hasCamp) html += `<span class="campanha-dot" title="Tem campanha"></span>`;
+    const preps = prepMap[dataStr];
+    if (preps) preps.slice(0,2).forEach((p,i) =>
+      html += `<div class="camp-prep-strip${p.diaD?' diaD':''}${i?' d2':''}" title="Preparação: ${p.titulo}"></div>`);
     el.innerHTML = html;
     if (evs.length) {
       el.addEventListener('mouseenter', ev => showTooltip(ev, evs));
@@ -1631,22 +1762,60 @@ function showDayEvents(dataStr, dia) {
   document.getElementById('events-list').scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
-// ===== CAMPANHAS (funil) =====
+// ===== CAMPANHAS (organograma + contagem regressiva) =====
+const FASES = [
+  { key:'f60', label:'2 meses antes',      de:60, ate:31 },
+  { key:'f30', label:'1 mês antes',        de:30, ate:16 },
+  { key:'f15', label:'15 dias antes',      de:15, ate:8  },
+  { key:'f7',  label:'Semana da campanha', de:7,  ate:1  },
+  { key:'f0',  label:'Dia D',              de:0,  ate:0  },
+];
+const CAMP_CATS_PADRAO = ['Postagens', 'Compras', 'Ações', 'Promoções'];
+
+function _prepDe(c) {
+  const p = c.prep || {};
+  return { antecedencia: p.antecedencia || 30, canvas: p.canvas || [] };
+}
+function _diasAte(dataStr) {
+  const [y, m, d] = dataStr.split('-').map(Number);
+  return Math.round((new Date(y, m-1, d) - new Date(todayY, todayM-1, todayD)) / 86400000);
+}
+function _faseAtual(c) {
+  const dias = _diasAte(c.data_campanha);
+  if (dias < 0) return null;
+  return FASES.find(f => dias <= f.de && dias >= f.ate) || null;
+}
+// progresso do quadro: itens de checklist preenchidos
+function _prepStats(c) {
+  let total = 0, done = 0;
+  _prepDe(c).canvas.forEach(e => (e.items || []).forEach(i => {
+    if ((i.t || '').trim()) { total++; if (i.done) done++; }
+  }));
+  return { total, done, dias: _diasAte(c.data_campanha) };
+}
+
 function renderCampanhasView() {
   document.getElementById('header-sub').textContent = 'Campanhas';
   const el = document.getElementById('campanhas-list');
   if (!campanhas.length) {
-    el.innerHTML = '<div class="empty">Nenhuma campanha ainda — toque num dia do calendário para criar</div>';
+    el.innerHTML = '<div class="empty">Nenhuma campanha ainda — toque em "Nova campanha" para começar a planejar</div>';
     return;
   }
-  const grupos = [['rascunho','Rascunho'], ['aprovada','Aprovada'], ['publicada','Publicada']];
-  el.innerHTML = grupos.map(([st, label]) => {
-    const cs = campanhas.filter(c => (c.status || 'rascunho') === st)
-      .sort((a, b) => a.data_campanha.localeCompare(b.data_campanha));
-    if (!cs.length) return '';
-    return `<div class="camp-section-title"><span class="camp-status-indicator status-${st}">${label} (${cs.length})</span></div>`
-      + cs.map(_campanhaCardHTML).join('');
-  }).join('');
+  const emPrep = [], radar = [], feitas = [];
+  campanhas.forEach(c => {
+    const dias = _diasAte(c.data_campanha);
+    if (dias < 0) feitas.push(c);
+    else if (dias <= _prepDe(c).antecedencia) emPrep.push(c);
+    else radar.push(c);
+  });
+  emPrep.sort((a, b) => _diasAte(a.data_campanha) - _diasAte(b.data_campanha));
+  radar.sort((a, b) => a.data_campanha.localeCompare(b.data_campanha));
+  feitas.sort((a, b) => b.data_campanha.localeCompare(a.data_campanha));
+  let html = '';
+  if (emPrep.length) html += `<div class="camp-grupo-head atencao"><i class="ti ti-flame"></i> Em preparação (${emPrep.length})</div>` + emPrep.map(_campanhaCardHTML).join('');
+  if (radar.length)  html += `<div class="camp-grupo-head"><i class="ti ti-radar-2"></i> No radar (${radar.length})</div>` + radar.map(_campanhaCardHTML).join('');
+  if (feitas.length) html += `<div class="camp-grupo-head"><i class="ti ti-circle-check"></i> Realizadas (${feitas.length})</div>` + feitas.map(_campanhaCardHTML).join('');
+  el.innerHTML = html;
 }
 
 // ===== ANUAL =====
@@ -1769,10 +1938,14 @@ function openEventDetail(idx) {
   edEvent = _evCache[idx] || null;
   if (!edEvent) return;
 
-  const ref = edEvent.id
-    ? edEvent.id
-    : 'c:' + edEvent.data + ':' + encodeURIComponent(edEvent.titulo);
-  _setHash('ev=' + ref);
+  if (edEvent.campId) {
+    _setHash('camp=' + edEvent.campId);
+  } else {
+    const ref = edEvent.id
+      ? edEvent.id
+      : 'c:' + edEvent.data + ':' + encodeURIComponent(edEvent.titulo);
+    _setHash('ev=' + ref);
+  }
 
   const cor = edEvent.cor || (edEvent.tipo==='loja' ? 'var(--accent)' : 'var(--yellow)');
   const [, m, d] = edEvent.data.split('-');
@@ -1782,7 +1955,10 @@ function openEventDetail(idx) {
   document.getElementById('ed-sub').textContent = `${parseInt(d)} de ${MESES[parseInt(m)-1]}`;
 
   const badgeEl = document.getElementById('ed-badge');
-  if (edEvent.tipo === 'loja') {
+  if (edEvent.campId) {
+    badgeEl.textContent = 'Campanha';
+    badgeEl.style.cssText = `background:color-mix(in srgb,${cor} 18%,transparent);color:${cor}`;
+  } else if (edEvent.tipo === 'loja') {
     badgeEl.textContent = 'Loja';
     badgeEl.style.cssText = `background:color-mix(in srgb,${cor} 18%,transparent);color:${cor}`;
   } else {
@@ -1792,12 +1968,14 @@ function openEventDetail(idx) {
 
   selectTool('cursor');
   edSelectedId = null;
+  _catPopAberto = null;
   _showFmtbar(null);
   edPanX = 0; edPanY = 0; _applyPan();
   _renderCanvas();
 
   const detail = document.getElementById('event-detail');
   detail.classList.toggle('modo-plano', _modoPlanejamento());
+  detail.classList.toggle('modo-camp', _modoCampanha());
   detail.classList.add('open');
   if (_planMobile()) irParaDia(_colHoje(), false); // celular: abre no dia de hoje
 }
@@ -1892,6 +2070,7 @@ function canvasClick(e) {
   if (edDragMoved) { edDragMoved = false; return; } // arrastar não cria elemento
   const canvas = document.getElementById('ed-canvas');
   if (e.target !== canvas) return;
+  if (_catPopAberto) { _catPopAberto = null; _renderCanvas(); } // fecha o seletor de estilo
   if (edTool === 'cursor') _selectEl(null);
   // criação acontece no mouseup do desenho (canvasMouseUp)
 }
@@ -1903,8 +2082,33 @@ function _canvasPoint(cx, cy) {
 }
 
 // planejamento semanal: rolagem tipo página (trava no topo, desce conforme o conteúdo)
+function _modoCampanha() {
+  return !!(edEvent && edEvent.campId);
+}
 function _modoPlanejamento() {
-  return !!(edEvent && edEvent.titulo === 'Planejamento semanal');
+  return !!(edEvent && (edEvent.titulo === 'Planejamento semanal' || edEvent.campId));
+}
+// estrutura do quadro: cabeçalho de coluna e título — semanal (por texto) ou campanha (por flag tpl)
+function _bIsHeader(e) {
+  if (_modoCampanha()) return e.tpl === 'cat';
+  return e.type === 'text' && DIAS_TPL.some(n => n.toLowerCase() === (e.content || '').trim().toLowerCase());
+}
+function _bIsTitulo(e) {
+  if (_modoCampanha()) return e.tpl === 'titulo';
+  return e.type === 'text' && /^planejamento semanal$/i.test((e.content || '').trim());
+}
+function _bMaxCol() {
+  if (!_modoCampanha()) return 5;
+  const n = ((edEvent && edEvent.canvas) || []).filter(e => e.tpl === 'cat').length;
+  return Math.max(0, n - 1);
+}
+// campanha: largura da coluna se ajusta à tela (celular mantém a grade padrão do swipe)
+function _campColW() {
+  if (!_modoCampanha() || _planMobile()) return PLAN_COLW;
+  const canvas = document.getElementById('ed-canvas');
+  const n = Math.max(1, ((edEvent && edEvent.canvas) || []).filter(e => e.tpl === 'cat').length);
+  const util = (canvas ? canvas.clientWidth : 0) - PLAN_X0 * 2;
+  return Math.max(PLAN_COLW, Math.min(380, Math.floor(util / n)));
 }
 
 function _clampPan() {
@@ -2108,6 +2312,39 @@ function _renderCanvas() {
         ${rows}
         <button class="ck-add-row" onclick="event.stopPropagation();pqAddOpt('${el.id}')"
           onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-plus"></i> opção</button>
+      </div>`;
+    }
+    // categoria do quadro de campanha: nome + seletor de estilo/cor
+    if (_modoCampanha() && el.tpl === 'cat') {
+      const est = el.catEstilo || 'marca';
+      const cor = el.catCor || '#6ee178';
+      // --hlc precisa ir no próprio conteúdo: .cn-content.hl define um padrão que vence a herança
+      const marcaHl = est === 'marca' ? `--hlc:${el.catCor ? _hexRgb(cor) : (el.hlc || '110,225,120')};` : '';
+      const wrapCor = est !== 'marca' ? `--catcor:${cor};` : '';
+      return `<div class="cn-el cn-text cn-cat estilo-${est}${sel}" data-id="${el.id}"
+        style="left:${el.x}px;top:${el.y}px;width:${el.w||170}px;${wrapCor}${_wrapStyle(el)}"
+        onmousedown="elMouseDown(event,'${el.id}')"
+        ontouchstart="elTouchStart(event,'${el.id}')">
+        <button class="cn-del" title="Excluir" onclick="event.stopPropagation();deleteEl('${el.id}')" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-trash"></i></button>
+        ${_catSeletorHTML(el, est)}
+        <div class="cn-content${est === 'marca' ? ' hl' : ''}" contenteditable="false" data-ph="Categoria..."
+          style="${_textStyle({ ...el, hl: false, hlc: '' })}${marcaHl}"
+          onclick="_contentClick(event,'${el.id}',this)"
+          oninput="_growToContent('${el.id}')"
+          onblur="_saveElContent('${el.id}',this)">${el.content||''}</div>
+      </div>`;
+    }
+    // título do quadro de campanha: texto fixo, mas com estilo/cor personalizáveis
+    if (_modoCampanha() && el.tpl === 'titulo') {
+      const est = el.catEstilo || 'marca';
+      const cor = el.catCor || '#ffd232';
+      const marcaHl = est === 'marca' ? `--hlc:${el.catCor ? _hexRgb(cor) : (el.hlc || '255,210,50')};` : '';
+      const wrapCor = est !== 'marca' ? `--catcor:${cor};` : '';
+      return `<div class="cn-el cn-text cn-tpl cn-cat cn-camp-titulo estilo-${est}" data-id="${el.id}"
+        style="left:${el.x}px;top:${el.y}px;width:${el.w||200}px;text-align:center;${wrapCor}${_wrapStyle(el)}">
+        ${_catSeletorHTML(el, est, true)}
+        <div class="cn-content${est === 'marca' ? ' hl' : ''}" style="${_textStyle({ ...el, hl: false, hlc: '' })}${marcaHl}">${el.content||''}</div>
+        <button class="titulo-add-braco" onclick="event.stopPropagation();addCategoriaCampanha()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-plus"></i> braço</button>
       </div>`;
     }
     // esqueleto do planejamento (título/dias): renderiza fixo, sem interação
@@ -2737,6 +2974,17 @@ async function salvarESair() {
 
 async function _saveCanvas() {
   if (!edEvent) return false;
+  if (edEvent.campId) {
+    // quadro de campanha: canvas vive em campanhas.prep
+    const c = campanhas.find(x => x.id === edEvent.campId);
+    const prep = { antecedencia: c ? _prepDe(c).antecedencia : 30, canvas: edEvent.canvas || [] };
+    const { error } = await sb.from('campanhas').update({ prep }).eq('id', edEvent.campId);
+    if (error) { showToast('Erro ao salvar: ' + error.message, 'error'); return false; }
+    if (c) c.prep = prep;
+    const sc = document.getElementById('ed-canvas-save');
+    if (sc) { sc.classList.add('show'); setTimeout(() => sc.classList.remove('show'), 1800); }
+    return true;
+  }
   if (!edEvent.id) {
     // comemorativa: cria um registro espelho em eventos_loja para guardar o canvas
     const { data: row, error } = await sb.from('eventos_loja')
@@ -2912,19 +3160,23 @@ function _quadroPristino(ev) {
 
 function zerarSemana() {
   if (!edEvent || !_modoPlanejamento()) return;
-  if (!confirm('Zerar o planejamento desta semana? Todos os módulos serão apagados.')) return;
+  const msg = _modoCampanha()
+    ? 'Zerar o quadro desta campanha? Todos os módulos serão apagados.'
+    : 'Zerar o planejamento desta semana? Todos os módulos serão apagados.';
+  if (!confirm(msg)) return;
   edEvent.canvas = [];
   edSelectedId = null;
   _showFmtbar(null);
-  inserirTemplateSemanal(); // recria só a estrutura (dias + botões +) e salva se já existe registro
+  if (_modoCampanha()) { inserirTemplateCampanha(); _scheduleCanvasSave(); }
+  else inserirTemplateSemanal(); // recria só a estrutura (dias + botões +) e salva se já existe registro
   edPanX = 0; edPanY = 0; _applyPan();
-  showToast('Planejamento da semana zerado');
+  showToast(_modoCampanha() ? 'Quadro da campanha zerado' : 'Planejamento da semana zerado');
 }
 
 // copia a estrutura da semana anterior: tipos de módulo por dia,
 // checklists com itens desmarcados, textos mantidos, fotos/vídeos/enquetes vazios
 function copiarSemanaAnterior() {
-  if (!edEvent || !_modoPlanejamento()) return;
+  if (!edEvent || !_modoPlanejamento() || _modoCampanha()) return;
   const [y, m, d] = edEvent.data.split('-').map(Number);
   const dataAnt = iso(new Date(y, m - 1, d - 7));
   const ant = eventosLoja.find(e => e.titulo === 'Planejamento semanal' && e.data === dataAnt);
@@ -2956,7 +3208,7 @@ function copiarSemanaAnterior() {
 }
 
 async function mudarSemana(delta) {
-  if (!edEvent || !_modoPlanejamento()) return;
+  if (!edEvent || !_modoPlanejamento() || _modoCampanha()) return;
   clearTimeout(edCanvasSaveTimer);
   // salva a semana atual antes de trocar (se tem registro ou conteúdo)
   if (edEvent.id || !_quadroPristino(edEvent)) await _saveCanvas();
@@ -3047,6 +3299,7 @@ function _cardEl(id) { return edEvent && edEvent.canvas ? edEvent.canvas.find(x 
 // título e nomes dos dias do modelo — fixos (o app usa o texto deles
 // para saber a qual dia cada post pertence; bold+marca-texto vem do modelo)
 function _ehTplEl(el) {
+  if (_modoCampanha()) return el.tpl === 'titulo'; // categorias são renomeáveis; só o objetivo é fixo
   if (el.type !== 'text' || !el.bold || !el.hl) return false;
   const t = (el.content || '').trim().toLowerCase();
   return t === 'planejamento semanal' || DIAS_TPL.some(n => n.toLowerCase() === t);
@@ -3107,7 +3360,7 @@ function _planMobile() { return _modoPlanejamento() && window.innerWidth < 768; 
 // centraliza a coluna do dia na tela; keepY mantém a rolagem vertical
 function irParaDia(col, anim, keepY) {
   if (!_planMobile()) return;
-  planDiaMobile = Math.max(0, Math.min(5, col));
+  planDiaMobile = Math.max(0, Math.min(_bMaxCol(), col));
   const canvas = document.getElementById('ed-canvas');
   if (anim) {
     const w = document.getElementById('ed-world');
@@ -3124,6 +3377,11 @@ function irParaDia(col, anim, keepY) {
 function _updateDiaNav() {
   const el = document.getElementById('plan-dia-nav-label');
   if (!el || !edEvent) return;
+  if (_modoCampanha()) {
+    // a pílula vira o título (objetivo); as setas trocam a categoria visível
+    el.textContent = edEvent.titulo || '';
+    return;
+  }
   const [y, m, d] = edEvent.data.split('-').map(Number);
   const dt = new Date(y, m - 1, d + planDiaMobile);
   const nome = DIAS_TPL[planDiaMobile].replace('-feira', '');
@@ -3133,6 +3391,7 @@ function _updateDiaNav() {
 // coluna de hoje (se hoje cair na semana do quadro; senão segunda)
 function _colHoje() {
   if (!edEvent) return 0;
+  if (_modoCampanha()) return 0;
   const [y, m, d] = edEvent.data.split('-').map(Number);
   const [ty, tm, td] = today.split('-').map(Number);
   const diff = Math.round((new Date(ty, tm - 1, td) - new Date(y, m - 1, d)) / 86400000);
@@ -3145,18 +3404,23 @@ function _renderPlanBadges() {
   _planBadgeH = {};
   if (!_modoPlanejamento() || !edEvent) return;
   const world = document.getElementById('ed-world');
+  // pode ser rechamada fora do render (reflow da campanha): limpa a decoração anterior
+  world.querySelectorAll('.plan-divisor, .plan-badges, .org-link').forEach(n => n.remove());
   // risco suave dividindo os dias
   const els = edEvent.canvas || [];
   const fimY = els.length ? Math.max(...els.map(e => (e.y || 0) + (e.h || 170))) : 600;
   const altura = Math.max(900, fimY + 400);
-  for (let c = 1; c <= 5; c++) {
+  const divisorTop = _modoCampanha() ? 140 : 70; // campanha: divisor começa abaixo das linhas do organograma
+  const colW = _campColW();
+  for (let c = 1; c <= _bMaxCol(); c++) {
     const d = document.createElement('div');
     d.className = 'plan-divisor';
-    d.style.left = (PLAN_X0 + c * PLAN_COLW - 25) + 'px';
-    d.style.top = '70px';
+    d.style.left = (PLAN_X0 + c * colW - 25 + Math.max(0, Math.floor((colW - PLAN_COLW) / 2))) + 'px';
+    d.style.top = divisorTop + 'px';
     d.style.height = altura + 'px';
     world.appendChild(d);
   }
+  if (_modoCampanha()) { _renderOrgLinks(world); return; } // selos de data são só do quadro semanal
   const [y0, m0, d0] = edEvent.data.split('-').map(Number);
   const isHeader = e => e.type === 'text' &&
     DIAS_TPL.some(n => n.toLowerCase() === (e.content || '').trim().toLowerCase());
@@ -3180,15 +3444,38 @@ function _renderPlanBadges() {
     _planBadgeH[col] = badges.length * 25 + 4;
   });
 }
+// linhas ligando o objetivo (título) a cada categoria — decoração, não salva no canvas
+function _renderOrgLinks(world) {
+  const t = (edEvent.canvas || []).find(e => e.tpl === 'titulo');
+  const cats = (edEvent.canvas || []).filter(e => e.tpl === 'cat').sort((a, b) => (a.x || 0) - (b.x || 0));
+  if (!t || !cats.length) return;
+  const mk = (l, tp, w, h) => {
+    const d = document.createElement('div');
+    d.className = 'org-link';
+    d.style.cssText = `left:${l}px;top:${tp}px;width:${w}px;height:${h}px;`;
+    world.appendChild(d);
+  };
+  const tcx = (t.x || 0) + (t.w || 260) / 2;
+  const tBot = (t.y || 0) + (t.h || 44);
+  const catTop = Math.min(...cats.map(c => c.y || 90));
+  const midY = tBot + Math.max(8, (catTop - tBot) / 2);
+  const centers = cats.map(c => (c.x || 0) + (c.w || 170) / 2);
+  const tituloVisivel = !_planMobile(); // celular: título vira a pílula, tronco não desenha
+  if (tituloVisivel) mk(tcx - 1, tBot, 2, midY - tBot);    // desce do objetivo
+  const x1 = Math.min(...centers, tituloVisivel ? tcx : Infinity);
+  const x2 = Math.max(...centers, tituloVisivel ? tcx : -Infinity);
+  mk(x1, midY, Math.max(2, x2 - x1), 2);                   // trave horizontal
+  cats.forEach((c, i) => mk(centers[i] - 1, midY, 2, Math.max(2, (c.y || 90) - midY))); // desce em cada categoria
+}
+
 function _reflowPlanejamento() {
   if (!_modoPlanejamento() || !edEvent || !edEvent.canvas) return;
-  const isHeader = e => e.type === 'text' &&
-    DIAS_TPL.some(n => n.toLowerCase() === (e.content || '').trim().toLowerCase());
-  const isTitulo = e => e.type === 'text' && /^planejamento semanal$/i.test((e.content || '').trim());
-  // base de cada coluna = logo abaixo do cabeçalho do dia
+  if (_modoCampanha()) { _reflowCampanha(); return; }
+  const maxCol = _bMaxCol();
+  // base de cada coluna = logo abaixo do cabeçalho do dia/categoria
   const baseY = {};
-  edEvent.canvas.filter(isHeader).forEach(h => {
-    const col = Math.min(5, Math.max(0, Math.round(((h.x || 0) - 10 - PLAN_X0) / PLAN_COLW)));
+  edEvent.canvas.filter(_bIsHeader).forEach(h => {
+    const col = Math.min(maxCol, Math.max(0, Math.round(((h.x || 0) - 10 - PLAN_X0) / PLAN_COLW)));
     baseY[col] = Math.max(baseY[col] || 0, (h.y || 0) + (h.h || 36) + 18);
   });
   // selos de comemorativa/campanha abaixo do cabeçalho empurram a coluna
@@ -3196,8 +3483,8 @@ function _reflowPlanejamento() {
   // agrupa módulos por coluna (botão + sempre por último)
   const cols = {};
   edEvent.canvas.forEach(e => {
-    if (isHeader(e) || isTitulo(e)) return;
-    const col = Math.min(5, Math.max(0, Math.round(((e.x || 0) - PLAN_X0) / PLAN_COLW)));
+    if (_bIsHeader(e) || _bIsTitulo(e)) return;
+    const col = Math.min(maxCol, Math.max(0, Math.round(((e.x || 0) - PLAN_X0) / PLAN_COLW)));
     (cols[col] = cols[col] || []).push(e);
   });
   Object.keys(cols).forEach(col => {
@@ -3213,6 +3500,63 @@ function _reflowPlanejamento() {
     });
   });
 }
+
+// campanha: colunas se redistribuem pela largura da tela; módulo pertence ao cabeçalho mais próximo
+function _reflowCampanha() {
+  const colW = _campColW();
+  const off = Math.max(0, Math.floor((colW - PLAN_COLW) / 2)); // centraliza o conteúdo na coluna larga
+  const cats = edEvent.canvas.filter(e => e.tpl === 'cat').sort((a, b) => (a.x || 0) - (b.x || 0));
+  if (!cats.length) return;
+  const oldX = cats.map(c => c.x || 0);
+  // agrupa módulos pela coluna do cabeçalho mais próximo (antes de mover os cabeçalhos)
+  const cols = {};
+  edEvent.canvas.forEach(e => {
+    if (e.tpl) return;
+    let col = 0, best = Infinity;
+    oldX.forEach((hx, i) => {
+      const d = Math.abs((e.x || 0) - (hx - 10));
+      if (d < best) { best = d; col = i; }
+    });
+    (cols[col] = cols[col] || []).push(e);
+  });
+  const mv = e => {
+    const node = document.querySelector(`[data-id="${e.id}"]`);
+    if (node) { node.style.left = e.x + 'px'; node.style.top = e.y + 'px'; }
+  };
+  // cabeçalhos e título no novo grid
+  const baseY = {};
+  cats.forEach((h, i) => {
+    h.x = PLAN_X0 + i * colW + 10 + off;
+    baseY[i] = (h.y || 0) + (h.h || 36) + 18;
+    mv(h);
+  });
+  const t = edEvent.canvas.find(e => e.tpl === 'titulo');
+  if (t) {
+    t.x = PLAN_X0 + (cats.length * colW) / 2 - (t.w || 260) / 2;
+    mv(t);
+  }
+  // empilha cada coluna (botão + sempre por último)
+  Object.keys(cols).forEach(col => {
+    const fila = cols[col].sort((a, b) =>
+      (a.type === 'add') - (b.type === 'add') || (a.y || 0) - (b.y || 0));
+    let y = baseY[col] !== undefined ? baseY[col] : 130;
+    fila.forEach(e => {
+      e.x = PLAN_X0 + col * colW + off;
+      e.y = y;
+      mv(e);
+      y += (e.h || 170) + PLAN_GAP;
+    });
+  });
+  _renderPlanBadges(); // divisores e linhas do organograma acompanham o novo grid
+}
+
+// quadro de campanha se ajusta quando a janela muda de tamanho
+let _campResizeTimer = null;
+window.addEventListener('resize', () => {
+  if (!_modoCampanha()) return;
+  clearTimeout(_campResizeTimer);
+  _campResizeTimer = setTimeout(() => _renderCanvas(), 150);
+});
 
 function _focusCardField(id, cls, idx) {
   setTimeout(() => {
@@ -3311,7 +3655,9 @@ function _ensureVisible(el) {
 
 // ── CAMPANHAS / AÇÕES (via modal existente) ───────────
 function abrirEdCampanha() {
-  if (edEvent) abrirCampanha(edEvent.data, null);
+  if (!edEvent) return;
+  if (edEvent.campId) abrirCampanha(edEvent.data, edEvent.campId); // edita a própria campanha do quadro
+  else abrirCampanha(edEvent.data, null);
 }
 function abrirEdAcoes() {
   if (!edEvent) return;
@@ -3328,6 +3674,17 @@ function setStatusPill(btn) {
   document.querySelectorAll('.camp-status-pill').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('camp-status').value = btn.dataset.status;
+}
+function setAntPill(btn) {
+  document.querySelectorAll('.camp-ant-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function _antSelecionada() {
+  const b = document.querySelector('.camp-ant-pill.active');
+  return b ? parseInt(b.dataset.ant) : 30;
+}
+function _setAntPills(dias) {
+  document.querySelectorAll('.camp-ant-pill').forEach(b => b.classList.toggle('active', parseInt(b.dataset.ant) === dias));
 }
 function detectVideoIco(inp) {
   const el = document.getElementById('camp-video-ico');
@@ -3436,25 +3793,170 @@ function _renderAcoesLoja(campId, loja, nome, dotClass, acoes) {
 </div>`;
 }
 
+function _rerenderCamp() {
+  if (currentView === 'campanhas') renderView();
+  else if (diaAberto) showDayEvents(diaAberto, parseInt(diaAberto.split('-')[2]));
+  else renderView();
+}
+
 function _campanhaCardHTML(c) {
-  const sLabel = { rascunho:'Rascunho', aprovada:'Aprovada', publicada:'Publicada' };
   const cc = _canalClass(c.canal);
-  const [,m,d] = c.data_campanha.split('-');
+  const [y, m, d] = c.data_campanha.split('-');
+  const { total, done, dias } = _prepStats(c);
+
+  let countdown;
+  if (dias > 1)       countdown = `<div class="camp-countdown${dias <= 7 ? ' urgente' : ''}"><span class="camp-countdown-num">${dias}</span><span class="camp-countdown-lbl">dias</span></div>`;
+  else if (dias === 1) countdown = `<div class="camp-countdown urgente hoje"><span class="camp-countdown-num">amanh\u00e3!</span></div>`;
+  else if (dias === 0) countdown = `<div class="camp-countdown urgente hoje"><span class="camp-countdown-num">\u00e9 hoje!</span></div>`;
+  else                 countdown = `<div class="camp-countdown"><span class="camp-countdown-lbl">realizada</span></div>`;
+
+  const pct = total ? Math.round(done / total * 100) : 0;
+  const fase = _faseAtual(c);
+  const chips = [];
+  if (dias >= 0 && dias <= _prepDe(c).antecedencia && fase)
+    chips.push(`<span class="camp-fase-chip"><i class="ti ti-flag-3"></i> ${fase.label}</span>`);
+
   return `<div class="campanha-card ${cc}">
-    <button class="camp-del" onclick="deletarCampanha('${c.id}')">\u2715</button>
-    <div class="camp-top-row">
-      <div class="camp-canal-tag ${cc}">${_canalIconSVG(c.canal)} ${c.canal}</div>
-      <div class="camp-status-indicator status-${c.status}">${sLabel[c.status]||c.status}</div>
+    <div class="camp-click" onclick="abrirQuadroCampanha('${c.id}')">
+      <div class="camp-top-row">
+        <div>
+          <div class="camp-canal-tag ${cc}">${_canalIconSVG(c.canal)} ${c.canal}</div>
+          <div class="camp-titulo-big">${_esc(c.titulo)}</div>
+          <div class="camp-data-sub">${parseInt(d)}/${parseInt(m)}/${y}</div>
+        </div>
+        ${countdown}
+      </div>
+      ${total ? `<div class="camp-progress-row">
+        <div class="camp-progress"><div class="camp-progress-fill${pct===100?' completo':''}" style="width:${pct}%"></div></div>
+        <span class="camp-progress-txt">${done}/${total} itens</span>
+      </div>` : ''}
+      ${chips.length ? `<div class="camp-chips-row">${chips.join('')}</div>` : ''}
+      <div class="camp-expand-hint"><i class="ti ti-sitemap"></i> toque para abrir o quadro</div>
     </div>
-    <div class="camp-label-titulo">${c.titulo} <span style="color:#444;font-size:.7rem">${parseInt(d)}/${parseInt(m)}</span></div>
-    ${c.ideia ? `<div class="camp-ideia-text">&ldquo;${c.ideia}&rdquo;</div>` : ''}
-    ${_renderVideoPreview(c.video_link)}
-    <div class="camp-acoes-section">
-      ${_renderAcoesLoja(c.id,'areal','Areal','areal',c.acoes||{})}
-      ${_renderAcoesLoja(c.id,'trios','Tr\u00eas Rios','trios',c.acoes||{})}
-    </div>
-    <button class="camp-edit-btn" onclick="abrirCampanha('${c.data_campanha}','${c.id}')">&#9999; Editar</button>
   </div>`;
+}
+
+// ── QUADRO DA CAMPANHA (mesmo motor do planejamento semanal) ──
+function abrirQuadroCampanha(campId) {
+  const c = campanhas.find(x => x.id === campId); if (!c) return;
+  const ev = {
+    campId, data: c.data_campanha, titulo: c.titulo, tipo: 'loja', cor: '#5b4fcf',
+    canvas: _prepDe(c).canvas.length ? JSON.parse(JSON.stringify(_prepDe(c).canvas)) : []
+  };
+  const idx = _evCache.push(ev) - 1;
+  openEventDetail(idx);
+  if (!ev.canvas.length) inserirTemplateCampanha();
+  if (_planMobile()) irParaDia(0, false); // celular: abre na primeira categoria (com o nome já no pill)
+  // subtítulo: data + contagem regressiva
+  const [y, m, d] = c.data_campanha.split('-');
+  const dias = _diasAte(c.data_campanha);
+  const cd = dias > 1 ? `faltam ${dias} dias` : dias === 1 ? 'é amanhã!' : dias === 0 ? 'é hoje!' : 'realizada';
+  document.getElementById('ed-sub').textContent = `${parseInt(d)}/${parseInt(m)}/${y} — ${cd}`;
+}
+
+function inserirTemplateCampanha() {
+  if (!edEvent) return;
+  if (!edEvent.canvas) edEvent.canvas = [];
+  const CATS = CAMP_CATS_PADRAO;
+  const els = [];
+  els.push({ id: _uid(), type: 'text', tpl: 'titulo', x: PLAN_X0 + (CATS.length * PLAN_COLW) / 2 - 130, y: 20,
+    w: 260, h: 44, content: edEvent.titulo, bold: true, fs: 20, align: 'center',
+    hl: true, hlc: '255,210,50', color: '' });
+  CATS.forEach((nome, i) => {
+    const x = PLAN_X0 + i * PLAN_COLW;
+    els.push({ id: _uid(), type: 'text', tpl: 'cat', x: x + 10, y: 90,
+      w: 170, h: 36, content: nome, bold: true, fs: 16,
+      hl: true, hlc: '110,225,120', color: '' });
+    els.push({ id: _uid(), type: 'add', x, y: 150, w: 190, h: 40 });
+  });
+  edEvent.canvas.push(...els);
+  _renderCanvas();
+  if (edEvent.campId) _scheduleCanvasSave();
+  selectTool('cursor');
+}
+
+// ── ESTILO E COR DA CAIXA DE CATEGORIA ────────────────
+const CAT_PAL = ['#ffd232', '#6ee178', '#ff78b4', '#6ebeff', '#ffa046', '#b48cf0'];
+let _catPopAberto = null;
+
+// botão de paleta + popover de estilo/cor (categorias e título do quadro de campanha)
+function _catSeletorHTML(el, est, ehTitulo) {
+  const corPadrao = ehTitulo ? '#ffd232' : '#6ee178';
+  return `<button class="cat-style-btn" title="Estilo e cor da caixa" onclick="event.stopPropagation();toggleCatPop('${el.id}')" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-palette"></i></button>
+    <div class="cat-pop${_catPopAberto === el.id ? ' open' : ''}" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+      <div class="cat-pop-lbl">Estilo da caixa</div>
+      <div class="cat-pop-row">
+        <button class="cat-est${est==='marca'?' on':''}" title="Marca-texto" onclick="setCatEstilo('${el.id}','marca')"><span class="demo-marca">Aa</span></button>
+        <button class="cat-est${est==='cartao'?' on':''}" title="Cartão" onclick="setCatEstilo('${el.id}','cartao')"><span class="demo-cartao">Aa</span></button>
+        <button class="cat-est${est==='bloco'?' on':''}" title="Bloco cheio" onclick="setCatEstilo('${el.id}','bloco')"><span class="demo-bloco">Aa</span></button>
+      </div>
+      <div class="cat-pop-lbl">Cor</div>
+      <div class="cat-pop-row">
+        ${CAT_PAL.map(c => `<button class="cat-cor${(el.catCor||corPadrao)===c?' on':''}" style="background:${c}" onclick="setCatCor('${el.id}','${c}')"></button>`).join('')}
+      </div>
+      ${ehTitulo ? '' : `<button class="cat-aplicar" onclick="aplicarEstiloTodas('${el.id}')"><i class="ti ti-copy"></i> aplicar a todas as categorias</button>`}
+    </div>`;
+}
+
+function _hexRgb(hex) {
+  const h = hex.replace('#', '');
+  return parseInt(h.slice(0,2),16) + ',' + parseInt(h.slice(2,4),16) + ',' + parseInt(h.slice(4,6),16);
+}
+function toggleCatPop(id) {
+  _catPopAberto = _catPopAberto === id ? null : id;
+  _renderCanvas();
+}
+function setCatEstilo(id, est) {
+  const el = _cardEl(id); if (!el) return;
+  el.catEstilo = est;
+  if (est === 'marca' && el.catCor) el.hlc = _hexRgb(el.catCor);
+  _renderCanvas();
+  _scheduleCanvasSave();
+}
+function setCatCor(id, cor) {
+  const el = _cardEl(id); if (!el) return;
+  el.catCor = cor;
+  if ((el.catEstilo || 'marca') === 'marca') el.hlc = _hexRgb(cor);
+  _renderCanvas();
+  _scheduleCanvasSave();
+}
+function aplicarEstiloTodas(id) {
+  const src = _cardEl(id); if (!src || !edEvent.canvas) return;
+  edEvent.canvas.filter(e => e.tpl === 'cat').forEach(e => {
+    e.catEstilo = src.catEstilo || 'marca';
+    if (src.catCor) { e.catCor = src.catCor; if ((e.catEstilo) === 'marca') e.hlc = _hexRgb(src.catCor); }
+  });
+  _catPopAberto = null;
+  _renderCanvas();
+  _scheduleCanvasSave();
+  showToast('Estilo aplicado a todas as categorias');
+}
+
+// nova coluna de categoria no fim do quadro
+function addCategoriaCampanha() {
+  if (!_modoCampanha() || !edEvent.canvas) return;
+  const n = edEvent.canvas.filter(e => e.tpl === 'cat').length;
+  const x = PLAN_X0 + n * _campColW(); // depois do último cabeçalho; o reflow acerta o grid
+  const titulo = edEvent.canvas.find(e => e.tpl === 'titulo');
+  const y = titulo ? (titulo.y || 20) + 70 : 90;
+  const hdr = { id: _uid(), type: 'text', tpl: 'cat', x: x + 10, y, w: 170, h: 36,
+    content: 'Nova categoria', bold: true, fs: 16, hl: true, hlc: '110,225,120', color: '' };
+  edEvent.canvas.push(hdr);
+  edEvent.canvas.push({ id: _uid(), type: 'add', x, y: y + 60, w: 190, h: 40 });
+  _renderCanvas();
+  _scheduleCanvasSave();
+  if (_planMobile()) irParaDia(n, true);
+  setTimeout(() => {
+    const nd = document.querySelector(`[data-id="${hdr.id}"] .cn-content`);
+    if (nd) { nd.contentEditable = 'true'; nd.focus(); try { document.execCommand('selectAll', false, null); } catch (e) {} }
+  }, 30);
+}
+
+async function excluirCampanhaQuadro() {
+  if (!edEvent || !edEvent.campId) return;
+  const id = edEvent.campId;
+  await deletarCampanha(id);
+  if (!campanhas.find(x => x.id === id)) { closeEventDetail(); renderView(); }
 }
 
 function renderCampanhaCards(elId, camps, append=false) {
@@ -3519,11 +4021,13 @@ function abrirCampanha(data, id) {
       document.getElementById('camp-ideia').value  = c.ideia  || '';
       document.getElementById('camp-video').value  = c.video_link || '';
       document.getElementById('camp-status').value = c.status || 'rascunho';
+      _setAntPills(_prepDe(c).antecedencia);
     }
   } else {
     ['camp-titulo','camp-ideia','camp-video'].forEach(i => document.getElementById(i).value='');
     document.getElementById('camp-canal').value  = 'Instagram';
     document.getElementById('camp-status').value = 'rascunho';
+    _setAntPills(30);
   }
   _syncPillsFromModal();
   openModal('modal-campanha');
@@ -3537,17 +4041,22 @@ async function salvarCampanha() {
   const video_link = document.getElementById('camp-video').value.trim();
   const status     = document.getElementById('camp-status').value;
   if (!data_campanha || !titulo) { showToast('Preencha data e t\u00edtulo','error'); return; }
+  const antecedencia = _antSelecionada();
   let error;
   if (campEditId) {
-    ({ error } = await sb.from('campanhas').update({ titulo, canal, ideia:ideia||null, video_link:video_link||null, status }).eq('id', campEditId));
+    const c = campanhas.find(x => x.id === campEditId);
+    const prep = { antecedencia, canvas: c ? _prepDe(c).canvas : [] };
+    ({ error } = await sb.from('campanhas').update({ data_campanha, titulo, canal, ideia:ideia||null, video_link:video_link||null, status, prep }).eq('id', campEditId));
   } else {
-    ({ error } = await sb.from('campanhas').insert({ data_campanha, titulo, canal, ideia:ideia||null, video_link:video_link||null, status }));
+    // nova campanha nasce com os bra\u00e7os padr\u00e3o do organograma
+    ({ error } = await sb.from('campanhas').insert({ data_campanha, titulo, canal, ideia:ideia||null, video_link:video_link||null, status, prep: { antecedencia, canvas: [] } }));
   }
   if (error) { showToast('Erro: '+error.message,'error'); return; }
   closeModal('modal-campanha');
   campEditId = null;
   await loadEventosLoja();
   if (diaAberto) { showDayEvents(diaAberto, parseInt(diaAberto.split('-')[2])); }
+  else renderView();
   showToast('Campanha salva!');
 }
 
