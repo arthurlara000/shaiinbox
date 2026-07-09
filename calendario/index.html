@@ -3561,13 +3561,24 @@ function _reflowCampanha() {
   _renderPlanBadges(); // divisores e linhas do organograma acompanham o novo grid
 }
 
-// quadro de campanha se ajusta quando a janela muda de tamanho
+// quadro de campanha se ajusta quando a tela muda de tamanho (split-screen, girar celular, zoom)
 let _campResizeTimer = null;
-window.addEventListener('resize', () => {
+let _campUltimaLargura = 0;
+function _campAoRedimensionar() {
   if (!_modoCampanha()) return;
+  const canvas = document.getElementById('ed-canvas');
+  if (!canvas || canvas.clientWidth === _campUltimaLargura) return;
+  _campUltimaLargura = canvas.clientWidth;
   clearTimeout(_campResizeTimer);
-  _campResizeTimer = setTimeout(() => _renderCanvas(), 150);
-});
+  _campResizeTimer = setTimeout(() => {
+    _renderCanvas();
+    setTimeout(_reflowPlanejamento, 50); // garante o reflow mesmo se o do render se perder
+  }, 150);
+}
+window.addEventListener('resize', _campAoRedimensionar);
+if (window.ResizeObserver) {
+  new ResizeObserver(_campAoRedimensionar).observe(document.getElementById('ed-canvas'));
+}
 
 function _focusCardField(id, cls, idx) {
   setTimeout(() => {
