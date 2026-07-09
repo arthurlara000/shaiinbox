@@ -522,6 +522,12 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   }
 }
 
+/* risco suave entre as colunas dos dias */
+.plan-divisor {
+  position: absolute; width: 0; pointer-events: none; z-index: 1;
+  border-left: 1.5px dashed #d9d3c9;
+}
+
 /* selos de comemorativa/campanha no cabeçalho do dia */
 .plan-badges {
   position: absolute; display: flex; flex-direction: column; gap: 3px;
@@ -3022,6 +3028,18 @@ function _renderPlanBadges() {
   _planBadgeH = {};
   if (!_modoPlanejamento() || !edEvent) return;
   const world = document.getElementById('ed-world');
+  // risco suave dividindo os dias
+  const els = edEvent.canvas || [];
+  const fimY = els.length ? Math.max(...els.map(e => (e.y || 0) + (e.h || 170))) : 600;
+  const altura = Math.max(900, fimY + 400);
+  for (let c = 1; c <= 5; c++) {
+    const d = document.createElement('div');
+    d.className = 'plan-divisor';
+    d.style.left = (PLAN_X0 + c * PLAN_COLW - 25) + 'px';
+    d.style.top = '70px';
+    d.style.height = altura + 'px';
+    world.appendChild(d);
+  }
   const [y0, m0, d0] = edEvent.data.split('-').map(Number);
   const isHeader = e => e.type === 'text' &&
     DIAS_TPL.some(n => n.toLowerCase() === (e.content || '').trim().toLowerCase());
