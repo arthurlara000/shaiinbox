@@ -234,6 +234,44 @@ tr:hover td { background: var(--surface2); }
 </head>
 <body>
 
+<!-- PORTÃO DE LOGIN DA EQUIPE -->
+<style>
+#auth-gate {
+  position: fixed; inset: 0; z-index: 998; background: var(--bg);
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; padding: 24px; text-align: center;
+}
+#auth-gate.show { display: flex; }
+.auth-gate-logo { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--accent); }
+.auth-gate-sub { font-size: .85rem; color: var(--text-muted); margin-bottom: 18px; }
+.auth-gate-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: 24px; width: 100%; max-width: 340px;
+}
+#auth-gate input {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px; color: var(--text);
+  font-size: 1rem; font-family: 'DM Sans', sans-serif; outline: none; box-sizing: border-box;
+}
+#auth-gate input:focus { border-color: var(--accent); }
+#auth-gate button {
+  width: 100%; margin-top: 12px; background: var(--accent); color: #fff;
+  border: none; border-radius: 10px; padding: 12px; font-size: .95rem;
+  font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer;
+}
+.auth-gate-err { font-size: .8rem; color: var(--red, #e05252); margin-top: 10px; min-height: 18px; text-align: center; }
+</style>
+<div id="auth-gate">
+  <div class="auth-gate-logo">Shai</div>
+  <div class="auth-gate-sub">Manager — acesso da equipe</div>
+  <div class="auth-gate-card">
+    <input type="password" id="gate-senha" placeholder="Senha da equipe" autocomplete="current-password"
+      onkeydown="if(event.key==='Enter')gateEntrar()">
+    <button onclick="gateEntrar()">Entrar</button>
+    <div class="auth-gate-err" id="gate-erro"></div>
+  </div>
+</div>
+
 <div class="header">
   <div class="logo">Shai <span>Manager</span></div>
   <div id="header-semana" style="font-size:0.8rem;color:var(--text-muted)"></div>
@@ -2143,7 +2181,25 @@ async function init() {
   await loadFuncionarias();
   await loadDashboard();
 }
-init();
+// ===== BOOT (com login da equipe) =====
+const EQUIPE_EMAIL = 'equipe@shai.local';
+
+async function gateEntrar() {
+  const senha = document.getElementById('gate-senha').value;
+  const err = document.getElementById('gate-erro');
+  err.textContent = '';
+  if (!senha) { err.textContent = 'Digite a senha.'; return; }
+  const { error } = await sb.auth.signInWithPassword({ email: EQUIPE_EMAIL, password: senha });
+  if (error) { err.textContent = 'Senha incorreta.'; return; }
+  document.getElementById('auth-gate').classList.remove('show');
+  init();
+}
+
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) init();
+  else document.getElementById('auth-gate').classList.add('show');
+})();
 </script>
 </body>
 </html>

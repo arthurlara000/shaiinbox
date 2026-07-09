@@ -827,6 +827,32 @@ textarea.form-input { resize: none; height: 76px; }
 }
 .plano-post-ck-prog { font-size: .66rem; font-weight: 700; color: var(--green); }
 
+/* PORTÃO DE LOGIN DA EQUIPE */
+#auth-gate {
+  position: fixed; inset: 0; z-index: 998; background: var(--bg);
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; padding: 24px; text-align: center;
+}
+#auth-gate.show { display: flex; }
+.auth-gate-logo { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--accent); }
+.auth-gate-sub { font-size: .85rem; color: var(--text-muted); margin-bottom: 18px; }
+.auth-gate-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: 24px; width: 100%; max-width: 340px;
+}
+#auth-gate input {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px; color: var(--text);
+  font-size: 1rem; font-family: 'DM Sans', sans-serif; outline: none; box-sizing: border-box;
+}
+#auth-gate input:focus { border-color: var(--accent); }
+#auth-gate button {
+  width: 100%; margin-top: 12px; background: var(--accent); color: #fff;
+  border: none; border-radius: 10px; padding: 12px; font-size: .95rem;
+  font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer;
+}
+.auth-gate-err { font-size: .8rem; color: var(--red); margin-top: 10px; min-height: 18px; text-align: center; }
+
 /* TOAST */
 #toast {
   position: fixed; bottom: calc(88px + env(safe-area-inset-bottom, 0px)); left: 50%;
@@ -1235,6 +1261,18 @@ textarea.form-input { resize: none; height: 76px; }
     <div class="btn-row"><button class="btn btn-ghost" onclick="closeModal('modal-campanha')">Cancelar</button><button class="btn btn-primary" onclick="salvarCampanha()">Salvar</button></div>
   </div>
 </div>
+<!-- PORTÃO DE LOGIN DA EQUIPE -->
+<div id="auth-gate">
+  <div class="auth-gate-logo">Shai</div>
+  <div class="auth-gate-sub">Calendário — acesso da equipe</div>
+  <div class="auth-gate-card">
+    <input type="password" id="gate-senha" placeholder="Senha da equipe" autocomplete="current-password"
+      onkeydown="if(event.key==='Enter')gateEntrar()">
+    <button onclick="gateEntrar()">Entrar</button>
+    <div class="auth-gate-err" id="gate-erro"></div>
+  </div>
+</div>
+
 <!-- MODAL: PLANEJADO DO DIA -->
 <div class="modal-overlay center" id="modal-plano">
   <div class="modal" style="max-height:85vh;overflow-y:auto;">
@@ -3584,9 +3622,30 @@ function showToast(msg, type='success') {
   setTimeout(() => t.className='', 3000);
 }
 
-// ===== BOOT =====
-setView('mensal');
-loadEventosLoja();
+// ===== BOOT (com login da equipe) =====
+const EQUIPE_EMAIL = 'equipe@shai.local';
+
+function _bootCalendario() {
+  setView('mensal');
+  loadEventosLoja();
+}
+
+async function gateEntrar() {
+  const senha = document.getElementById('gate-senha').value;
+  const err = document.getElementById('gate-erro');
+  err.textContent = '';
+  if (!senha) { err.textContent = 'Digite a senha.'; return; }
+  const { error } = await sb.auth.signInWithPassword({ email: EQUIPE_EMAIL, password: senha });
+  if (error) { err.textContent = 'Senha incorreta.'; return; }
+  document.getElementById('auth-gate').classList.remove('show');
+  _bootCalendario();
+}
+
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) _bootCalendario();
+  else document.getElementById('auth-gate').classList.add('show');
+})();
 </script>
 </body>
 </html>
