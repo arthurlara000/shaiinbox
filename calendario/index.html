@@ -116,6 +116,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .ev-pill.more         { background: none; color: var(--text-muted); font-size: 0.52rem; padding: 0 4px; }
 .ev-pill.plano        { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
 .ev-pill.plano i      { font-size: 0.5rem; }
+.ev-pill.plano.ok     { background: color-mix(in srgb, var(--green) 18%, transparent); color: var(--green); }
 
 /* ── ANUAL ─────────────────────────────── */
 #view-anual { padding: 0 10px; max-width: 480px; margin: 0 auto; display: none; }
@@ -521,6 +522,28 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
     color: var(--text);
   }
 }
+
+/* esqueleto do quadro (título e dias): fixo, sem editar/apagar/selecionar */
+.cn-tpl { cursor: default !important; pointer-events: none; user-select: none; }
+
+/* status do post: ideia → gravado → postado */
+.cn-st {
+  position: absolute; top: 12px; left: 12px; z-index: 5;
+  display: flex; align-items: center; gap: 4px;
+  border: none; border-radius: 20px; padding: 3px 9px;
+  font-size: .6rem; font-weight: 700; font-family: inherit; cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,.18);
+}
+.cn-st.st-ideia   { background: #efece6; color: #8d867c; }
+.cn-st.st-gravado { background: #f3e2b3; color: #7a5f1e; }
+.cn-st.st-postado { background: #52b88a; color: #fff; }
+.cn-card .cn-st { position: static; margin-left: auto; box-shadow: none; }
+.plano-post-st {
+  font-size: .6rem; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+}
+.plano-post-st.st-ideia   { background: #efece6; color: #8d867c; }
+.plano-post-st.st-gravado { background: #f3e2b3; color: #7a5f1e; }
+.plano-post-st.st-postado { background: #52b88a; color: #fff; }
 
 /* risco suave entre as colunas dos dias */
 .plan-divisor {
@@ -1523,7 +1546,17 @@ function renderMensal() {
     });
     if (evs.length>2) html += `<div class="ev-pill more">+${evs.length-2}</div>`;
     const planos = planoMap[dataStr];
-    if (planos && planos.length) html += `<div class="ev-pill plano"><i class="ti ti-player-play"></i> ${planos.length} post${planos.length>1?'s':''}</div>`;
+    if (planos && planos.length) {
+      const posts = _agruparPosts(planos);
+      if (posts.length) {
+        const prontos = posts.filter(p => (p[0].st) === 'postado').length;
+        const tudoOk = prontos === posts.length;
+        const lbl = prontos
+          ? `<i class="ti ti-check"></i> ${prontos}/${posts.length}`
+          : `<i class="ti ti-player-play"></i> ${posts.length} post${posts.length>1?'s':''}`;
+        html += `<div class="ev-pill plano${tudoOk?' ok':''}">${lbl}</div>`;
+      }
+    }
     const hasCamp = campanhas.some(c => c.data_campanha===dataStr);
     if (hasCamp) html += `<span class="campanha-dot" title="Tem campanha"></span>`;
     el.innerHTML = html;
@@ -1954,6 +1987,7 @@ function _renderCanvas() {
         ontouchstart="elTouchStart(event,'${el.id}')">
         <button class="cn-del" title="Excluir" onclick="event.stopPropagation();deleteEl('${el.id}')" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-trash"></i></button>
         ${_photoFrameHTML(el)}
+        ${_stChipHTML(el)}
         ${_handlesHTML(el.id)}
       </div>`;
     }
@@ -1964,6 +1998,7 @@ function _renderCanvas() {
         ontouchstart="elTouchStart(event,'${el.id}')">
         <button class="cn-del" title="Excluir" onclick="event.stopPropagation();deleteEl('${el.id}')" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-trash"></i></button>
         ${_videoFrameHTML(el)}
+        ${_stChipHTML(el)}
         ${_handlesHTML(el.id)}
       </div>`;
     }
@@ -2028,13 +2063,20 @@ function _renderCanvas() {
         onmousedown="elMouseDown(event,'${el.id}')"
         ontouchstart="elTouchStart(event,'${el.id}')">
         <button class="cn-del" title="Excluir" onclick="event.stopPropagation();deleteEl('${el.id}')" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-trash"></i></button>
-        <div class="cn-card-head"><i class="ti ti-chart-bar"></i> Enquete</div>
+        <div class="cn-card-head"><i class="ti ti-chart-bar"></i> Enquete ${_stChipHTML(el)}</div>
         <div class="pq-q" contenteditable="true" data-ph="Pergunta..."
           onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"
           onblur="pqSaveQ('${el.id}',this)">${_esc(el.q || '')}</div>
         ${rows}
         <button class="ck-add-row" onclick="event.stopPropagation();pqAddOpt('${el.id}')"
           onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-plus"></i> opção</button>
+      </div>`;
+    }
+    // esqueleto do planejamento (título/dias): renderiza fixo, sem interação
+    if (_modoPlanejamento() && _ehTplEl(el)) {
+      return `<div class="cn-el cn-text cn-tpl" data-id="${el.id}"
+        style="left:${el.x}px;top:${el.y}px;width:${el.w||200}px${el.h?`;height:${el.h}px`:''};${_wrapStyle(el)}">
+        <div class="cn-content${el.hl ? ' hl' : ''}" style="${_textStyle(el)}">${el.content||''}</div>
       </div>`;
     }
     return `<div class="cn-el cn-text${sel}" data-id="${el.id}"
@@ -2711,19 +2753,9 @@ function abrirPlanoDia(dataStr, planos) {
   document.getElementById('plano-titulo').textContent =
     `Planejado — ${DOWS[dt.getDay()]} ${d}/${m}`;
   const list = document.getElementById('plano-list');
-  // agrupa os módulos da coluna em posts: cada foto/vídeo/enquete abre um post
-  // e puxa os textos e checklists que vêm logo depois
-  const ordenados = [...planos].sort((a, b) => (a.y || 0) - (b.y || 0));
   const isMedia = e => (e.type === 'video' || e.type === 'photo') && e.url;
   const isTexto = e => (e.type === 'text' || e.type === 'postit') && (e.content || '').trim();
-  const temConteudo = e => isMedia(e) || isTexto(e)
-    || (e.type === 'checklist' && (e.items || []).some(i => (i.t || '').trim()))
-    || (e.type === 'enquete' && ((e.q || '').trim() || (e.opts || []).some(o => (o.t || '').trim())));
-  const posts = [];
-  ordenados.filter(temConteudo).forEach(el => {
-    if (isMedia(el) || el.type === 'enquete' || !posts.length) posts.push([el]);
-    else posts[posts.length - 1].push(el);
-  });
+  const posts = _agruparPosts(planos);
 
   const textoHTML = el => el.type === 'postit'
     ? `<div class="plano-mod-postit" style="background:${el.color || '#fef3a7'}">${el.content}</div>`
@@ -2766,10 +2798,14 @@ function abrirPlanoDia(dataStr, planos) {
     }
     corpo += enqs.map(enqHTML).join('');
     corpo += cks.map(ckHTML).join('');
+    const st = p[0].st || 'ideia';
     return `<div class="plano-post">
       <div class="plano-post-head">
         <div class="plano-post-num">POST ${n + 1}</div>
-        <div class="plano-post-tipo">${tipo}</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="plano-post-st st-${st}">${ST_POST[st][1]}</span>
+          <div class="plano-post-tipo">${tipo}</div>
+        </div>
       </div>${corpo}</div>`;
   }).join('') || '<div class="empty">Nada planejado para este dia</div>';
   const cnt = document.getElementById('plano-count');
@@ -2969,6 +3005,49 @@ function addModulo(addId, tipo) {
 // ── CHECKLIST E ENQUETE ───────────────────────────────
 function _esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function _cardEl(id) { return edEvent && edEvent.canvas ? edEvent.canvas.find(x => x.id === id) : null; }
+
+// título e nomes dos dias do modelo — fixos (o app usa o texto deles
+// para saber a qual dia cada post pertence; bold+marca-texto vem do modelo)
+function _ehTplEl(el) {
+  if (el.type !== 'text' || !el.bold || !el.hl) return false;
+  const t = (el.content || '').trim().toLowerCase();
+  return t === 'planejamento semanal' || DIAS_TPL.some(n => n.toLowerCase() === t);
+}
+
+// ── STATUS DO POST (ideia → gravado → postado) ────────
+const ST_POST = { ideia: ['ti-bulb', 'Ideia'], gravado: ['ti-movie', 'Gravado'], postado: ['ti-check', 'Postado'] };
+
+function _stChipHTML(el) {
+  if (!_modoPlanejamento()) return '';
+  const s = el.st || 'ideia';
+  return `<button class="cn-st st-${s}" title="Toque para mudar o status"
+    onclick="event.stopPropagation();cicloStatus('${el.id}')"
+    onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+    <i class="ti ${ST_POST[s][0]}"></i><span>${ST_POST[s][1]}</span></button>`;
+}
+
+function cicloStatus(id) {
+  const el = _cardEl(id); if (!el) return;
+  el.st = el.st === 'gravado' ? 'postado' : (el.st === 'postado' ? 'ideia' : 'gravado');
+  _renderCanvas();
+  _scheduleCanvasSave();
+}
+
+// agrupa módulos de um dia em posts: foto/vídeo/enquete abre um post
+// e puxa textos e checklists seguintes (mesma regra do modal)
+function _agruparPosts(planos) {
+  const isMedia = e => (e.type === 'video' || e.type === 'photo') && e.url;
+  const temConteudo = e => isMedia(e)
+    || ((e.type === 'text' || e.type === 'postit') && (e.content || '').trim())
+    || (e.type === 'checklist' && (e.items || []).some(i => (i.t || '').trim()))
+    || (e.type === 'enquete' && ((e.q || '').trim() || (e.opts || []).some(o => (o.t || '').trim())));
+  const posts = [];
+  [...planos].sort((a, b) => (a.y || 0) - (b.y || 0)).filter(temConteudo).forEach(el => {
+    if (isMedia(el) || el.type === 'enquete' || !posts.length) posts.push([el]);
+    else posts[posts.length - 1].push(el);
+  });
+  return posts;
+}
 
 // tamanho real do card (muda com os itens) — usado no empilhamento e no pan
 function _syncCardH(id) {
