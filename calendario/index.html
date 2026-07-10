@@ -430,6 +430,27 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 }
 .cn-add-pc-mini:hover { transform: scale(1.25); }
 
+/* quebra de post: divisor manual entre posts na coluna */
+.cn-quebra {
+  display: flex; align-items: center; gap: 6px;
+  padding: 2px 4px; cursor: default; background: transparent;
+}
+.cn-quebra-linha { flex: 1; border-top: 2px dashed var(--text-muted); opacity: .45; }
+.cn-quebra-lbl {
+  display: flex; align-items: center; gap: 4px;
+  font-size: .66rem; font-weight: 600; letter-spacing: .04em;
+  color: var(--text-muted); white-space: nowrap; text-transform: uppercase;
+}
+.cn-quebra-btn {
+  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--text-muted); font-size: .68rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: color .12s, border-color .12s;
+}
+.cn-quebra-btn:hover { color: var(--text); border-color: var(--text-muted); }
+.cn-quebra-btn.x:hover { color: var(--red); border-color: var(--red); }
+
 /* checklist e enquete — sem moldura, só o conteúdo no quadro */
 .cn-card {
   background: transparent; border-radius: 12px; padding: 4px 6px;
@@ -2275,7 +2296,22 @@ function _renderCanvas() {
           </div>
           <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','checklist')"><i class="ti ti-list-check"></i> Checklist</button>
           <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','enquete')"><i class="ti ti-chart-bar"></i> Enquete</button>
+          <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','quebra')"><i class="ti ti-scissors"></i> Quebra de post</button>
         </div>
+      </div>`;
+    }
+    if (el.type === 'quebra') {
+      return `<div class="cn-el cn-quebra" data-id="${el.id}"
+        style="left:${el.x}px;top:${el.y}px;width:${el.w||190}px;height:${el.h||28}px">
+        <button class="cn-quebra-btn" title="Mover para cima" onclick="event.stopPropagation();moverQuebra('${el.id}',-1)"
+          onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-arrow-up"></i></button>
+        <button class="cn-quebra-btn" title="Mover para baixo" onclick="event.stopPropagation();moverQuebra('${el.id}',1)"
+          onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-arrow-down"></i></button>
+        <div class="cn-quebra-linha"></div>
+        <div class="cn-quebra-lbl"><i class="ti ti-scissors"></i> novo post</div>
+        <div class="cn-quebra-linha"></div>
+        <button class="cn-quebra-btn x" title="Excluir quebra" onclick="event.stopPropagation();deleteEl('${el.id}')"
+          onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-x"></i></button>
       </div>`;
     }
     if (el.type === 'checklist') {
@@ -3031,7 +3067,8 @@ function _planejadoPorDia(board) {
   board.canvas.forEach(el => {
     if (el.type === 'add') return;
     const txt = (el.content || '').trim();
-    const cheio = (el.url && el.url.trim()) || txt
+    const cheio = el.type === 'quebra' // quebra não tem conteúdo, mas define a divisão dos posts
+      || (el.url && el.url.trim()) || txt
       || (el.items || []).some(i => (i.t || '').trim())
       || (el.q || '').trim()
       || (el.opts || []).some(o => (o.t || '').trim());
@@ -3288,7 +3325,7 @@ function addModulo(addId, tipo, cor) {
   if (!edEvent || !edEvent.canvas) return;
   const add = edEvent.canvas.find(x => x.id === addId);
   if (!add) return;
-  const h = tipo === 'text' ? 60 : tipo === 'postit' ? 90 : 170; // checklist e enquete abrem no tamanho padrão das caixas de foto/vídeo
+  const h = tipo === 'text' ? 60 : tipo === 'postit' ? 90 : tipo === 'quebra' ? 28 : 170; // checklist e enquete abrem no tamanho padrão das caixas de foto/vídeo
   // + de reposição pode ter herdado largura estreita de uma caixa excluída — módulo novo nunca abre menor que o padrão
   const el = { id: _uid(), type: tipo, x: add.x, y: add.y, w: Math.max(add.w || 190, 170), h, content: '',
     color: tipo === 'postit' ? (cor || edPostitColor || '#fef3a7') : '' };
@@ -3342,7 +3379,8 @@ function cicloStatus(id) {
   _scheduleCanvasSave();
 }
 
-// agrupa módulos de um dia em posts: foto/vídeo/enquete abre um post
+// agrupa módulos de um dia em posts: se o dia tem quebras de post,
+// elas mandam (divisão manual); senão, foto/vídeo/enquete abre um post
 // e puxa textos e checklists seguintes (mesma regra do modal)
 function _agruparPosts(planos) {
   const isMedia = e => (e.type === 'video' || e.type === 'photo') && e.url;
@@ -3350,12 +3388,40 @@ function _agruparPosts(planos) {
     || ((e.type === 'text' || e.type === 'postit') && (e.content || '').trim())
     || (e.type === 'checklist' && (e.items || []).some(i => (i.t || '').trim()))
     || (e.type === 'enquete' && ((e.q || '').trim() || (e.opts || []).some(o => (o.t || '').trim())));
+  const ordenados = [...planos].sort((a, b) => (a.y || 0) - (b.y || 0));
   const posts = [];
-  [...planos].sort((a, b) => (a.y || 0) - (b.y || 0)).filter(temConteudo).forEach(el => {
+  if (ordenados.some(e => e.type === 'quebra')) {
+    let atual = [];
+    ordenados.forEach(el => {
+      if (el.type === 'quebra') { if (atual.length) posts.push(atual); atual = []; return; }
+      if (temConteudo(el)) atual.push(el);
+    });
+    if (atual.length) posts.push(atual);
+    return posts;
+  }
+  ordenados.filter(temConteudo).forEach(el => {
     if (isMedia(el) || el.type === 'enquete' || !posts.length) posts.push([el]);
     else posts[posts.length - 1].push(el);
   });
   return posts;
+}
+
+// move a quebra de post para cima/baixo dentro da coluna (dir: -1 / +1)
+function moverQuebra(id, dir) {
+  if (!edEvent || !edEvent.canvas) return;
+  const el = edEvent.canvas.find(x => x.id === id);
+  if (!el) return;
+  // vizinhos: módulos da mesma coluna (x alinhado pelo reflow), sem cabeçalhos nem o +
+  const fila = edEvent.canvas
+    .filter(e => e.type !== 'add' && !_bIsHeader(e) && !_bIsTitulo(e) &&
+      Math.abs((e.x || 0) - (el.x || 0)) < 60)
+    .sort((a, b) => (a.y || 0) - (b.y || 0));
+  const i = fila.indexOf(el);
+  const viz = fila[i + dir];
+  if (!viz) return; // já está na ponta da coluna
+  el.y = (viz.y || 0) + dir; // passa do vizinho; o reflow reempilha certinho
+  _renderCanvas();
+  _scheduleCanvasSave();
 }
 
 // tamanho real do card (muda com os itens) — usado no empilhamento e no pan
