@@ -2412,6 +2412,7 @@ function _renderCanvas() {
           <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','photo')"><svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="3" fill="#35b678"/><circle cx="9" cy="10" r="1.9" fill="#ffe066"/><path fill="#177a4b" d="M5 19.5h14.4l-4-5-2.6 3-3-3.4z"/></svg> Caixa de foto</button>
           <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','video')"><svg viewBox="0 0 24 24"><rect x="2.5" y="5.5" width="14" height="13" rx="3" fill="#ff5757"/><path fill="#fff" d="M8.5 9.6v4.8l4.2-2.4z"/><path fill="#ff5757" d="M18 10.2l3.5-2.2a.8.8 0 0 1 1.2.7v6.6a.8.8 0 0 1-1.2.7L18 13.8z"/></svg> Caixa de vídeo</button>
           <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','text')"><svg viewBox="0 0 24 24"><path fill="#8b5cf6" d="M5 4h14a1 1 0 0 1 1 1v3h-3V7h-3.5v10H16v3H8v-3h2.5V7H7v1H4V5a1 1 0 0 1 1-1z"/></svg> Caixa de texto</button>
+          <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','postit')"><svg viewBox="0 0 24 24"><path fill="#ffcf3f" d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8l-6 6H6a2 2 0 0 1-2-2z"/><path fill="#e9a71c" d="M20 14l-6 6v-4a2 2 0 0 1 2-2z"/></svg> Post-it</button>
           <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','checklist')"><svg viewBox="0 0 24 24"><rect x="3" y="3.5" width="18" height="17" rx="3" fill="#14b8a6"/><path fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M6.5 8.8l1.4 1.4 2.4-2.8"/><path stroke="#fff" stroke-width="1.8" stroke-linecap="round" d="M13 9h4.5"/><path fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M6.5 15.3l1.4 1.4 2.4-2.8"/><path stroke="#fff" stroke-width="1.8" stroke-linecap="round" d="M13 15.5h4.5"/></svg> Checklist</button>
           <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','enquete')"><svg viewBox="0 0 24 24"><rect x="3" y="3.5" width="18" height="17" rx="3" fill="#ff9f2e"/><rect x="6.5" y="11" width="2.8" height="6" rx="1" fill="#fff"/><rect x="10.7" y="7.5" width="2.8" height="9.5" rx="1" fill="#fff"/><rect x="14.9" y="9.5" width="2.8" height="7.5" rx="1" fill="#fff"/></svg> Enquete</button>
           <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','divisor')"><svg viewBox="0 0 24 24"><path stroke="#c4b5a4" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="2.5 3.2" d="M3 12h18" fill="none"/><g fill="#ec4899"><circle cx="6.5" cy="6.5" r="2.1"/><circle cx="6.5" cy="17.5" r="2.1"/><path d="M8.3 8 16.9 14.7l-1.1 1.5-8.6-6.7z"/><path d="M8.3 16 16.9 9.3l-1.1-1.5-8.6 6.7z"/></g><circle cx="19" cy="12" r="1.3" fill="#ec4899"/></svg> Quebra de post</button>
@@ -3613,9 +3614,9 @@ function addModulo(addId, tipo) {
   if (!edEvent || !edEvent.canvas) return;
   const add = edEvent.canvas.find(x => x.id === addId);
   if (!add) return;
-  const h = tipo === 'text' ? 60 : tipo === 'divisor' ? 22 : 170; // checklist e enquete abrem no tamanho padrão das caixas de foto/vídeo
+  const h = tipo === 'text' ? 60 : tipo === 'divisor' ? 22 : tipo === 'postit' ? 150 : 170; // checklist e enquete abrem no tamanho padrão das caixas de foto/vídeo
   // + de reposição pode ter herdado largura estreita de uma caixa excluída — módulo novo nunca abre menor que o padrão
-  const el = { id: _uid(), type: tipo, x: add.x, y: add.y, w: Math.max(add.w || 190, 170), h, content: '', color: '' };
+  const el = { id: _uid(), type: tipo, x: add.x, y: add.y, w: Math.max(add.w || 190, 170), h, content: '', color: tipo === 'postit' ? edPostitColor : '' };
   if (tipo === 'checklist') el.items = [{ t: '', done: false }];
   if (tipo === 'enquete') el.opts = [{ t: '' }, { t: '' }];
   edEvent.canvas.push(el);
