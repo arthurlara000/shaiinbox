@@ -7,26 +7,27 @@
 <link rel="icon" type="image/svg+xml" href="assets/icon-calendario.svg">
 <link rel="apple-touch-icon" href="assets/icon.png">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#f4f2ee">
+<meta name="theme-color" content="#f5f1ea">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Shai Calendário">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 document.addEventListener('DOMContentLoaded',()=>{const ta=document.getElementById('camp-ideia');if(ta)ta.addEventListener('input',()=>{const el=document.getElementById('camp-ideia-count');if(el)el.textContent=ta.value.length;});});
 </script>
 <style>
 :root {
-  --bg: #f4f2ee;
-  --surface: #faf9f6;
-  --surface2: #ede9e2;
-  --border: #dbd5cc;
-  --text: #1a1814;
-  --text-muted: #9a9490;
-  --accent: #5b4fcf;
+  --bg: #f5f1ea;
+  --surface: #fbf8f3;
+  --surface2: #efe8dd;
+  --border: #ddd2c2;
+  --text: #2b2118;
+  --text-muted: #a08b76;
+  --accent: #a5713d;
+  --choco: #8a5a36;
   --green: #3a9a6a;
   --red: #c44848;
   --yellow: #b87830;
@@ -239,6 +240,14 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   flex-shrink: 0; transition: background 0.15s;
 }
 .ed-topbar-action:hover { background: var(--surface2); color: var(--text); }
+/* cor por função — estilo canva */
+.plan-week-nav i, .camp-print i { color: var(--choco); }
+.plan-copy i, .camp-add-cat i { color: #38a8ff; }
+.plan-reset i, .camp-trash i { color: #ff5757; }
+.btn-campanha i { color: #ff9f2e; }
+.btn-acoes i { color: #14b8a6; }
+.ed-topbar-action i { transition: transform .15s; display: inline-block; }
+.ed-topbar-action:hover i { transform: translateY(-1px) scale(1.15); }
 .ed-save-btn {
   display: flex; align-items: center; gap: 6px;
   background: var(--accent); color: #fff; border: none;
@@ -390,6 +399,17 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   align-items: center; justify-content: center;
 }
 .cn-el.selected .cn-video-edit { display: flex; }
+/* capa do vídeo: cola um print e vira a thumbnail */
+.cn-video-capa {
+  position: absolute; top: 6px; right: 34px;
+  width: 24px; height: 24px; border-radius: 6px;
+  background: rgba(0,0,0,.55); border: none; color: #fff;
+  font-size: 0.7rem; cursor: pointer; display: none;
+  align-items: center; justify-content: center;
+}
+.cn-el.selected .cn-video-capa,
+.cn-el:hover .cn-video-capa,
+.cn-el:hover .cn-video-edit { display: flex; }
 .cn-video-frame img { pointer-events: none; user-select: none; }
 .cn-video-setup .ti-loader-2 { animation: cnspin 1s linear infinite; }
 @keyframes cnspin { to { transform: rotate(360deg); } }
@@ -421,35 +441,9 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 }
 .cn-add-opt:hover { background: var(--surface2); }
 .cn-add-opt i { color: var(--text-muted); }
-/* opção post-it: bolinhas de cor dentro da própria linha */
-.cn-add-pcs { display: flex; gap: 5px; margin-left: auto; padding-left: 8px; }
-.cn-add-pc-mini {
-  width: 15px; height: 15px; border-radius: 50%; cursor: pointer;
-  border: 1px solid rgba(0,0,0,.15); flex-shrink: 0;
-  transition: transform .12s;
-}
-.cn-add-pc-mini:hover { transform: scale(1.25); }
-
-/* quebra de post: divisor manual entre posts na coluna */
-.cn-quebra {
-  display: flex; align-items: center; gap: 6px;
-  padding: 2px 4px; cursor: default; background: transparent;
-}
-.cn-quebra-linha { flex: 1; border-top: 2px dashed var(--text-muted); opacity: .45; }
-.cn-quebra-lbl {
-  display: flex; align-items: center; gap: 4px;
-  font-size: .66rem; font-weight: 600; letter-spacing: .04em;
-  color: var(--text-muted); white-space: nowrap; text-transform: uppercase;
-}
-.cn-quebra-btn {
-  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
-  border: 1px solid var(--border); background: var(--surface);
-  color: var(--text-muted); font-size: .68rem; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: color .12s, border-color .12s;
-}
-.cn-quebra-btn:hover { color: var(--text); border-color: var(--text-muted); }
-.cn-quebra-btn.x:hover { color: var(--red); border-color: var(--red); }
+.cn-add-opt svg { width: 17px; height: 17px; flex-shrink: 0; }
+.cn-add-opt:hover svg { transform: scale(1.15); }
+.cn-add-opt svg { transition: transform .15s; }
 
 /* checklist e enquete — sem moldura, só o conteúdo no quadro */
 .cn-card {
@@ -602,6 +596,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 }
 
 /* categoria do quadro de campanha: 3 estilos de caixa + cor */
+.cn-cat .cn-content { white-space: nowrap; } /* nome do braço nunca quebra em duas linhas */
 .cn-cat.estilo-cartao {
   background: #fff; border: 1px solid #dbd5cc; border-top: 4px solid var(--catcor, #3a9a6a);
   border-radius: 10px; padding: 7px 10px; box-shadow: 0 1px 4px rgba(0,0,0,.06); text-align: center;
@@ -639,6 +634,83 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .cat-aplicar {
   background: none; border: none; color: var(--accent); font-size: .7rem; font-weight: 600;
   cursor: pointer; font-family: inherit; padding: 2px 0 0; text-align: left;
+}
+
+/* enviar o dia pro WhatsApp */
+.btn-whats { background: #25D366; color: #fff; border: none; }
+.btn-whats:active { opacity: .85; }
+.btn-copiar {
+  flex: 0 0 auto !important; width: 46px; padding: 12px 0 !important;
+  background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border);
+}
+.btn-copiar:hover { color: var(--accent); border-color: var(--accent); }
+#modal-plano .btn-row { gap: 8px; }
+#modal-plano .btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  white-space: nowrap; padding: 12px 10px; font-size: 0.85rem;
+}
+#modal-plano .btn i { font-size: 1rem; }
+.plano-fechar {
+  width: 28px; height: 28px; border-radius: 8px; border: none; flex-shrink: 0;
+  background: var(--surface2); color: var(--text-muted); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-size: .85rem;
+}
+.plano-fechar:hover { color: var(--text); }
+#modal-plano .modal.capturando-plano { max-height: none !important; overflow: visible !important; }
+#modal-plano .modal.capturando-plano .btn-row,
+#modal-plano .modal.capturando-plano .plano-post-whats,
+#modal-plano .modal.capturando-plano .plano-fechar { display: none; }
+/* enviar um post específico: cada mensagem ganha a prévia do próprio link */
+.plano-post-whats {
+  width: 26px; height: 26px; border-radius: 8px; border: none; flex-shrink: 0;
+  background: color-mix(in srgb, #25D366 14%, transparent); color: #1da851;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: .85rem;
+}
+.plano-post-whats:hover { background: #25D366; color: #fff; }
+
+/* quebra de post: divisor explícito entre os posts da coluna */
+.cn-divisor {
+  display: flex; align-items: center; gap: 8px; height: 22px;
+  color: #b8b0a4; cursor: default; font-size: .8rem;
+}
+.cn-divisor-linha { flex: 1; border-top: 2px dashed #d0c9be; }
+
+/* ── CAPTURA DO QUADRO EM IMAGEM (compartilhar) ── */
+#ed-world.capturando .cn-add,
+#ed-world.capturando .cat-style-btn,
+#ed-world.capturando .titulo-add-braco,
+#ed-world.capturando .cat-pop,
+#ed-world.capturando .cn-del,
+#ed-world.capturando .cn-h { display: none !important; }
+#ed-world.capturando .cn-camp-titulo { display: block !important; } /* celular esconde o título; na foto ele volta */
+
+/* ── IMPRESSÃO DA CAMPANHA ── */
+#print-camp { display: none; }
+@media print {
+  body.printing-camp > *:not(#print-camp) { display: none !important; }
+  body.printing-camp #print-camp {
+    display: block !important; font-family: 'DM Sans', sans-serif; color: #1a1814;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 8mm 4mm;
+  }
+  #print-camp .pc-title { font-family: 'Playfair Display', serif; font-size: 26pt; }
+  #print-camp .pc-sub { font-size: 10pt; color: #666; margin: 2mm 0 1mm; }
+  #print-camp .pc-ideia { font-family: Georgia, serif; font-style: italic; font-size: 11pt; margin: 2mm 0; }
+  #print-camp .pc-head { border-bottom: 2px solid #1a1814; padding-bottom: 3mm; margin-bottom: 5mm; }
+  #print-camp .pc-sec { margin-bottom: 6mm; break-inside: avoid; border-left: 3px solid #ccc; padding-left: 4mm; }
+  #print-camp .pc-sec-title { font-size: 12pt; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2mm; display: flex; align-items: center; gap: 2mm; }
+  #print-camp .pc-dot { width: 4mm; height: 4mm; border-radius: 50%; display: inline-block; }
+  #print-camp .pc-texto { font-size: 10.5pt; margin: 1.5mm 0; }
+  #print-camp .pc-st { font-size: 8pt; font-weight: 700; text-transform: uppercase; border: 1px solid #999; border-radius: 3mm; padding: .5mm 2mm; color: #555; }
+  #print-camp .pc-ck-row { font-size: 10.5pt; margin: 1mm 0; display: flex; align-items: center; gap: 2mm; }
+  #print-camp .pc-box { width: 4mm; height: 4mm; border: 1px solid #888; border-radius: 1mm; display: inline-flex; align-items: center; justify-content: center; font-size: 8pt; flex-shrink: 0; }
+  #print-camp .pc-box.on { background: #3a9a6a; border-color: #3a9a6a; color: #fff; }
+  #print-camp .pc-postit { font-size: 10pt; padding: 2.5mm 3mm; border-radius: 2mm; margin: 2mm 0; max-width: 120mm; }
+  #print-camp .pc-enq-q { font-size: 10.5pt; font-weight: 700; margin-top: 1.5mm; }
+  #print-camp .pc-enq-op { font-size: 10pt; margin: .8mm 0 .8mm 5mm; }
+  #print-camp .pc-video { font-size: 9.5pt; color: #555; margin: 1.5mm 0; word-break: break-all; }
+  #print-camp .pc-img { max-width: 60mm; max-height: 60mm; border-radius: 2mm; margin: 2mm 0; }
+  #print-camp .pc-vazio { font-size: 9.5pt; color: #999; font-style: italic; }
+  #print-camp .pc-foot { margin-top: 8mm; font-size: 8pt; color: #999; border-top: 1px solid #ddd; padding-top: 2mm; }
 }
 
 /* selos de comemorativa/campanha no cabeçalho do dia */
@@ -768,7 +840,11 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 #event-detail.modo-plano #tool-template,
 #event-detail.modo-plano .ed-tool-sep { display: none; }
 #event-detail.modo-plano .cn-h { display: none !important; }
-.plan-week-nav, .plan-reset, .plan-copy, .camp-add-cat, .camp-trash { display: none; }
+.plan-week-nav, .plan-reset, .plan-copy, .camp-add-cat, .camp-trash, .camp-print, .camp-share { display: none; }
+#event-detail.modo-camp .camp-print, #event-detail.modo-camp .camp-share { display: flex; }
+#event-detail.modo-camp .camp-share { color: #25D366; }
+#event-detail.modo-camp .camp-share:hover { border-color: #25D366; }
+#event-detail.modo-camp .btn-acoes { display: none; } /* ações por loja não se aplicam ao quadro de campanha */
 #event-detail.modo-plano .plan-copy { display: flex; }
 /* quadro de campanha: sem navegação de semana/copiar; ganha nova categoria e excluir */
 #event-detail.modo-camp .plan-week-nav, #event-detail.modo-camp .plan-copy { display: none !important; }
@@ -790,14 +866,16 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   display: flex; align-items: center; gap: 6px;
 }
 .ed-tool {
-  width: 42px; height: 42px; border-radius: 10px;
-  border: 1.5px solid var(--border); background: var(--surface2);
+  width: 44px; height: 44px; border-radius: 12px;
+  border: none; background: transparent;
   color: var(--text-muted); font-size: 1rem; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   font-family: inherit; transition: all .15s; flex-shrink: 0;
 }
-.ed-tool.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
-.ed-tool:hover:not(.active) { border-color: var(--text-muted); color: var(--text); }
+.ed-tool svg { width: 22px; height: 22px; display: block; transition: transform .15s; }
+.ed-tool.active { background: color-mix(in srgb, var(--accent) 15%, transparent); box-shadow: inset 0 0 0 1.5px var(--accent); }
+.ed-tool:hover:not(.active) { background: var(--surface2); color: var(--text); }
+.ed-tool:hover:not(.active) svg { transform: translateY(-2px) scale(1.12); }
 .ed-tool-sep { width: 1px; height: 28px; background: var(--border); margin: 0 4px; }
 .ed-pc-wrap { position: relative; display: none; align-items: center; }
 .ed-pc {
@@ -877,7 +955,7 @@ textarea.form-input { resize: none; height: 76px; }
   color: #1a1814;
 }
 .plano-count {
-  font-size: .66rem; font-weight: 700; background: #eeedfe; color: #3c3489;
+  font-size: .66rem; font-weight: 700; background: #f3e7d7; color: #7a4a2a;
   padding: 3px 10px; border-radius: 20px; flex-shrink: 0;
 }
 .plano-post {
@@ -891,7 +969,14 @@ textarea.form-input { resize: none; height: 76px; }
 }
 .plano-post-num {
   font-size: .64rem; font-weight: 700; letter-spacing: .08em; color: var(--accent);
+  text-transform: uppercase;
 }
+.plano-post-num.editavel {
+  outline: none; cursor: text; border-bottom: 1px dashed transparent;
+  padding: 1px 2px; margin: -1px -2px; min-width: 40px;
+}
+.plano-post-num.editavel:hover { border-bottom-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.plano-post-num.editavel:focus { border-bottom-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); border-radius: 4px 4px 0 0; }
 .plano-post-tipo {
   display: flex; align-items: center; gap: 4px;
   font-size: .64rem; font-weight: 700; letter-spacing: .05em;
@@ -1023,16 +1108,16 @@ textarea.form-input { resize: none; height: 76px; }
 .campanha-card::before{content:'';position:absolute;inset:0;opacity:.07;pointer-events:none;border-radius:14px;}
 .campanha-card.canal-instagram::before{background:radial-gradient(circle at 80% 10%,#fd1d1d,#833ab4 60%);}
 .campanha-card.canal-whatsapp::before{background:radial-gradient(circle at 80% 10%,#25D366,#128C7E 60%);}
-.campanha-card.canal-ambos::before{background:radial-gradient(circle at 80% 10%,#5b4fcf,#a090e0 60%);}
+.campanha-card.canal-ambos::before{background:radial-gradient(circle at 80% 10%,#8a5a36,#d9a05b 60%);}
 .camp-top-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .camp-canal-tag{display:flex;align-items:center;gap:6px;font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;}
 .camp-canal-tag.canal-instagram{color:#f77737;}
 .camp-canal-tag.canal-whatsapp{color:#25D366;}
-.camp-canal-tag.canal-ambos{color:#5b4fcf;}
+.camp-canal-tag.canal-ambos{color:var(--choco);}
 .camp-status-indicator{display:flex;align-items:center;gap:5px;font-size:.7rem;color:#9a9490;}
 .camp-status-indicator::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;flex-shrink:0;}
 .camp-status-indicator.status-rascunho::before{background:#555;}
-.camp-status-indicator.status-aprovada::before{background:#5b4fcf;}
+.camp-status-indicator.status-aprovada::before{background:var(--choco);}
 .camp-status-indicator.status-publicada::before{background:#52b88a;}
 .camp-label-titulo{font-size:.78rem;color:#9a9490;font-weight:500;margin-bottom:6px;}
 .camp-ideia-text{font-family:Georgia,serif;font-size:1rem;color:#1a1814;line-height:1.55;margin-bottom:14px;font-style:italic;}
@@ -1041,8 +1126,8 @@ textarea.form-input { resize: none; height: 76px; }
 .camp-video-thumb img{width:100%;height:100%;object-fit:cover;display:block;filter:brightness(.85);}
 .camp-video-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25);}
 .camp-video-overlay:hover{background:rgba(0,0,0,.4);}
-.camp-play-btn{width:44px;height:44px;background:rgba(255,255,255,.92);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(0,0,0,.4);}
-.camp-play-btn svg{width:18px;height:18px;fill:#1a1814;margin-left:2px;}
+.camp-play-btn{width:26px;height:26px;background:rgba(255,255,255,.92);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.35);}
+.camp-play-btn svg{width:11px;height:11px;fill:#1a1814;margin-left:1px;}
 .camp-video-source-tag{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.65);color:rgba(255,255,255,.8);font-size:.65rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:4px;}
 .camp-video-tiktok{display:flex;align-items:center;gap:12px;background:#f0ede8;border:1px solid #dbd5cc;border-radius:10px;padding:12px 14px;margin-bottom:14px;text-decoration:none;}
 .camp-video-tiktok-icon{width:36px;height:36px;border-radius:8px;background:#1a1814;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -1060,12 +1145,12 @@ textarea.form-input { resize: none; height: 76px; }
 .camp-acao-text{font-size:.78rem;color:#1a1814;}
 .camp-acao-text.done{text-decoration:line-through;color:#b0aba5;}
 .camp-add-acao{display:flex;align-items:center;gap:5px;font-size:.72rem;color:#b0aba5;background:none;border:none;cursor:pointer;padding:4px 0;width:100%;text-align:left;font-family:inherit;}
-.camp-add-acao:hover{color:#5b4fcf;}
+.camp-add-acao:hover{color:var(--accent);}
 .camp-add-acao-icon{width:15px;height:15px;border-radius:4px;border:1.5px dashed #ccc;display:flex;align-items:center;justify-content:center;font-size:.8rem;color:#b0aba5;flex-shrink:0;}
 .camp-acao-input-row{display:flex;gap:5px;margin-top:4px;}
 .camp-acao-input{background:#f0ede8;border:1px solid #ccc;border-radius:6px;padding:4px 8px;font-size:.78rem;color:#1a1814;flex:1;outline:none;font-family:inherit;}
-.camp-acao-input:focus{border-color:#5b4fcf;}
-.camp-acao-save-btn{background:#5b4fcf;border:none;border-radius:6px;color:#fff;padding:4px 10px;font-size:.75rem;cursor:pointer;font-family:inherit;}
+.camp-acao-input:focus{border-color:var(--accent);}
+.camp-acao-save-btn{background:var(--accent);border:none;border-radius:6px;color:#fff;padding:4px 10px;font-size:.75rem;cursor:pointer;font-family:inherit;}
 .camp-del{position:absolute;top:10px;right:10px;background:none;border:none;color:#ccc;cursor:pointer;font-size:1rem;}
 .camp-del:hover{color:#e05252;}
 .camp-section-title{font-size:.72rem;font-weight:700;color:#9a9490;text-transform:uppercase;letter-spacing:.06em;padding:10px 0 4px;display:flex;align-items:center;gap:5px;}
@@ -1073,33 +1158,33 @@ textarea.form-input { resize: none; height: 76px; }
 .btn-campanha{background:none;border:1px solid #a78bfa33;border-radius:6px;cursor:pointer;color:#a78bfa;padding:3px 8px;font-size:.75rem;display:flex;align-items:center;gap:4px;margin-top:6px;width:fit-content;}
 .btn-campanha:hover{background:color-mix(in srgb,#a78bfa 15%,transparent);}
 .camp-edit-btn{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;color:#9a9490;background:none;border:1px solid #dbd5cc;border-radius:6px;padding:4px 9px;cursor:pointer;margin-top:12px;font-family:inherit;}
-.camp-edit-btn:hover{color:#5b4fcf;border-color:#5b4fcf;}
+.camp-edit-btn:hover{color:var(--accent);border-color:var(--accent);}
 
 /* Modal campanha redesign */
 .camp-canal-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
-.camp-canal-pill{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;border:1.5px solid #dbd5cc;background:#f4f2ee;color:#9a9490;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;}
+.camp-canal-pill{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;border:1.5px solid #dbd5cc;background:#f5f1ea;color:#9a9490;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;}
 .camp-canal-pill:hover{border-color:#9a9490;color:#3a3836;}
 .camp-canal-pill.active[data-canal="Instagram"]{border-color:#f77737;color:#f77737;background:color-mix(in srgb,#f77737 10%,transparent);}
 .camp-canal-pill.active[data-canal="WhatsApp"]{border-color:#25D366;color:#25D366;background:color-mix(in srgb,#25D366 10%,transparent);}
 .camp-canal-pill.active[data-canal="TikTok"]{border-color:#69C9D0;color:#69C9D0;background:color-mix(in srgb,#69C9D0 10%,transparent);}
 .campanha-card.canal-tiktok::before{background:radial-gradient(circle at 80% 10%,#EE1D52,#69C9D0 60%);}
 .camp-canal-tag.canal-tiktok{color:#69C9D0;}
-.camp-canal-pill.active[data-canal="Ambos"]{border-color:#5b4fcf;color:#5b4fcf;background:color-mix(in srgb,#5b4fcf 10%,transparent);}
+.camp-canal-pill.active[data-canal="Ambos"]{border-color:var(--choco);color:var(--choco);background:color-mix(in srgb,var(--choco) 10%,transparent);}
 .camp-ideia-wrap{position:relative;}
 .camp-ideia-textarea{width:100%;background:#f0ede8;border:1.5px solid #dbd5cc;border-radius:12px;padding:14px 16px;font-family:Georgia,serif;font-size:.95rem;font-style:italic;color:#1a1814;line-height:1.6;min-height:130px;resize:vertical;outline:none;box-sizing:border-box;transition:border-color .15s;}
-.camp-ideia-textarea:focus{border-color:#5b4fcf;}
+.camp-ideia-textarea:focus{border-color:var(--accent);}
 .camp-ideia-textarea::placeholder{color:#b0aba5;font-style:italic;}
 .camp-ideia-counter{text-align:right;font-size:.65rem;color:#b0aba5;margin-top:4px;}
 .camp-video-input-wrap{display:flex;align-items:center;background:#f0ede8;border:1.5px solid #dbd5cc;border-radius:10px;overflow:hidden;transition:border-color .15s;}
-.camp-video-input-wrap:focus-within{border-color:#5b4fcf;}
+.camp-video-input-wrap:focus-within{border-color:var(--accent);}
 .camp-video-ico{padding:0 10px;font-size:1rem;flex-shrink:0;}
 .camp-video-input{flex:1;background:transparent;border:none;padding:10px 4px 10px 0;font-size:.82rem;color:#1a1814;outline:none;font-family:inherit;}
 .camp-video-input::placeholder{color:#b0aba5;}
 .camp-status-pills{display:flex;gap:8px;margin-top:4px;}
-.camp-status-pill{padding:6px 16px;border-radius:20px;border:1.5px solid #dbd5cc;background:#f4f2ee;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;color:#9a9490;}
+.camp-status-pill{padding:6px 16px;border-radius:20px;border:1.5px solid #dbd5cc;background:#f5f1ea;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;color:#9a9490;}
 .camp-status-pill:hover{border-color:#9a9490;color:#3a3836;}
 .camp-status-pill.active.pill-rascunho{border-color:#9a9490;color:#3a3836;background:color-mix(in srgb,#9a9490 15%,transparent);}
-.camp-status-pill.active.pill-aprovada{border-color:#5b4fcf;color:#5b4fcf;background:color-mix(in srgb,#5b4fcf 12%,transparent);}
+.camp-status-pill.active.pill-aprovada{border-color:var(--choco);color:var(--choco);background:color-mix(in srgb,var(--choco) 12%,transparent);}
 .camp-status-pill.active.pill-publicada{border-color:#52b88a;color:#52b88a;background:color-mix(in srgb,#52b88a 12%,transparent);}
 
 /* ── Campanhas: modo planejamento (contagem regressiva + fases) ── */
@@ -1132,9 +1217,39 @@ textarea.form-input { resize: none; height: 76px; }
 .camp-prep-strip.diaD{height:5px;opacity:1;}
 /* pills de antecedência no modal */
 .camp-ant-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
-.camp-ant-pill{padding:6px 14px;border-radius:20px;border:1.5px solid #dbd5cc;background:#f4f2ee;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;color:#9a9490;}
+.camp-ant-pill{padding:6px 14px;border-radius:20px;border:1.5px solid #dbd5cc;background:#f5f1ea;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;color:#9a9490;}
 .camp-ant-pill:hover{border-color:#9a9490;color:#3a3836;}
 .camp-ant-pill.active{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);}
+.camp-obj-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+.camp-obj-pill{display:flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;border:1.5px solid #dbd5cc;background:#f5f1ea;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;color:#9a9490;}
+.camp-obj-pill.active{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);}
+.camp-obj-pill.active[data-obj="Vendas"]{border-color:#b8863e;color:#96692a;background:color-mix(in srgb,#d9a05b 16%,transparent);}
+.camp-obj-pill.active[data-obj="Branding"]{border-color:#8a5a36;color:#7a4a2a;background:color-mix(in srgb,#8a5a36 13%,transparent);}
+.camp-obj-pill.active[data-obj="Lançamento"]{border-color:#c65b3f;color:#b04a30;background:color-mix(in srgb,#c65b3f 13%,transparent);}
+.camp-obj-pill.active[data-obj="Data especial"]{border-color:#cf6d8e;color:#b85377;background:color-mix(in srgb,#cf6d8e 14%,transparent);}
+.camp-obj-pill.active[data-obj="Engajamento"]{border-color:#3d7ab8;color:#33689e;background:color-mix(in srgb,#3d7ab8 13%,transparent);}
+.camp-obj-pill.active[data-obj="Crescimento"]{border-color:#78894a;color:#66753c;background:color-mix(in srgb,#78894a 14%,transparent);}
+.camp-oferta-sub{display:flex;align-items:center;gap:5px;font-size:.75rem;font-weight:600;color:#a5713d;margin-top:5px;}
+/* ── modal campanha: briefing de agência — paleta do feed @loja.shai (chocolate/caramelo/nude) ── */
+#modal-campanha{--accent:#a5713d;}
+#modal-campanha .modal{background:linear-gradient(90deg,#5c3d28,#a5713d,#d9a05b,#e8cfc0) top/100% 4px no-repeat,#faf6f0;counter-reset:brief;}
+.camp-brief-head{margin-bottom:18px;padding-bottom:14px;border-bottom:1px dashed #e0d3c2;}
+.camp-brief-over{font-size:.6rem;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
+.camp-brief-title{font-family:'Playfair Display',serif;font-size:1.65rem;color:#2b1f16;line-height:1.1;}
+.camp-brief-title em{color:var(--accent);}
+.camp-brief-tag{font-family:Georgia,serif;font-style:italic;font-size:.78rem;color:#a08b76;margin-top:5px;}
+#modal-campanha .form-group{margin-bottom:16px;}
+#modal-campanha .form-label{counter-increment:brief;text-transform:uppercase;letter-spacing:.16em;font-size:.6rem;font-weight:700;color:#a08b76;margin-bottom:7px;}
+#modal-campanha .form-label::before{content:counter(brief,decimal-leading-zero);font-family:'Playfair Display',serif;font-size:.8rem;font-weight:700;color:var(--accent);margin-right:8px;letter-spacing:0;}
+#modal-campanha .form-input{background:#f3ece2;border:1.5px solid #e0d3c2;border-radius:12px;color:#2b1f16;}
+#modal-campanha .form-input:focus{border-color:var(--accent);}
+#modal-campanha #camp-titulo{font-family:'Playfair Display',serif;font-size:1.12rem;}
+#modal-campanha .camp-ideia-textarea{background:#f3ece2;border-color:#e0d3c2;}
+#modal-campanha .camp-ideia-textarea:focus{border-color:var(--accent);}
+:where(#modal-campanha) .camp-obj-pill,:where(#modal-campanha) .camp-ant-pill,:where(#modal-campanha) .camp-canal-pill{background:#f6efe6;border-color:#e0d3c2;color:#a08b76;}
+#modal-campanha .camp-canal-pill.active[data-canal="Ambos"]{border-color:#7a4a2a;color:#7a4a2a;background:color-mix(in srgb,#8a5a36 12%,transparent);}
+#modal-campanha .btn-primary{background:linear-gradient(135deg,#8a5a36,#5c3d28);color:#fdf8f1;text-transform:uppercase;letter-spacing:.1em;font-size:.78rem;box-shadow:0 6px 16px color-mix(in srgb,#8a5a36 32%,transparent);}
+#modal-campanha .btn-ghost{background:#f0e7da;color:#a08b76;text-transform:uppercase;letter-spacing:.1em;font-size:.78rem;}
 </style>
 </head>
 <body>
@@ -1212,9 +1327,11 @@ textarea.form-input { resize: none; height: 76px; }
     <button class="ed-topbar-action plan-reset" onclick="zerarSemana()" title="Zerar planejamento da semana"><i class="ti ti-eraser"></i></button>
     <button class="ed-topbar-action camp-add-cat" onclick="addCategoriaCampanha()" title="Nova categoria"><i class="ti ti-columns-3"></i></button>
     <button class="ed-topbar-action camp-trash" onclick="excluirCampanhaQuadro()" title="Excluir campanha"><i class="ti ti-trash"></i></button>
+    <button class="ed-topbar-action camp-print" onclick="imprimirCampanha()" title="Imprimir campanha (ou salvar PDF)"><i class="ti ti-printer"></i></button>
+    <button class="ed-topbar-action camp-share" onclick="compartilharCampanha()" title="Enviar apresentação pro WhatsApp"><i class="ti ti-brand-whatsapp"></i></button>
     <div class="ed-topbar-badge" id="ed-badge"></div>
-    <button class="ed-topbar-action" onclick="abrirEdCampanha()" title="Campanhas"><i class="ti ti-speakerphone"></i></button>
-    <button class="ed-topbar-action" onclick="abrirEdAcoes()" title="Ações por loja"><i class="ti ti-checklist"></i></button>
+    <button class="ed-topbar-action btn-campanha" onclick="abrirEdCampanha()" title="Campanhas"><i class="ti ti-speakerphone"></i></button>
+    <button class="ed-topbar-action btn-acoes" onclick="abrirEdAcoes()" title="Ações por loja"><i class="ti ti-checklist"></i></button>
     <button class="ed-save-btn" onclick="salvarESair()"><i class="ti ti-check"></i> Salvar</button>
   </div>
 
@@ -1270,7 +1387,7 @@ textarea.form-input { resize: none; height: 76px; }
           <div class="fmt-c" data-c="#d97b2a" onclick="fmtColor(this)" style="background:#d97b2a"></div>
           <div class="fmt-c" data-c="#3a9a6a" onclick="fmtColor(this)" style="background:#3a9a6a"></div>
           <div class="fmt-c" data-c="#2a6fc4" onclick="fmtColor(this)" style="background:#2a6fc4"></div>
-          <div class="fmt-c" data-c="#5b4fcf" onclick="fmtColor(this)" style="background:#5b4fcf"></div>
+          <div class="fmt-c" data-c="#8a5a36" onclick="fmtColor(this)" style="background:#8a5a36"></div>
           <div class="fmt-c" data-c="#d4589a" onclick="fmtColor(this)" style="background:#d4589a"></div>
         </div>
         <div class="fmt-pop-label">Marca-texto</div>
@@ -1289,24 +1406,24 @@ textarea.form-input { resize: none; height: 76px; }
   <!-- toolbar -->
   <div id="ed-toolbar">
     <button class="ed-tool active" id="tool-cursor" onclick="selectTool('cursor')" title="Selecionar">
-      <i class="ti ti-pointer"></i>
+      <svg viewBox="0 0 24 24"><path fill="#4a3b2e" d="M5.8 2.6 19 13l-5.8.9 3.3 6-2.9 1.5-3.2-6-4.6 3.9z"/></svg>
     </button>
     <button class="ed-tool" id="tool-postit" onclick="selectTool('postit')" title="Post-it">
-      <i class="ti ti-note"></i>
+      <svg viewBox="0 0 24 24"><path fill="#ffcf3f" d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8l-6 6H6a2 2 0 0 1-2-2z"/><path fill="#e9a71c" d="M20 14l-6 6v-4a2 2 0 0 1 2-2z"/></svg>
     </button>
     <button class="ed-tool" id="tool-text" onclick="selectTool('text')" title="Caixa de texto">
-      <i class="ti ti-letter-t"></i>
+      <svg viewBox="0 0 24 24"><path fill="#8b5cf6" d="M5 4h14a1 1 0 0 1 1 1v3h-3V7h-3.5v10H16v3H8v-3h2.5V7H7v1H4V5a1 1 0 0 1 1-1z"/></svg>
     </button>
     <button class="ed-tool" id="tool-video" onclick="selectTool('video')" title="Vídeo / Ideia">
-      <i class="ti ti-video"></i>
+      <svg viewBox="0 0 24 24"><rect x="2.5" y="5.5" width="14" height="13" rx="3" fill="#ff5757"/><path fill="#fff" d="M8.5 9.6v4.8l4.2-2.4z"/><path fill="#ff5757" d="M18 10.2l3.5-2.2a.8.8 0 0 1 1.2.7v6.6a.8.8 0 0 1-1.2.7L18 13.8z"/></svg>
     </button>
     <button class="ed-tool" id="tool-photo" onclick="selectTool('photo')" title="Foto">
-      <i class="ti ti-photo"></i>
+      <svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="3" fill="#35b678"/><circle cx="9" cy="10" r="1.9" fill="#ffe066"/><path fill="#177a4b" d="M5 19.5h14.4l-4-5-2.6 3-3-3.4z"/></svg>
     </button>
     <input type="file" id="cn-photo-file" accept="image/*" style="display:none" onchange="_photoPicked(this)">
     <div class="ed-tool-sep"></div>
     <button class="ed-tool" id="tool-template" onclick="inserirTemplateSemanal()" title="Modelo: planejamento semanal">
-      <i class="ti ti-layout-board-split"></i>
+      <svg viewBox="0 0 24 24"><rect x="3" y="3.5" width="18" height="17" rx="3" fill="#38a8ff"/><rect x="6" y="6.5" width="5" height="11" rx="1.2" fill="#fff" opacity=".92"/><rect x="13.2" y="6.5" width="5" height="6" rx="1.2" fill="#fff" opacity=".92"/><rect x="13.2" y="14.2" width="5" height="3.3" rx="1.2" fill="#fff" opacity=".7"/></svg>
     </button>
     <div class="ed-pc-wrap" id="ed-pc-wrap">
       <div class="ed-pc ed-pc-current" id="ed-pc-current" onclick="togglePostitPop(event)" style="background:#fef3a7" title="Cor do post-it"></div>
@@ -1351,13 +1468,34 @@ textarea.form-input { resize: none; height: 76px; }
 </div>
 
 
-<div class="modal-overlay" id="modal-campanha">
+<div class="modal-overlay center" id="modal-campanha">
   <div class="modal" style="max-height:90vh;overflow-y:auto;">
-    <div class="modal-title"><i class="ti ti-speakerphone"></i> Campanha</div>
-    <div class="form-group"><label class="form-label">Data da campanha (dia D)</label><input type="date" class="form-input" id="camp-data"></div>
-    <div class="form-group"><label class="form-label">Título</label><input type="text" class="form-input" id="camp-titulo" placeholder="Ex: Black Friday 2026"></div>
+    <div class="camp-brief-head">
+      <div class="camp-brief-over">Loja Shai · Briefing de campanha</div>
+      <div class="camp-brief-title" id="camp-brief-title">Nova <em>campanha</em></div>
+      <div class="camp-brief-tag">vista a próxima campanha ✨</div>
+    </div>
+    <div class="form-group"><label class="form-label">O dia D</label><input type="date" class="form-input" id="camp-data"></div>
+    <div class="form-group"><label class="form-label">O nome</label><input type="text" class="form-input" id="camp-titulo" placeholder="Ex: Black Friday, Semana Shai..."></div>
     <div class="form-group">
-      <label class="form-label">Começar a preparar</label>
+      <label class="form-label">O objetivo</label>
+      <div class="camp-obj-pills">
+        <button type="button" class="camp-obj-pill" data-obj="Vendas" onclick="setObjPill(this)"><i class="ti ti-shopping-bag"></i> Vendas</button>
+        <button type="button" class="camp-obj-pill" data-obj="Branding" onclick="setObjPill(this)"><i class="ti ti-sparkles"></i> Branding</button>
+        <button type="button" class="camp-obj-pill" data-obj="Lançamento" onclick="setObjPill(this)"><i class="ti ti-rocket"></i> Lançamento</button>
+        <button type="button" class="camp-obj-pill" data-obj="Data especial" onclick="setObjPill(this)"><i class="ti ti-calendar-star"></i> Data especial</button>
+        <button type="button" class="camp-obj-pill" data-obj="Engajamento" onclick="setObjPill(this)"><i class="ti ti-message-circle"></i> Engajamento</button>
+        <button type="button" class="camp-obj-pill" data-obj="Crescimento" onclick="setObjPill(this)"><i class="ti ti-trending-up"></i> Crescimento</button>
+      </div>
+      <input type="hidden" id="camp-objetivo">
+      <input type="text" class="form-input" id="camp-meta" style="margin-top:8px" placeholder="A meta: R$ 15.000, 300 seguidores...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">A oferta</label>
+      <input type="text" class="form-input" id="camp-oferta" placeholder="Ex: 20% off em vestidos · leve 3 pague 2">
+    </div>
+    <div class="form-group">
+      <label class="form-label">A preparação</label>
       <div class="camp-ant-pills">
         <button type="button" class="camp-ant-pill" data-ant="15" onclick="setAntPill(this)">15 dias antes</button>
         <button type="button" class="camp-ant-pill active" data-ant="30" onclick="setAntPill(this)">1 mês antes</button>
@@ -1365,7 +1503,7 @@ textarea.form-input { resize: none; height: 76px; }
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Canal</label>
+      <label class="form-label">O canal</label>
       <div class="camp-canal-pills">
         <button type="button" class="camp-canal-pill" data-canal="Instagram" onclick="setCanalPill(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg> Instagram</button>
         <button type="button" class="camp-canal-pill" data-canal="WhatsApp" onclick="setCanalPill(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg> WhatsApp</button>
@@ -1375,29 +1513,10 @@ textarea.form-input { resize: none; height: 76px; }
       <select id="camp-canal" style="display:none"><option value="Instagram">Instagram</option><option value="WhatsApp">WhatsApp</option><option value="Ambos">Ambos</option><option value="TikTok">TikTok</option></select>
     </div>
     <div class="form-group">
-      <label class="form-label">A ideia</label>
-      <div class="camp-ideia-wrap">
-        <textarea id="camp-ideia" class="camp-ideia-textarea" placeholder="Descreva a ideia... look, trilha, referência de luz, horário de publicar..."></textarea>
-        <div class="camp-ideia-counter"><span id="camp-ideia-count">0</span> caracteres</div>
-      </div>
+      <label class="form-label">O conceito</label>
+      <textarea id="camp-ideia" class="camp-ideia-textarea" style="min-height:72px" placeholder="A grande ideia, em uma frase..."></textarea>
     </div>
-    <div class="form-group">
-      <label class="form-label"><i class="ti ti-brand-tiktok"></i> Vídeo de inspiração</label>
-      <div class="camp-video-input-wrap">
-        <span class="camp-video-ico" id="camp-video-ico">&#128279;</span>
-        <input type="url" class="camp-video-input" id="camp-video" placeholder="Cole o link do TikTok ou YouTube..." oninput="detectVideoIco(this)">
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Status</label>
-      <div class="camp-status-pills">
-        <button type="button" class="camp-status-pill pill-rascunho" data-status="rascunho" onclick="setStatusPill(this)">Rascunho</button>
-        <button type="button" class="camp-status-pill pill-aprovada" data-status="aprovada" onclick="setStatusPill(this)">Aprovada</button>
-        <button type="button" class="camp-status-pill pill-publicada" data-status="publicada" onclick="setStatusPill(this)">Publicada</button>
-      </div>
-      <select id="camp-status" style="display:none"><option value="rascunho">Rascunho</option><option value="aprovada">Aprovada</option><option value="publicada">Publicada</option></select>
-    </div>
-    <div class="btn-row"><button class="btn btn-ghost" onclick="closeModal('modal-campanha')">Cancelar</button><button class="btn btn-primary" onclick="salvarCampanha()">Salvar</button></div>
+    <div class="btn-row"><button class="btn btn-ghost" onclick="closeModal('modal-campanha')">Cancelar</button><button class="btn btn-primary" onclick="salvarCampanha()"><i class="ti ti-check"></i> Aprovar</button></div>
   </div>
 </div>
 <!-- PORTÃO DE LOGIN DA EQUIPE -->
@@ -1417,18 +1536,23 @@ textarea.form-input { resize: none; height: 76px; }
   <div class="modal" style="max-height:85vh;overflow-y:auto;">
     <div class="modal-title" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
       <span><i class="ti ti-layout-board-split"></i> <span id="plano-titulo"></span></span>
-      <span class="plano-count" id="plano-count"></span>
+      <span style="display:flex;align-items:center;gap:8px;">
+        <span class="plano-count" id="plano-count"></span>
+        <button class="plano-fechar" onclick="closeModal('modal-plano')" title="Fechar"><i class="ti ti-x"></i></button>
+      </span>
     </div>
     <div id="plano-list"></div>
     <div class="btn-row">
-      <button class="btn btn-ghost" onclick="closeModal('modal-plano')">Fechar</button>
-      <button class="btn btn-primary" onclick="closeModal('modal-plano');abrirQuadroDaData(planoDataAtual)">Abrir planejamento</button>
+      <button class="btn btn-whats" onclick="enviarPlanoWhatsApp()"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>
+      <button class="btn btn-copiar" onclick="copiarPlanoImagem()" title="Copiar imagem do resumo"><i class="ti ti-copy"></i></button>
+      <button class="btn btn-primary" onclick="closeModal('modal-plano');abrirQuadroDaData(planoDataAtual)"><i class="ti ti-layout-board-split"></i> Abrir quadro</button>
     </div>
   </div>
 </div>
 
 <div id="toast"></div>
 <div class="cal-tooltip" id="cal-tooltip"></div>
+<div id="print-camp"></div>
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
@@ -1742,14 +1866,17 @@ function renderMensal() {
     if (evs.length>2) html += `<div class="ev-pill more">+${evs.length-2}</div>`;
     const planos = planoMap[dataStr];
     if (planos && planos.length) {
-      const posts = _agruparPosts(planos);
+      const grupos = _agruparPosts(planos);
+      const posts = grupos.filter(_ehGrupoPost);
       if (posts.length) {
-        const prontos = posts.filter(p => (p[0].st) === 'postado').length;
+        const prontos = posts.filter(p => (_ancoraPost(p).st) === 'postado').length;
         const tudoOk = prontos === posts.length;
         const lbl = prontos
           ? `<i class="ti ti-check"></i> ${prontos}/${posts.length}`
           : `<i class="ti ti-player-play"></i> ${posts.length} post${posts.length>1?'s':''}`;
         html += `<div class="ev-pill plano${tudoOk?' ok':''}">${lbl}</div>`;
+      } else if (grupos.length) {
+        html += `<div class="ev-pill plano"><i class="ti ti-notes"></i> ${grupos.length} ite${grupos.length>1?'ns':'m'}</div>`;
       }
     }
     const hasCamp = campanhas.some(c => c.data_campanha===dataStr);
@@ -2282,36 +2409,22 @@ function _renderCanvas() {
           <i class="ti ti-plus"></i>
         </button>
         <div class="cn-add-menu" id="addmenu-${el.id}">
-          <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','photo')"><i class="ti ti-photo"></i> Caixa de foto</button>
-          <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','video')"><i class="ti ti-video"></i> Caixa de vídeo</button>
-          <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','text')"><i class="ti ti-letter-t"></i> Caixa de texto</button>
-          <div class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','postit')"><i class="ti ti-note"></i> Caixa de post-it
-            <span class="cn-add-pcs">
-              <span class="cn-add-pc-mini" style="background:#fef3a7" onclick="event.stopPropagation();addModulo('${el.id}','postit','#fef3a7')"></span>
-              <span class="cn-add-pc-mini" style="background:#ffd6e0" onclick="event.stopPropagation();addModulo('${el.id}','postit','#ffd6e0')"></span>
-              <span class="cn-add-pc-mini" style="background:#d6e8ff" onclick="event.stopPropagation();addModulo('${el.id}','postit','#d6e8ff')"></span>
-              <span class="cn-add-pc-mini" style="background:#d6f5e3" onclick="event.stopPropagation();addModulo('${el.id}','postit','#d6f5e3')"></span>
-              <span class="cn-add-pc-mini" style="background:#e8d6ff" onclick="event.stopPropagation();addModulo('${el.id}','postit','#e8d6ff')"></span>
-            </span>
-          </div>
-          <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','checklist')"><i class="ti ti-list-check"></i> Checklist</button>
-          <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','enquete')"><i class="ti ti-chart-bar"></i> Enquete</button>
-          <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','quebra')"><i class="ti ti-scissors"></i> Quebra de post</button>
+          <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','photo')"><svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="3" fill="#35b678"/><circle cx="9" cy="10" r="1.9" fill="#ffe066"/><path fill="#177a4b" d="M5 19.5h14.4l-4-5-2.6 3-3-3.4z"/></svg> Caixa de foto</button>
+          <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','video')"><svg viewBox="0 0 24 24"><rect x="2.5" y="5.5" width="14" height="13" rx="3" fill="#ff5757"/><path fill="#fff" d="M8.5 9.6v4.8l4.2-2.4z"/><path fill="#ff5757" d="M18 10.2l3.5-2.2a.8.8 0 0 1 1.2.7v6.6a.8.8 0 0 1-1.2.7L18 13.8z"/></svg> Caixa de vídeo</button>
+          <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','text')"><svg viewBox="0 0 24 24"><path fill="#8b5cf6" d="M5 4h14a1 1 0 0 1 1 1v3h-3V7h-3.5v10H16v3H8v-3h2.5V7H7v1H4V5a1 1 0 0 1 1-1z"/></svg> Caixa de texto</button>
+          <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','checklist')"><svg viewBox="0 0 24 24"><rect x="3" y="3.5" width="18" height="17" rx="3" fill="#14b8a6"/><path fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M6.5 8.8l1.4 1.4 2.4-2.8"/><path stroke="#fff" stroke-width="1.8" stroke-linecap="round" d="M13 9h4.5"/><path fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M6.5 15.3l1.4 1.4 2.4-2.8"/><path stroke="#fff" stroke-width="1.8" stroke-linecap="round" d="M13 15.5h4.5"/></svg> Checklist</button>
+          <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','enquete')"><svg viewBox="0 0 24 24"><rect x="3" y="3.5" width="18" height="17" rx="3" fill="#ff9f2e"/><rect x="6.5" y="11" width="2.8" height="6" rx="1" fill="#fff"/><rect x="10.7" y="7.5" width="2.8" height="9.5" rx="1" fill="#fff"/><rect x="14.9" y="9.5" width="2.8" height="7.5" rx="1" fill="#fff"/></svg> Enquete</button>
+          <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','divisor')"><svg viewBox="0 0 24 24"><path stroke="#c4b5a4" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="2.5 3.2" d="M3 12h18" fill="none"/><g fill="#ec4899"><circle cx="6.5" cy="6.5" r="2.1"/><circle cx="6.5" cy="17.5" r="2.1"/><path d="M8.3 8 16.9 14.7l-1.1 1.5-8.6-6.7z"/><path d="M8.3 16 16.9 9.3l-1.1-1.5-8.6 6.7z"/></g><circle cx="19" cy="12" r="1.3" fill="#ec4899"/></svg> Quebra de post</button>
         </div>
       </div>`;
     }
-    if (el.type === 'quebra') {
-      return `<div class="cn-el cn-quebra" data-id="${el.id}"
-        style="left:${el.x}px;top:${el.y}px;width:${el.w||190}px;height:${el.h||28}px">
-        <button class="cn-quebra-btn" title="Mover para cima" onclick="event.stopPropagation();moverQuebra('${el.id}',-1)"
-          onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-arrow-up"></i></button>
-        <button class="cn-quebra-btn" title="Mover para baixo" onclick="event.stopPropagation();moverQuebra('${el.id}',1)"
-          onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-arrow-down"></i></button>
-        <div class="cn-quebra-linha"></div>
-        <div class="cn-quebra-lbl"><i class="ti ti-scissors"></i> novo post</div>
-        <div class="cn-quebra-linha"></div>
-        <button class="cn-quebra-btn x" title="Excluir quebra" onclick="event.stopPropagation();deleteEl('${el.id}')"
-          onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-x"></i></button>
+    if (el.type === 'divisor') {
+      return `<div class="cn-el cn-divisor${sel}" data-id="${el.id}"
+        style="left:${el.x}px;top:${el.y}px;width:${el.w||190}px"
+        onmousedown="elMouseDown(event,'${el.id}')"
+        ontouchstart="elTouchStart(event,'${el.id}')">
+        <button class="cn-del" title="Excluir" onclick="event.stopPropagation();deleteEl('${el.id}')" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-trash"></i></button>
+        <span class="cn-divisor-linha"></span><i class="ti ti-scissors"></i><span class="cn-divisor-linha"></span>
       </div>`;
     }
     if (el.type === 'checklist') {
@@ -2463,6 +2576,12 @@ function _contentClick(e, id, node) {
 
 // ── MOLDURA DE VÍDEO ─────────────────────────────────
 function _videoFrameHTML(el) {
+  if (el._up) {
+    return `<div class="cn-video-frame"><div class="cn-video-setup">
+      <i class="ti ti-loader-2"></i>
+      <div style="font-size:.72rem;color:var(--text-muted)">Enviando capa...</div>
+    </div></div>`;
+  }
   if (!el.url || el._edit) {
     const v = (el.url || '').replace(/"/g, '&quot;');
     return `<div class="cn-video-frame"><div class="cn-video-setup"
@@ -2516,7 +2635,10 @@ function _videoFrameHTML(el) {
     inner = `<div style="width:100%;height:100%;background:var(--surface2);display:flex;align-items:center;justify-content:center;">
       <i class="ti ti-link" style="font-size:1.6rem;color:var(--text-muted)"></i></div>`;
   }
-  return `<div class="cn-video-frame">${inner}${play}<div class="cn-video-tag">${tag}</div>${edit}</div>`;
+  // capa manual (print colado/enviado) vence qualquer thumbnail automática
+  if (el.capa) inner = `<img src="${el.capa}" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+  const capaBtn = `<button class="cn-video-capa" title="${el.capa ? 'Trocar a capa' : 'Definir capa (print do vídeo)'}" onclick="event.stopPropagation();pickCapa('${el.id}')" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-camera"></i></button>`;
+  return `<div class="cn-video-frame">${inner}${play}<div class="cn-video-tag">${tag}</div>${capaBtn}${edit}</div>`;
 }
 
 // ── MOLDURA DE FOTO ──────────────────────────────────
@@ -2539,41 +2661,67 @@ function _photoFrameHTML(el) {
 }
 
 let edPhotoTarget = null;
+let edCapaTarget = null;
 function pickPhoto(id) {
-  edPhotoTarget = id;
+  edPhotoTarget = id; edCapaTarget = null;
+  document.getElementById('cn-photo-file').click();
+}
+function pickCapa(id) {
+  edCapaTarget = id; edPhotoTarget = null;
   document.getElementById('cn-photo-file').click();
 }
 
 async function _photoPicked(input) {
   const file = input.files && input.files[0];
   input.value = '';
-  if (!file || !edPhotoTarget || !edEvent || !edEvent.canvas) return;
-  const el = edEvent.canvas.find(x => x.id === edPhotoTarget);
-  edPhotoTarget = null;
-  if (!el) return;
+  const alvo = edCapaTarget || edPhotoTarget;
+  const campo = edCapaTarget ? 'capa' : 'url';
+  edCapaTarget = edPhotoTarget = null;
+  if (!file || !alvo || !edEvent || !edEvent.canvas) return;
+  const el = edEvent.canvas.find(x => x.id === alvo);
+  if (el) _subirImagem(el, file, campo);
+}
+
+// sobe a imagem pro storage e grava no campo (url da foto ou capa do vídeo)
+async function _subirImagem(el, file, campo) {
   el._up = true;
   _renderCanvas();
-  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-  const path = `canvas/${el.id}_${Date.now()}.${ext}`;
+  const ext = (((file.name || 'print.png').split('.').pop()) || 'png').toLowerCase();
+  const path = `canvas/${el.id}_${campo}_${Date.now()}.${ext}`;
   const { error } = await sb.storage.from('produto-fotos').upload(path, file, { upsert: true });
   delete el._up;
   if (error) {
-    showToast('Erro ao enviar foto: ' + error.message, 'error');
+    showToast('Erro ao enviar imagem: ' + error.message, 'error');
     _renderCanvas();
     return;
   }
   const { data } = sb.storage.from('produto-fotos').getPublicUrl(path);
-  el.url = data.publicUrl;
+  el[campo] = data.publicUrl;
   _renderCanvas();
   _scheduleCanvasSave();
-  showToast('Foto adicionada!');
+  showToast(campo === 'capa' ? 'Capa do vídeo definida!' : 'Foto adicionada!');
 }
+
+// Ctrl+V com a caixa selecionada: print vira capa (vídeo) ou foto
+document.addEventListener('paste', e => {
+  if (!edEvent || !edSelectedId || !edEvent.canvas) return;
+  const ae = document.activeElement;
+  if (ae && (ae.isContentEditable || ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) return;
+  const el = edEvent.canvas.find(x => x.id === edSelectedId);
+  if (!el || (el.type !== 'video' && el.type !== 'photo')) return;
+  const item = [...((e.clipboardData && e.clipboardData.items) || [])].find(i => i.type.indexOf('image/') === 0);
+  if (!item) return;
+  e.preventDefault();
+  _subirImagem(el, item.getAsFile(), el.type === 'video' ? 'capa' : 'url');
+});
 
 function saveVideoUrl(id, input) {
   if (!edEvent || !edEvent.canvas) return;
   const el = edEvent.canvas.find(x => x.id === id);
   if (!el) return;
-  el.url = input.value.trim();
+  const novo = input.value.trim();
+  if (novo !== el.url) delete el.capa; // link trocou: a capa antiga não vale mais
+  el.url = novo;
   delete el._edit;
   _renderCanvas();
   _scheduleCanvasSave();
@@ -3067,7 +3215,7 @@ function _planejadoPorDia(board) {
   board.canvas.forEach(el => {
     if (el.type === 'add') return;
     const txt = (el.content || '').trim();
-    const cheio = el.type === 'quebra' // quebra não tem conteúdo, mas define a divisão dos posts
+    const cheio = el.type === 'divisor' // quebra de post conta como estrutura, não como conteúdo
       || (el.url && el.url.trim()) || txt
       || (el.items || []).some(i => (i.t || '').trim())
       || (el.q || '').trim()
@@ -3086,8 +3234,12 @@ function _planejadoPorDia(board) {
 
 let planoDataAtual = null;
 
+let _planoAtualPlanos = null;
+let _planoGrupos = null;
+
 function abrirPlanoDia(dataStr, planos) {
   planoDataAtual = dataStr;
+  _planoAtualPlanos = planos;
   const [y, m, d] = dataStr.split('-').map(Number);
   const dt = new Date(y, m - 1, d);
   document.getElementById('plano-titulo').textContent =
@@ -3117,14 +3269,16 @@ function abrirPlanoDia(dataStr, planos) {
       ops.map((o, i) => `<div class="pq-row"><span class="pq-letra">${String.fromCharCode(65 + i)}</span><div class="pq-txt">${_esc(o.t)}</div></div>`).join('');
   };
 
-  list.innerHTML = posts.map((p, n) => {
+  _planoGrupos = posts;
+  let numPost = 0;
+  list.innerHTML = posts.map((p, gi) => {
     const media = p.find(isMedia);
     const textos = p.filter(isTexto);
     const cks = p.filter(e => e.type === 'checklist');
     const enqs = p.filter(e => e.type === 'enquete');
     const tipo = media
       ? (media.type === 'photo' ? '<i class="ti ti-photo"></i> Foto' : '<i class="ti ti-video"></i> Vídeo')
-      : (enqs.length ? '<i class="ti ti-chart-bar"></i> Enquete' : '<i class="ti ti-letter-t"></i> Texto');
+      : (enqs.length ? '<i class="ti ti-chart-bar"></i> Enquete' : (cks.length ? '<i class="ti ti-list-check"></i> Checklist' : '<i class="ti ti-letter-t"></i> Texto'));
     let corpo = '';
     if (media && media.type === 'photo') {
       corpo += textos.length
@@ -3132,25 +3286,159 @@ function abrirPlanoDia(dataStr, planos) {
           textos.slice(1).map(textoHTML).join('')
         : `<img class="plano-post-img" src="${media.url}">`;
     } else if (media) {
-      corpo += _renderVideoPreview(media.url) + textos.map(textoHTML).join('');
+      corpo += textos.map(textoHTML).join('')
+        + (media.capa
+          ? `<div class="camp-video-thumb" onclick="window.open('${(media.url||'').replace(/'/g,'%27')}','_blank')" style="cursor:pointer"><img src="${media.capa}"><div class="camp-video-overlay"><div class="camp-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div></div>`
+          : _renderVideoPreview(media.url));
     } else {
       corpo += textos.map(textoHTML).join('');
     }
     corpo += enqs.map(enqHTML).join('');
     corpo += cks.map(ckHTML).join('');
-    const st = p[0].st || 'ideia';
+    const anc = _ancoraPost(p);
+    const st = anc.st || 'ideia';
+    const ehPost = _ehGrupoPost(p);
+    if (ehPost) numPost++;
+    const rotuloPadrao = ehPost ? `POST ${numPost}` : (cks.length ? 'CHECKLIST' : 'ANOTAÇÃO');
+    const rotulo = (anc.rotulo || '').trim() || rotuloPadrao;
     return `<div class="plano-post">
       <div class="plano-post-head">
-        <div class="plano-post-num">POST ${n + 1}</div>
+        <div class="plano-post-num editavel" contenteditable="true" spellcheck="false" title="Toque para renomear"
+          data-padrao="${_esc(rotuloPadrao)}"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
+          onblur="salvarRotuloPost('${anc.id}', this)">${_esc(rotulo)}</div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <span class="plano-post-st st-${st}">${ST_POST[st][1]}</span>
+          ${ehPost ? `<span class="plano-post-st st-${st}">${ST_POST[st][1]}</span>` : ''}
           <div class="plano-post-tipo">${tipo}</div>
+          <button class="plano-post-whats" title="Enviar este post no WhatsApp" onclick="enviarPostWhats(${gi})"><i class="ti ti-brand-whatsapp"></i></button>
         </div>
       </div>${corpo}</div>`;
   }).join('') || '<div class="empty">Nada planejado para este dia</div>';
   const cnt = document.getElementById('plano-count');
-  if (cnt) cnt.textContent = posts.length ? posts.length + (posts.length > 1 ? ' posts' : ' post') : '';
+  if (cnt) cnt.textContent = numPost ? numPost + (numPost > 1 ? ' posts' : ' post')
+    : (posts.length ? posts.length + (posts.length > 1 ? ' itens' : ' item') : '');
   openModal('modal-plano');
+}
+
+// ── COMPARTILHAR O PLANEJADO DO DIA ───────────────────
+// no computador usa o WhatsApp Web (o app do Windows quebra os emojis); no celular, wa.me
+function _abrirWhats(txt) {
+  const celular = /Android|iPhone|iPad/i.test(navigator.userAgent);
+  const base = celular ? 'https://wa.me/?text=' : 'https://web.whatsapp.com/send?text=';
+  window.open(base + encodeURIComponent(txt), '_blank');
+}
+
+// WhatsApp: vai o texto formatado direto
+function enviarPlanoWhatsApp() {
+  _compartilharPlanoTexto();
+}
+
+// envia UM post como mensagem própria (cada mensagem ganha o cartão de prévia do link)
+function enviarPostWhats(i) {
+  const p = _planoGrupos && _planoGrupos[i];
+  if (!p || !planoDataAtual) return;
+  const [y, m, d] = planoDataAtual.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  const node = document.querySelectorAll('#plano-list .plano-post-num')[i];
+  const rotulo = node ? node.textContent.trim() : 'POST';
+  const linhas = [];
+  p.forEach(e => {
+    if (e.type === 'checklist') (e.items || []).forEach(it => { if ((it.t || '').trim()) linhas.push(`${it.done ? '✅' : '◻️'} ${it.t}`); });
+    else if (e.type === 'enquete') {
+      if ((e.q || '').trim()) linhas.push(`📊 ${e.q}`);
+      (e.opts || []).forEach((o, n) => { if ((o.t || '').trim()) linhas.push(`      ${String.fromCharCode(65 + n)}) ${o.t}`); });
+    }
+    else if ((e.type === 'video' || e.type === 'photo')) { if ((e.content || '').trim()) linhas.push(e.content); }
+    else if ((e.content || '').trim()) linhas.push(e.content);
+  });
+  // link por último: o WhatsApp gera o cartão de prévia dele
+  p.forEach(e => { if ((e.type === 'video' || e.type === 'photo') && e.url) linhas.push(e.url); });
+  _abrirWhats(`*${rotulo.toUpperCase()} — ${DOWS[dt.getDay()].toUpperCase()} ${pad(d)}/${pad(m)}*\n` + linhas.join('\n'));
+}
+
+// Copiar: gera a imagem do resumo e coloca na área de transferência (Ctrl+V em qualquer lugar)
+async function copiarPlanoImagem() {
+  const modal = document.querySelector('#modal-plano .modal');
+  if (!modal || !_planoAtualPlanos) return;
+  showToast('Gerando a imagem do dia...');
+  let blob = null;
+  try {
+    await _carregarHtmlToImage();
+    modal.classList.add('capturando-plano'); // abre o modal inteiro (sem rolagem) e esconde os botões
+    blob = await Promise.race([
+      htmlToImage.toBlob(modal, { pixelRatio: 2, backgroundColor: '#faf9f6',
+        imagePlaceholder: 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==' }),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('demorou demais')), 20000))
+    ]);
+  } catch (e) { blob = null; }
+  modal.classList.remove('capturando-plano');
+  if (!blob) { showToast('Não consegui gerar a imagem — tenta de novo', 'error'); return; }
+  const [y, m, d] = (planoDataAtual || '').split('-');
+  const nome = `planejado-${d}-${m}.png`;
+  // copiar primeiro; celular sem clipboard de imagem cai no compartilhar; último recurso baixa
+  if (navigator.clipboard && window.ClipboardItem) {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      showToast('Imagem copiada! Cola onde quiser (Ctrl+V)');
+      return;
+    } catch (e) { /* segue pro compartilhar */ }
+  }
+  const file = new File([blob], nome, { type: 'image/png' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: 'Planejado do dia' }); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nome;
+  a.click();
+  showToast('Imagem baixada');
+}
+
+function _compartilharPlanoTexto() {
+  if (!_planoAtualPlanos || !planoDataAtual) return;
+  const [y, m, d] = planoDataAtual.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  let txt = `🗓 *PLANEJADO — ${DOWS[dt.getDay()].toUpperCase()} ${pad(d)}/${pad(m)}*\n`;
+  let numPost = 0;
+  _agruparPosts(_planoAtualPlanos).forEach(p => {
+    const anc = _ancoraPost(p);
+    const ehPost = _ehGrupoPost(p);
+    if (ehPost) numPost++;
+    const rotulo = (anc.rotulo || '').trim() || (ehPost ? `POST ${numPost}` : (p.some(e => e.type === 'checklist') ? 'CHECKLIST' : 'ANOTAÇÃO'));
+    const linhas = [];
+    p.forEach(e => {
+      if (e.type === 'checklist') (e.items || []).forEach(i => { if ((i.t || '').trim()) linhas.push(`${i.done ? '✅' : '◻️'} ${i.t}`); });
+      else if (e.type === 'enquete') {
+        if ((e.q || '').trim()) linhas.push(`📊 ${e.q}`);
+        (e.opts || []).forEach((o, i) => { if ((o.t || '').trim()) linhas.push(`      ${String.fromCharCode(65 + i)}) ${o.t}`); });
+      }
+      else if (e.type === 'video' || e.type === 'photo') { if (e.url) linhas.push(`${e.type === 'video' ? '🎬' : '📷'} ${e.url}`); }
+      else if ((e.content || '').trim()) linhas.push(e.content);
+    });
+    if (linhas.length) txt += `\n*— ${rotulo.toUpperCase()} —*\n${linhas.join('\n')}\n`;
+  });
+  txt += '\n_Shai · Planejamento semanal_';
+  _abrirWhats(txt);
+}
+
+// rótulo personalizado do grupo (fica gravado no elemento âncora do quadro da semana)
+async function salvarRotuloPost(elId, node) {
+  const novo = (node.textContent || '').trim();
+  for (const b of eventosLoja) {
+    if (b.titulo !== 'Planejamento semanal' || !b.canvas) continue;
+    const el = b.canvas.find(x => x.id === elId);
+    if (!el) continue;
+    const padrao = node.dataset.padrao || '';
+    if (!novo || novo.toUpperCase() === padrao.toUpperCase()) delete el.rotulo;
+    else el.rotulo = novo;
+    if (!novo) node.textContent = padrao;
+    if (b.id) {
+      const { error } = await sb.from('eventos_loja').update({ canvas: b.canvas }).eq('id', b.id);
+      if (error) showToast('Erro ao salvar o nome: ' + error.message, 'error');
+    }
+    return;
+  }
 }
 
 function abrirQuadroDaData(dataStr) {
@@ -3176,7 +3464,7 @@ function abrirPlanejamentoSemanal(base) {
   const dataStr = iso(seg);
   let ev = eventosLoja.find(e => e.titulo === 'Planejamento semanal' && e.data === dataStr);
   if (!ev) {
-    ev = { data: dataStr, titulo: 'Planejamento semanal', descricao: null, cor: '#5b4fcf', tipo: 'loja', canvas: [] };
+    ev = { data: dataStr, titulo: 'Planejamento semanal', descricao: null, cor: '#a5713d', tipo: 'loja', canvas: [] };
   }
   // quadros antigos (seg–sex): ganham a coluna de sábado
   if (ev.canvas && ev.canvas.length) {
@@ -3321,14 +3609,13 @@ function toggleAddMenu(id) {
   }
 }
 
-function addModulo(addId, tipo, cor) {
+function addModulo(addId, tipo) {
   if (!edEvent || !edEvent.canvas) return;
   const add = edEvent.canvas.find(x => x.id === addId);
   if (!add) return;
-  const h = tipo === 'text' ? 60 : tipo === 'postit' ? 90 : tipo === 'quebra' ? 28 : 170; // checklist e enquete abrem no tamanho padrão das caixas de foto/vídeo
+  const h = tipo === 'text' ? 60 : tipo === 'divisor' ? 22 : 170; // checklist e enquete abrem no tamanho padrão das caixas de foto/vídeo
   // + de reposição pode ter herdado largura estreita de uma caixa excluída — módulo novo nunca abre menor que o padrão
-  const el = { id: _uid(), type: tipo, x: add.x, y: add.y, w: Math.max(add.w || 190, 170), h, content: '',
-    color: tipo === 'postit' ? (cor || edPostitColor || '#fef3a7') : '' };
+  const el = { id: _uid(), type: tipo, x: add.x, y: add.y, w: Math.max(add.w || 190, 170), h, content: '', color: '' };
   if (tipo === 'checklist') el.items = [{ t: '', done: false }];
   if (tipo === 'enquete') el.opts = [{ t: '' }, { t: '' }];
   edEvent.canvas.push(el);
@@ -3339,7 +3626,7 @@ function addModulo(addId, tipo, cor) {
   _ensureVisible(add); // rola a tela para mostrar o módulo novo e o +
   setTimeout(() => {
     const node = document.querySelector(`[data-id="${el.id}"] .cn-content`);
-    if (node && (tipo === 'text' || tipo === 'postit')) { node.contentEditable = 'true'; node.focus(); }
+    if (node && tipo === 'text') { node.contentEditable = 'true'; node.focus(); }
     const vin = document.querySelector(`[data-id="${el.id}"] .cn-video-input`);
     if (vin) vin.focus();
     const foco = document.querySelector(`[data-id="${el.id}"] .ck-txt, [data-id="${el.id}"] .pq-q`);
@@ -3379,49 +3666,55 @@ function cicloStatus(id) {
   _scheduleCanvasSave();
 }
 
-// agrupa módulos de um dia em posts: se o dia tem quebras de post,
-// elas mandam (divisão manual); senão, foto/vídeo/enquete abre um post
+// agrupa módulos de um dia em posts: foto/vídeo/enquete abre um post
 // e puxa textos e checklists seguintes (mesma regra do modal)
+// âncora do grupo: a mídia/enquete que define o post (ou o primeiro elemento)
+function _ancoraPost(p) {
+  return p.find(e => e.type === 'video' || e.type === 'photo' || e.type === 'enquete') || p[0];
+}
+function _ehGrupoPost(p) {
+  return p.some(e => e.type === 'video' || e.type === 'photo' || e.type === 'enquete');
+}
+
+function _bIsMediaPost(e) {
+  return ((e.type === 'video' || e.type === 'photo') && e.url) || e.type === 'enquete';
+}
+
+// automático: texto logo acima da mídia é a legenda dela; checklist e textos soltos são blocos próprios
+function _agruparAuto(els) {
+  const grupos = [];
+  for (let i = 0; i < els.length; i++) {
+    const el = els[i];
+    if (_bIsMediaPost(el)) { grupos.push([el]); continue; }
+    const ehTexto = el.type === 'text' || el.type === 'postit';
+    if (ehTexto && i + 1 < els.length && _bIsMediaPost(els[i + 1])) {
+      grupos.push([el, els[i + 1]]);
+      i++;
+      continue;
+    }
+    grupos.push([el]);
+  }
+  return grupos;
+}
+
 function _agruparPosts(planos) {
-  const isMedia = e => (e.type === 'video' || e.type === 'photo') && e.url;
-  const temConteudo = e => isMedia(e)
+  const temConteudo = e => ((e.type === 'video' || e.type === 'photo') && e.url)
     || ((e.type === 'text' || e.type === 'postit') && (e.content || '').trim())
     || (e.type === 'checklist' && (e.items || []).some(i => (i.t || '').trim()))
     || (e.type === 'enquete' && ((e.q || '').trim() || (e.opts || []).some(o => (o.t || '').trim())));
-  const ordenados = [...planos].sort((a, b) => (a.y || 0) - (b.y || 0));
-  const posts = [];
-  if (ordenados.some(e => e.type === 'quebra')) {
-    let atual = [];
-    ordenados.forEach(el => {
-      if (el.type === 'quebra') { if (atual.length) posts.push(atual); atual = []; return; }
-      if (temConteudo(el)) atual.push(el);
+  const els = [...planos].sort((a, b) => (a.y || 0) - (b.y || 0))
+    .filter(e => e.type === 'divisor' || temConteudo(e));
+  // com quebras de post no dia: cada trecho entre quebras vira um card único
+  if (els.some(e => e.type === 'divisor')) {
+    const trechos = [[]];
+    els.forEach(e => {
+      if (e.type === 'divisor') { trechos.push([]); return; }
+      trechos[trechos.length - 1].push(e);
     });
-    if (atual.length) posts.push(atual);
-    return posts;
+    return trechos.filter(t => t.length).flatMap(t =>
+      t.filter(_bIsMediaPost).length > 1 ? _agruparAuto(t) : [t]); // trecho com várias mídias: automático divide dentro
   }
-  ordenados.filter(temConteudo).forEach(el => {
-    if (isMedia(el) || el.type === 'enquete' || !posts.length) posts.push([el]);
-    else posts[posts.length - 1].push(el);
-  });
-  return posts;
-}
-
-// move a quebra de post para cima/baixo dentro da coluna (dir: -1 / +1)
-function moverQuebra(id, dir) {
-  if (!edEvent || !edEvent.canvas) return;
-  const el = edEvent.canvas.find(x => x.id === id);
-  if (!el) return;
-  // vizinhos: módulos da mesma coluna (x alinhado pelo reflow), sem cabeçalhos nem o +
-  const fila = edEvent.canvas
-    .filter(e => e.type !== 'add' && !_bIsHeader(e) && !_bIsTitulo(e) &&
-      Math.abs((e.x || 0) - (el.x || 0)) < 60)
-    .sort((a, b) => (a.y || 0) - (b.y || 0));
-  const i = fila.indexOf(el);
-  const viz = fila[i + dir];
-  if (!viz) return; // já está na ponta da coluna
-  el.y = (viz.y || 0) + dir; // passa do vizinho; o reflow reempilha certinho
-  _renderCanvas();
-  _scheduleCanvasSave();
+  return _agruparAuto(els);
 }
 
 // tamanho real do card (muda com os itens) — usado no empilhamento e no pan
@@ -3549,7 +3842,7 @@ function _renderOrgLinks(world) {
   const catTop = Math.min(...cats.map(c => c.y || 90));
   const midY = tBot + Math.max(8, (catTop - tBot) / 2);
   const centers = cats.map(c => (c.x || 0) + (c.w || 170) / 2);
-  const tituloVisivel = !_planMobile(); // celular: título vira a pílula, tronco não desenha
+  const tituloVisivel = !_planMobile() || _capturando; // celular: título vira a pílula (mas volta na foto)
   if (tituloVisivel) mk(tcx - 1, tBot, 2, midY - tBot);    // desce do objetivo
   const x1 = Math.min(...centers, tituloVisivel ? tcx : Infinity);
   const x2 = Math.max(...centers, tituloVisivel ? tcx : -Infinity);
@@ -3776,10 +4069,31 @@ function setCanalPill(btn) {
   btn.classList.add('active');
   document.getElementById('camp-canal').value = btn.dataset.canal;
 }
-function setStatusPill(btn) {
-  document.querySelectorAll('.camp-status-pill').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('camp-status').value = btn.dataset.status;
+const OBJ_DICAS = {
+  'Vendas':        { meta: 'A meta: R$ 15.000 na semana...',                    oferta: 'Ex: 20% off em vestidos · leve 3 pague 2' },
+  'Branding':      { meta: 'A meta: alcançar 50 mil pessoas, 30 marcações...',  oferta: 'Ex: brinde exclusivo, embalagem nova, mimo na sacola' },
+  'Lançamento':    { meta: 'A meta: esgotar a primeira grade, 200 peças...',    oferta: 'Ex: 10% off na primeira semana da coleção' },
+  'Data especial': { meta: 'A meta: R$ 20.000 na semana da data...',            oferta: 'Ex: kit presente + embalagem especial de presente' },
+  'Engajamento':   { meta: 'A meta: 500 comentários, 200 compartilhamentos...', oferta: 'Ex: sorteio — comente e marque uma amiga pra concorrer' },
+  'Crescimento':   { meta: 'A meta: +300 seguidores no mês...',                 oferta: 'Ex: siga a loja e ganhe 10% na primeira compra' }
+};
+function _objDicas(obj) {
+  const d = OBJ_DICAS[obj] || { meta: 'A meta: R$ 15.000, 300 seguidores...', oferta: 'Ex: 20% off em vestidos · leve 3 pague 2' };
+  document.getElementById('camp-meta').placeholder   = d.meta;
+  document.getElementById('camp-oferta').placeholder = d.oferta;
+}
+function setObjPill(btn) {
+  const jaAtivo = btn.classList.contains('active');
+  document.querySelectorAll('.camp-obj-pill').forEach(b => b.classList.remove('active'));
+  if (!jaAtivo) btn.classList.add('active');
+  const obj = jaAtivo ? '' : btn.dataset.obj;
+  document.getElementById('camp-objetivo').value = obj;
+  _objDicas(obj);
+}
+function _setObjPills(obj) {
+  document.getElementById('camp-objetivo').value = obj || '';
+  document.querySelectorAll('.camp-obj-pill').forEach(b => b.classList.toggle('active', b.dataset.obj === obj));
+  _objDicas(obj || '');
 }
 function setAntPill(btn) {
   document.querySelectorAll('.camp-ant-pill').forEach(b => b.classList.remove('active'));
@@ -3792,19 +4106,9 @@ function _antSelecionada() {
 function _setAntPills(dias) {
   document.querySelectorAll('.camp-ant-pill').forEach(b => b.classList.toggle('active', parseInt(b.dataset.ant) === dias));
 }
-function detectVideoIco(inp) {
-  const el = document.getElementById('camp-video-ico');
-  if (inp.value.includes('tiktok')) el.textContent = '♪';
-  else if (inp.value.includes('youtube') || inp.value.includes('youtu.be')) el.textContent = '▶';
-  else el.innerHTML = '&#128279;';
-}
 function _syncPillsFromModal() {
   const canal = document.getElementById('camp-canal').value;
-  const status = document.getElementById('camp-status').value;
   document.querySelectorAll('.camp-canal-pill').forEach(b => b.classList.toggle('active', b.dataset.canal===canal));
-  document.querySelectorAll('.camp-status-pill').forEach(b => b.classList.toggle('active', b.dataset.status===status));
-  const ta = document.getElementById('camp-ideia');
-  if (ta) document.getElementById('camp-ideia-count').textContent = ta.value.length;
 }
 // ===== CAMPANHAS =====
 function _canalClass(canal) {
@@ -3921,6 +4225,8 @@ function _campanhaCardHTML(c) {
   const chips = [];
   if (dias >= 0 && dias <= _prepDe(c).antecedencia && fase)
     chips.push(`<span class="camp-fase-chip"><i class="ti ti-flag-3"></i> ${fase.label}</span>`);
+  if (c.objetivo)
+    chips.push(`<span class="camp-fase-chip"><i class="ti ti-target-arrow"></i> ${_esc(c.objetivo)}${c.meta ? ' · ' + _esc(c.meta) : ''}</span>`);
 
   return `<div class="campanha-card ${cc}">
     <div class="camp-click" onclick="abrirQuadroCampanha('${c.id}')">
@@ -3929,6 +4235,7 @@ function _campanhaCardHTML(c) {
           <div class="camp-canal-tag ${cc}">${_canalIconSVG(c.canal)} ${c.canal}</div>
           <div class="camp-titulo-big">${_esc(c.titulo)}</div>
           <div class="camp-data-sub">${parseInt(d)}/${parseInt(m)}/${y}</div>
+          ${c.oferta ? `<div class="camp-oferta-sub"><i class="ti ti-tag"></i> ${_esc(c.oferta)}</div>` : ''}
         </div>
         ${countdown}
       </div>
@@ -3943,10 +4250,15 @@ function _campanhaCardHTML(c) {
 }
 
 // ── QUADRO DA CAMPANHA (mesmo motor do planejamento semanal) ──
-function abrirQuadroCampanha(campId) {
+async function abrirQuadroCampanha(campId) {
   const c = campanhas.find(x => x.id === campId); if (!c) return;
+  // busca a versão mais recente do quadro: aba desatualizada não pode abrir (e salvar) por cima de conteúdo novo
+  try {
+    const { data } = await sb.from('campanhas').select('prep').eq('id', campId).single();
+    if (data && data.prep) c.prep = data.prep;
+  } catch (e) { /* offline: segue com a cópia local */ }
   const ev = {
-    campId, data: c.data_campanha, titulo: c.titulo, tipo: 'loja', cor: '#5b4fcf',
+    campId, data: c.data_campanha, titulo: c.titulo, tipo: 'loja', cor: '#a5713d',
     canvas: _prepDe(c).canvas.length ? JSON.parse(JSON.stringify(_prepDe(c).canvas)) : []
   };
   const idx = _evCache.push(ev) - 1;
@@ -3960,25 +4272,107 @@ function abrirQuadroCampanha(campId) {
   document.getElementById('ed-sub').textContent = `${parseInt(d)}/${parseInt(m)}/${y} — ${cd}`;
 }
 
+// ── PRÉ-MOLDES DE ESTRATÉGIA POR OBJETIVO ─────────────
+// escolheu o objetivo no briefing → o quadro já abre com braços e passos daquela estratégia
+const CAMP_MODELOS = {
+  'Vendas': {
+    dica: 'Estratégia: criar urgência — oferta com prazo curto. Aquecer o público 3 dias antes e vender forte no dia D.',
+    cats: [
+      { nome: 'Oferta & preços', mods: [ { tipo: 'checklist', items: ['Escolher as peças da promoção', 'Calcular margem e desconto', 'Etiquetar / marcar no sistema'] } ] },
+      { nome: 'Conteúdo',        mods: [ { tipo: 'checklist', items: ['Teaser 3 dias antes', 'Post da oferta no dia D', 'Stories diários com as peças'] } ] },
+      { nome: 'Divulgação',      mods: [ { tipo: 'checklist', items: ['Lista de transmissão no WhatsApp', 'Impulsionar o melhor post', 'Avisar as clientes fiéis'] } ] },
+      { nome: 'Loja física',     mods: [ { tipo: 'checklist', items: ['Vitrine com a oferta', 'Combinar condições com a equipe', 'Conferir estoque das peças'] } ] }
+    ]
+  },
+  'Branding': {
+    dica: 'Estratégia: menos venda, mais história. Mostrar quem é a Shai — bastidores, clientes reais e capricho em cada detalhe.',
+    cats: [
+      { nome: 'Identidade',  mods: [ { tipo: 'checklist', items: ['Definir a mensagem da campanha', 'Padronizar o feed (cores e filtro)', 'Revisar bio e destaques'] } ] },
+      { nome: 'Conteúdo',    mods: [ { tipo: 'checklist', items: ['Vídeo dos bastidores', 'História da marca em carrossel', 'Clientes reais vestindo Shai'] } ] },
+      { nome: 'Experiência', mods: [ { tipo: 'checklist', items: ['Embalagem caprichada', 'Mimo surpresa na sacola', 'Atendimento nota 10'] } ] },
+      { nome: 'Parcerias',   mods: [ { tipo: 'checklist', items: ['Mapear influencers da região', 'Enviar look para divulgação', 'Repostar quem marcar a loja'] } ] }
+    ]
+  },
+  'Lançamento': {
+    dica: 'Estratégia: mistério antes, festa no dia. Contagem regressiva, lista VIP e mimo pra quem chegar primeiro.',
+    cats: [
+      { nome: 'Coleção',    mods: [ { tipo: 'checklist', items: ['Receber e conferir as peças', 'Fotografar os looks principais', 'Definir os preços'] } ] },
+      { nome: 'Teaser',     mods: [ { tipo: 'checklist', items: ['Contagem regressiva nos stories', 'Spoiler de 1 peça por dia', 'Lista VIP no WhatsApp'] } ] },
+      { nome: 'Dia D',      mods: [ { tipo: 'checklist', items: ['Reels apresentando a coleção', 'Stories mostrando tudo', 'Mimo para as primeiras clientes'] } ] },
+      { nome: 'Pós-lançamento', mods: [ { tipo: 'checklist', items: ['Repostar clientes com os looks', 'Repor as mais vendidas', 'Anotar o que esgotou'] } ] }
+    ]
+  },
+  'Data especial': {
+    dica: 'Estratégia: facilitar o presente. Kits prontos, embalagem temática e guia de presentes — quem ajuda a escolher, vende.',
+    cats: [
+      { nome: 'Presentes', mods: [ { tipo: 'checklist', items: ['Montar kits de presente', 'Embalagem temática', 'Vale-presente disponível'] } ] },
+      { nome: 'Conteúdo',  mods: [ { tipo: 'checklist', items: ['Guia de presentes no feed', 'Ideias por faixa de preço', 'Depoimentos emocionantes'] } ] },
+      { nome: 'Loja',      mods: [ { tipo: 'checklist', items: ['Vitrine com o tema da data', 'Horário estendido na véspera', 'Equipe alinhada nas condições'] } ] },
+      { nome: 'Promoções', mods: [ { tipo: 'checklist', items: ['Condição especial da data', 'Brinde nas compras maiores', 'Parcelamento facilitado'] } ] }
+    ]
+  },
+  'Engajamento': {
+    dica: 'Estratégia: fazer o público participar. Sorteio + conteúdo interativo, e responder TODO mundo — comentário sem resposta é venda perdida.',
+    cats: [
+      { nome: 'Sorteio',    mods: [ { tipo: 'checklist', items: ['Definir o prêmio (um look?)', 'Criar o post do sorteio', 'Data e forma do resultado'] } ] },
+      { nome: 'Interativo', mods: [
+        { tipo: 'checklist', items: ['Enquete nos stories', 'Caixinha de perguntas', '"Este ou aquele" com looks'] },
+        { tipo: 'enquete', q: 'Qual look vocês querem ver mais?', opts: ['Casual', 'Festa', 'Trabalho'] } ] },
+      { nome: 'Comunidade', mods: [ { tipo: 'checklist', items: ['Responder todos os comentários', 'Repostar marcações', 'Chamar clientes pelo nome'] } ] },
+      { nome: 'Regras',     mods: [ { tipo: 'checklist', items: ['Regulamento claro no post', 'Seguir + marcar amigas', 'Anunciar ganhadora nos stories'] } ] }
+    ]
+  },
+  'Crescimento': {
+    dica: 'Estratégia: alcançar quem ainda não conhece a Shai. Reels com trends, verba de impulsionamento e incentivo pra seguir.',
+    cats: [
+      { nome: 'Conteúdo viral', mods: [ { tipo: 'checklist', items: ['Reels com a trend da semana', 'Antes/depois no provador', 'Dica de moda rápida'] } ] },
+      { nome: 'Anúncios',   mods: [ { tipo: 'checklist', items: ['Impulsionar o melhor reels', 'Definir a verba semanal', 'Público: cidades vizinhas'] } ] },
+      { nome: 'Indicação',  mods: [ { tipo: 'checklist', items: ['Siga e ganhe na 1ª compra', 'Cliente que indica ganha mimo', 'Pedir marcação nos looks'] } ] },
+      { nome: 'Perfil',     mods: [ { tipo: 'checklist', items: ['Bio com link do WhatsApp', 'Destaques organizados', 'Fixar os melhores posts'] } ] }
+    ]
+  }
+};
+
 function inserirTemplateCampanha() {
   if (!edEvent) return;
   if (!edEvent.canvas) edEvent.canvas = [];
-  const CATS = CAMP_CATS_PADRAO;
+  const c = edEvent.campId ? campanhas.find(x => x.id === edEvent.campId) : null;
+  const modelo = c && c.objetivo ? CAMP_MODELOS[c.objetivo] : null;
+  const cats = modelo ? modelo.cats : CAMP_CATS_PADRAO.map(nome => ({ nome, mods: [] }));
   const els = [];
-  els.push({ id: _uid(), type: 'text', tpl: 'titulo', x: PLAN_X0 + (CATS.length * PLAN_COLW) / 2 - 130, y: 20,
+  els.push({ id: _uid(), type: 'text', tpl: 'titulo', x: PLAN_X0 + (cats.length * PLAN_COLW) / 2 - 130, y: 20,
     w: 260, h: 44, content: edEvent.titulo, bold: true, fs: 20, align: 'center',
     hl: true, hlc: '255,210,50', color: '' });
-  CATS.forEach((nome, i) => {
+  cats.forEach((cat, i) => {
     const x = PLAN_X0 + i * PLAN_COLW;
     els.push({ id: _uid(), type: 'text', tpl: 'cat', x: x + 10, y: 90,
-      w: 170, h: 36, content: nome, bold: true, fs: 16,
+      w: 170, h: 36, content: cat.nome, bold: true, fs: 16,
       hl: true, hlc: '110,225,120', color: '' });
-    els.push({ id: _uid(), type: 'add', x, y: 150, w: 190, h: 40 });
+    let y = 150;
+    const mods = [...cat.mods];
+    if (modelo && i === 0) {
+      // post-it de estratégia — carrega meta e oferta do briefing pro quadro
+      let txt = '💡 ' + modelo.dica;
+      if (c.meta)   txt += '\n\n🎯 Meta: ' + c.meta;
+      if (c.oferta) txt += '\n🏷️ Oferta: ' + c.oferta;
+      mods.unshift({ tipo: 'postit', texto: txt });
+    }
+    mods.forEach(md => {
+      const el = { id: _uid(), type: md.tipo, x, y, w: 190, content: '', color: '' };
+      if (md.tipo === 'checklist') { el.items = md.items.map(t => ({ t, done: false })); el.h = 46 + md.items.length * 30; }
+      if (md.tipo === 'postit')    { el.content = md.texto; el.color = '#fef3a7'; el.h = 90 + Math.ceil(md.texto.length / 26) * 18; }
+      if (md.tipo === 'enquete')   { el.q = md.q; el.opts = md.opts.map(t => ({ t })); el.h = 90 + md.opts.length * 30; }
+      els.push(el);
+      y += el.h + 14;
+    });
+    els.push({ id: _uid(), type: 'add', x, y, w: 190, h: 40 });
   });
   edEvent.canvas.push(...els);
   _renderCanvas();
+  _reflowCampanha();
   if (edEvent.campId) _scheduleCanvasSave();
   selectTool('cursor');
+  if (modelo) showToast('Quadro inicial de ' + c.objetivo + ' montado — ajuste do seu jeito!');
 }
 
 // ── ESTILO E COR DA CAIXA DE CATEGORIA ────────────────
@@ -4065,6 +4459,185 @@ async function excluirCampanhaQuadro() {
   if (!campanhas.find(x => x.id === id)) { closeEventDetail(); renderView(); }
 }
 
+// ── IMPRIMIR / COMPARTILHAR CAMPANHA ──────────────────
+// agrupa os módulos do quadro por categoria (mesma regra do reflow), em ordem de leitura
+function _resumoCampanha() {
+  const cv = (edEvent && edEvent.canvas) || [];
+  const cats = cv.filter(e => e.tpl === 'cat').sort((a, b) => (a.x || 0) - (b.x || 0));
+  const grupos = cats.map(c => ({ nome: (c.content || '').trim() || 'Categoria', cor: c.catCor || '#6ee178', itens: [] }));
+  cv.forEach(e => {
+    if (e.tpl || e.type === 'add') return;
+    let gi = 0, best = Infinity;
+    cats.forEach((h, i) => {
+      const d = Math.abs((e.x || 0) - ((h.x || 0) - 10));
+      if (d < best) { best = d; gi = i; }
+    });
+    if (grupos[gi]) grupos[gi].itens.push(e);
+  });
+  grupos.forEach(g => g.itens.sort((a, b) => (a.y || 0) - (b.y || 0)));
+  return grupos;
+}
+
+function imprimirCampanha() {
+  const c = campanhas.find(x => x.id === (edEvent && edEvent.campId)); if (!c) return;
+  const [y, m, d] = c.data_campanha.split('-');
+  const dias = _diasAte(c.data_campanha);
+  const stTxt = { ideia: 'Ideia', gravado: 'Gravado', postado: 'Postado' };
+  const itemHTML = e => {
+    if (e.type === 'checklist') {
+      const its = (e.items || []).filter(i => (i.t || '').trim());
+      return its.length ? its.map(i => `<div class="pc-ck-row"><span class="pc-box${i.done ? ' on' : ''}">${i.done ? '✓' : ''}</span>${_esc(i.t)}</div>`).join('') : '';
+    }
+    if (e.type === 'enquete') {
+      const ops = (e.opts || []).filter(o => (o.t || '').trim());
+      if (!(e.q || '').trim() && !ops.length) return '';
+      return `<div class="pc-enq-q">${_esc(e.q || 'Enquete')}</div>` + ops.map((o, i) => `<div class="pc-enq-op">${String.fromCharCode(65 + i)}) ${_esc(o.t)}</div>`).join('');
+    }
+    if (e.type === 'postit') return (e.content || '').trim() ? `<div class="pc-postit" style="background:${e.color || '#fef3a7'}">${_esc(e.content)}</div>` : '';
+    if (e.type === 'photo') return e.url ? `<img class="pc-img" src="${e.url}">` : '';
+    if (e.type === 'video') return e.url ? `${e.capa ? `<img class="pc-img" src="${e.capa}">` : ''}<div class="pc-video">Vídeo: ${_esc(e.url)}</div>` : '';
+    const txt = (e.content || '').trim();
+    return txt ? `<div class="pc-texto">${_esc(txt)}${e.st ? ` <span class="pc-st">${stTxt[e.st] || ''}</span>` : ''}</div>` : '';
+  };
+  const grupos = _resumoCampanha();
+  document.getElementById('print-camp').innerHTML = `
+    <div class="pc-head">
+      <div class="pc-title">${_esc(c.titulo)}</div>
+      <div class="pc-sub">${parseInt(d)}/${parseInt(m)}/${y}${dias > 1 ? ` — faltam ${dias} dias` : dias === 1 ? ' — é amanhã' : dias === 0 ? ' — é hoje' : ''} · ${_esc(c.canal || '')}</div>
+      ${c.ideia ? `<div class="pc-ideia">“${_esc(c.ideia)}”</div>` : ''}
+    </div>
+    ${grupos.map(g => {
+      const corpo = g.itens.map(itemHTML).filter(Boolean).join('');
+      return `<div class="pc-sec" style="border-left-color:${g.cor}">
+        <div class="pc-sec-title"><span class="pc-dot" style="background:${g.cor}"></span>${_esc(g.nome)}</div>
+        ${corpo || '<div class="pc-vazio">— sem itens ainda —</div>'}
+      </div>`;
+    }).join('')}
+    <div class="pc-foot">Shai — Calendário de campanhas · impresso em ${new Date().toLocaleDateString('pt-BR')}</div>`;
+  document.body.classList.add('printing-camp');
+  const fim = () => { document.body.classList.remove('printing-camp'); window.removeEventListener('afterprint', fim); };
+  window.addEventListener('afterprint', fim);
+  window.print();
+}
+
+// carrega a lib de gerar imagem sob demanda
+async function _carregarHtmlToImage() {
+  if (window.htmlToImage) return;
+  await new Promise((ok, err) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.js';
+    s.onload = ok; s.onerror = () => err(new Error('sem internet pra carregar o gerador de imagem'));
+    document.head.appendChild(s);
+  });
+}
+
+// entrega a imagem: celular compartilha (WhatsApp na lista), computador copia (Ctrl+V) ou baixa
+async function _entregarImagem(blob, nome, titulo) {
+  const file = new File([blob], nome, { type: 'image/png' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: titulo }); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  if (navigator.clipboard && window.ClipboardItem) {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      showToast('Imagem copiada! Abre a conversa no WhatsApp e cola (Ctrl+V)');
+      return;
+    } catch (e) { /* sem permissão: baixa o arquivo */ }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nome;
+  a.click();
+  showToast('Imagem baixada — anexa na conversa do WhatsApp');
+}
+
+// fotografa o quadro inteiro do jeito que está na tela (estilos, cores, linhas)
+let _capturando = false;
+async function _capturarQuadro() {
+  await _carregarHtmlToImage();
+  const world = document.getElementById('ed-world');
+  const canvas = document.getElementById('ed-canvas');
+  const els = (edEvent.canvas || []).filter(e => e.type !== 'add');
+  const fimX = Math.max(...els.map(e => (e.x || 0) + (e.w || 200))) + 40;
+  const fimY = Math.max(...els.map(e => (e.y || 0) + (e.h || 170))) + 50;
+  const cs = getComputedStyle(canvas);
+  _selectEl(null);
+  _capturando = true;
+  world.classList.add('capturando');
+  _renderPlanBadges(); // redesenha as linhas com o título visível (celular)
+  const bak = { transform: world.style.transform, width: world.style.width, height: world.style.height };
+  world.style.transform = 'none';
+  world.style.width = fimX + 'px';
+  world.style.height = fimY + 'px';
+  world.style.backgroundColor = cs.backgroundColor && cs.backgroundColor !== 'rgba(0, 0, 0, 0)' ? cs.backgroundColor : '#f5f1ea';
+  world.style.backgroundImage = cs.backgroundImage;
+  world.style.backgroundSize = cs.backgroundSize;
+  try {
+    // corrida com timeout: fontes externas não podem travar a captura pra sempre
+    const captura = htmlToImage.toBlob(world, {
+      pixelRatio: 2,
+      backgroundColor: '#f5f1ea',
+      preferredFontFormat: 'woff2',
+      imagePlaceholder: 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=='
+    });
+    return await Promise.race([
+      captura,
+      new Promise((_, rej) => setTimeout(() => rej(new Error('demorou demais — verifica a internet')), 20000))
+    ]);
+  } finally {
+    world.classList.remove('capturando');
+    _capturando = false;
+    world.style.transform = bak.transform; world.style.width = bak.width; world.style.height = bak.height;
+    world.style.backgroundColor = ''; world.style.backgroundImage = ''; world.style.backgroundSize = '';
+    _renderPlanBadges();
+    _applyPan();
+  }
+}
+
+async function compartilharCampanha() {
+  const c = campanhas.find(x => x.id === (edEvent && edEvent.campId)); if (!c) return;
+  showToast('Gerando a imagem do quadro...');
+  let blob;
+  try {
+    blob = await _capturarQuadro();
+    if (!blob) throw new Error('captura vazia');
+  } catch (e) {
+    showToast('Imagem falhou (' + (e.message || e) + ') — enviando como texto', 'error');
+    _compartilharTexto(c);
+    return;
+  }
+  const nome = 'campanha-' + (c.titulo || 'shai').toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/gi, '-') + '.png';
+  await _entregarImagem(blob, nome, c.titulo);
+}
+
+function _compartilharTexto(c) {
+  const [y, m, d] = c.data_campanha.split('-');
+  const dias = _diasAte(c.data_campanha);
+  const stTxt = { gravado: 'gravado 🎬', postado: 'postado ✅' };
+  let txt = `🎯 *${(c.titulo || '').toUpperCase()}*\n📅 ${parseInt(d)}/${parseInt(m)}/${y}`;
+  txt += dias > 1 ? ` — faltam *${dias} dias*` : dias === 1 ? ' — é *amanhã*!' : dias === 0 ? ' — é *HOJE*!' : ' — realizada';
+  txt += '\n';
+  if (c.ideia) txt += `_"${c.ideia}"_\n`;
+  _resumoCampanha().forEach(g => {
+    const linhas = [];
+    g.itens.forEach(e => {
+      if (e.type === 'checklist') (e.items || []).forEach(i => { if ((i.t || '').trim()) linhas.push(`${i.done ? '✅' : '◻️'} ${i.t}`); });
+      else if (e.type === 'enquete') {
+        if ((e.q || '').trim()) linhas.push(`📊 ${e.q}`);
+        (e.opts || []).forEach((o, i) => { if ((o.t || '').trim()) linhas.push(`      ${String.fromCharCode(65 + i)}) ${o.t}`); });
+      }
+      else if (e.type === 'postit') { if ((e.content || '').trim()) linhas.push(`📌 ${e.content}`); }
+      else if (e.type === 'video' && e.url) linhas.push(`🎬 ${e.url}`);
+      else if (e.type === 'photo' && e.url) linhas.push(`📷 ${e.url}`);
+      else if ((e.content || '').trim()) linhas.push(`• ${e.content}${stTxt[e.st] ? ` _(${stTxt[e.st]})_` : ''}`);
+    });
+    if (linhas.length) txt += `\n*— ${g.nome.toUpperCase()} —*\n${linhas.join('\n')}\n`;
+  });
+  txt += '\n_Shai · Calendário de campanhas_';
+  _abrirWhats(txt);
+}
+
 function renderCampanhaCards(elId, camps, append=false) {
   const el = document.getElementById(elId);
   const full = `<div class="camp-section-title">&#9670; Campanhas (${camps.length})</div>${camps.map(_campanhaCardHTML).join('')}`;
@@ -4118,6 +4691,7 @@ async function saveNewAcao(btn, campId, loja) {
 
 function abrirCampanha(data, id) {
   campEditId = id || null;
+  document.getElementById('camp-brief-title').innerHTML = id ? 'Ajuste <em>fino</em>' : 'Nova <em>campanha</em>';
   document.getElementById('camp-data').value = data || '';
   if (id) {
     const c = campanhas.find(x => x.id === id);
@@ -4125,14 +4699,15 @@ function abrirCampanha(data, id) {
       document.getElementById('camp-titulo').value = c.titulo || '';
       document.getElementById('camp-canal').value  = c.canal  || 'Instagram';
       document.getElementById('camp-ideia').value  = c.ideia  || '';
-      document.getElementById('camp-video').value  = c.video_link || '';
-      document.getElementById('camp-status').value = c.status || 'rascunho';
+      document.getElementById('camp-meta').value   = c.meta   || '';
+      document.getElementById('camp-oferta').value = c.oferta || '';
+      _setObjPills(c.objetivo || '');
       _setAntPills(_prepDe(c).antecedencia);
     }
   } else {
-    ['camp-titulo','camp-ideia','camp-video'].forEach(i => document.getElementById(i).value='');
+    ['camp-titulo','camp-ideia','camp-meta','camp-oferta'].forEach(i => document.getElementById(i).value='');
     document.getElementById('camp-canal').value  = 'Instagram';
-    document.getElementById('camp-status').value = 'rascunho';
+    _setObjPills('');
     _setAntPills(30);
   }
   _syncPillsFromModal();
@@ -4144,18 +4719,19 @@ async function salvarCampanha() {
   const titulo     = document.getElementById('camp-titulo').value.trim();
   const canal      = document.getElementById('camp-canal').value;
   const ideia      = document.getElementById('camp-ideia').value.trim();
-  const video_link = document.getElementById('camp-video').value.trim();
-  const status     = document.getElementById('camp-status').value;
+  const objetivo   = document.getElementById('camp-objetivo').value;
+  const meta       = document.getElementById('camp-meta').value.trim();
+  const oferta     = document.getElementById('camp-oferta').value.trim();
   if (!data_campanha || !titulo) { showToast('Preencha data e t\u00edtulo','error'); return; }
   const antecedencia = _antSelecionada();
+  const campos = { data_campanha, titulo, canal, ideia:ideia||null, objetivo:objetivo||null, meta:meta||null, oferta:oferta||null };
   let error;
   if (campEditId) {
     const c = campanhas.find(x => x.id === campEditId);
     const prep = { antecedencia, canvas: c ? _prepDe(c).canvas : [] };
-    ({ error } = await sb.from('campanhas').update({ data_campanha, titulo, canal, ideia:ideia||null, video_link:video_link||null, status, prep }).eq('id', campEditId));
+    ({ error } = await sb.from('campanhas').update({ ...campos, prep }).eq('id', campEditId));
   } else {
-    // nova campanha nasce com os bra\u00e7os padr\u00e3o do organograma
-    ({ error } = await sb.from('campanhas').insert({ data_campanha, titulo, canal, ideia:ideia||null, video_link:video_link||null, status, prep: { antecedencia, canvas: [] } }));
+    ({ error } = await sb.from('campanhas').insert({ ...campos, prep: { antecedencia, canvas: [] } }));
   }
   if (error) { showToast('Erro: '+error.message,'error'); return; }
   closeModal('modal-campanha');
