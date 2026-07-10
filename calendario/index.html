@@ -421,6 +421,14 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 }
 .cn-add-opt:hover { background: var(--surface2); }
 .cn-add-opt i { color: var(--text-muted); }
+/* opção post-it: bolinhas de cor dentro da própria linha */
+.cn-add-pcs { display: flex; gap: 5px; margin-left: auto; padding-left: 8px; }
+.cn-add-pc-mini {
+  width: 15px; height: 15px; border-radius: 50%; cursor: pointer;
+  border: 1px solid rgba(0,0,0,.15); flex-shrink: 0;
+  transition: transform .12s;
+}
+.cn-add-pc-mini:hover { transform: scale(1.25); }
 
 /* checklist e enquete — sem moldura, só o conteúdo no quadro */
 .cn-card {
@@ -2256,6 +2264,15 @@ function _renderCanvas() {
           <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','photo')"><i class="ti ti-photo"></i> Caixa de foto</button>
           <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','video')"><i class="ti ti-video"></i> Caixa de vídeo</button>
           <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','text')"><i class="ti ti-letter-t"></i> Caixa de texto</button>
+          <div class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','postit')"><i class="ti ti-note"></i> Caixa de post-it
+            <span class="cn-add-pcs">
+              <span class="cn-add-pc-mini" style="background:#fef3a7" onclick="event.stopPropagation();addModulo('${el.id}','postit','#fef3a7')"></span>
+              <span class="cn-add-pc-mini" style="background:#ffd6e0" onclick="event.stopPropagation();addModulo('${el.id}','postit','#ffd6e0')"></span>
+              <span class="cn-add-pc-mini" style="background:#d6e8ff" onclick="event.stopPropagation();addModulo('${el.id}','postit','#d6e8ff')"></span>
+              <span class="cn-add-pc-mini" style="background:#d6f5e3" onclick="event.stopPropagation();addModulo('${el.id}','postit','#d6f5e3')"></span>
+              <span class="cn-add-pc-mini" style="background:#e8d6ff" onclick="event.stopPropagation();addModulo('${el.id}','postit','#e8d6ff')"></span>
+            </span>
+          </div>
           <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','checklist')"><i class="ti ti-list-check"></i> Checklist</button>
           <button class="cn-add-opt" onclick="event.stopPropagation();addModulo('${el.id}','enquete')"><i class="ti ti-chart-bar"></i> Enquete</button>
         </div>
@@ -3267,13 +3284,14 @@ function toggleAddMenu(id) {
   }
 }
 
-function addModulo(addId, tipo) {
+function addModulo(addId, tipo, cor) {
   if (!edEvent || !edEvent.canvas) return;
   const add = edEvent.canvas.find(x => x.id === addId);
   if (!add) return;
-  const h = tipo === 'text' ? 60 : 170; // checklist e enquete abrem no tamanho padrão das caixas de foto/vídeo
+  const h = tipo === 'text' ? 60 : tipo === 'postit' ? 90 : 170; // checklist e enquete abrem no tamanho padrão das caixas de foto/vídeo
   // + de reposição pode ter herdado largura estreita de uma caixa excluída — módulo novo nunca abre menor que o padrão
-  const el = { id: _uid(), type: tipo, x: add.x, y: add.y, w: Math.max(add.w || 190, 170), h, content: '', color: '' };
+  const el = { id: _uid(), type: tipo, x: add.x, y: add.y, w: Math.max(add.w || 190, 170), h, content: '',
+    color: tipo === 'postit' ? (cor || edPostitColor || '#fef3a7') : '' };
   if (tipo === 'checklist') el.items = [{ t: '', done: false }];
   if (tipo === 'enquete') el.opts = [{ t: '' }, { t: '' }];
   edEvent.canvas.push(el);
@@ -3284,7 +3302,7 @@ function addModulo(addId, tipo) {
   _ensureVisible(add); // rola a tela para mostrar o módulo novo e o +
   setTimeout(() => {
     const node = document.querySelector(`[data-id="${el.id}"] .cn-content`);
-    if (node && tipo === 'text') { node.contentEditable = 'true'; node.focus(); }
+    if (node && (tipo === 'text' || tipo === 'postit')) { node.contentEditable = 'true'; node.focus(); }
     const vin = document.querySelector(`[data-id="${el.id}"] .cn-video-input`);
     if (vin) vin.focus();
     const foco = document.querySelector(`[data-id="${el.id}"] .ck-txt, [data-id="${el.id}"] .pq-q`);
