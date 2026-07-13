@@ -1224,6 +1224,11 @@ textarea.form-input { resize: none; height: 76px; }
 .tf-data { font-size: .68rem; color: var(--text-muted); margin-top: 1px; }
 .tf-data.hoje { color: #c17b3f; font-weight: 600; }
 .tf-data.atrasada { color: var(--red); font-weight: 600; }
+.tf-agendar {
+  border: none; background: none; cursor: pointer; font-size: .95rem;
+  color: #c8c2ba; padding: 4px; flex-shrink: 0;
+}
+.tf-agendar.destaque { color: var(--accent); }
 .tf-star {
   border: none; background: none; cursor: pointer; font-size: .95rem;
   color: #c8c2ba; padding: 4px; flex-shrink: 0;
@@ -1538,6 +1543,8 @@ textarea.form-input { resize: none; height: 76px; }
     <div class="tf-dias" id="tf-dias"></div>
     <input type="date" id="tf-data-pick" style="position:absolute;width:0;height:0;opacity:0;border:0;padding:0"
       onchange="if(this.value){tfDiaFiltro=this.value;renderTarefas();this.value='';}">
+    <input type="date" id="tf-data-tarefa" style="position:absolute;width:0;height:0;opacity:0;border:0;padding:0"
+      onchange="if(this.value){_aplicarDataTarefa(this.value);this.value='';}">
     <div class="tf-add">
       <input type="text" id="tf-nova" placeholder="Adicionar tarefa..." onkeydown="if(event.key==='Enter')adicionarTarefa()">
       <button onclick="adicionarTarefa()" title="Adicionar"><i class="ti ti-plus"></i></button>
@@ -2212,15 +2219,39 @@ function _tfDataLabel(t) {
 }
 
 function _tfRowHTML(t) {
+  const agendar = !t.done
+    ? `<button class="tf-agendar${t.data ? '' : ' destaque'}" title="${t.data ? 'Remarcar' : 'Agendar para um dia'}"
+        onclick="escolherDataTarefa('${t.id}')"><i class="ti ti-calendar-plus"></i></button>`
+    : '';
   return `<div class="tf-row${t.done ? ' done' : ''}">
     <button class="tf-check${t.done ? ' on' : ''}" onclick="toggleTarefa('${t.id}')"><i class="ti ti-check"></i></button>
     <div class="tf-info">
       <div class="tf-titulo">${_esc(t.titulo)}</div>
       ${_tfDataLabel(t)}
     </div>
+    ${agendar}
     <button class="tf-star${t.importante ? ' on' : ''}" title="Importante" onclick="toggleImportanteTarefa('${t.id}')"><i class="ti ${t.importante ? 'ti-star-filled' : 'ti-star'}"></i></button>
     <button class="tf-del" title="Apagar" onclick="deletarTarefa('${t.id}')"><i class="ti ti-x"></i></button>
   </div>`;
+}
+
+// agendar/remarcar tarefa: abre o calendarinho e salva a data escolhida
+let _tfDataAlvo = null;
+function escolherDataTarefa(id) {
+  _tfDataAlvo = id;
+  const p = document.getElementById('tf-data-tarefa');
+  p.showPicker ? p.showPicker() : p.click();
+}
+async function _aplicarDataTarefa(valor) {
+  const t = tarefas.find(x => x.id === _tfDataAlvo);
+  _tfDataAlvo = null;
+  if (!t || !valor) return;
+  const { error } = await sb.from('tarefas').update({ data: valor }).eq('id', t.id);
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  t.data = valor;
+  const [, m, d] = valor.split('-').map(Number);
+  showToast(`Agendada para ${d}/${m}`);
+  renderTarefas();
 }
 
 // chips da semana (seg→dom): escolhe o dia uma vez e as tarefas digitadas caem nele
