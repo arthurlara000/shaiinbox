@@ -119,6 +119,61 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .ev-pill.plano i      { font-size: 0.5rem; }
 .ev-pill.plano.ok     { background: color-mix(in srgb, var(--green) 18%, transparent); color: var(--green); }
 
+/* celular: grade compacta com bolinhas + dia selecionado */
+.cal-day.compacto { align-items: center; padding: 6px 2px 4px; min-height: 48px; gap: 0; }
+.cal-day.sel {
+  outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface2));
+}
+.dia-dots { display: flex; gap: 3px; justify-content: center; margin-top: 3px; height: 6px; }
+.dia-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.dia-dot.camp { background: none; border: 1.5px solid var(--accent); box-sizing: border-box; }
+
+/* painel do dia (só no celular) */
+#painel-dia {
+  margin: 14px 0 4px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 14px;
+}
+#painel-dia:empty { display: none; }
+@media (min-width: 768px) { #painel-dia { display: none; } }
+.pd-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 8px; }
+.pd-titulo { font-size: .88rem; font-weight: 700; }
+.pd-chip {
+  font-size: .64rem; font-weight: 700; background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent); padding: 2px 9px; border-radius: 20px; flex-shrink: 0;
+}
+.pd-row {
+  display: flex; align-items: center; gap: 8px; padding: 9px 10px;
+  background: var(--surface2); border-radius: 10px; margin-bottom: 6px; cursor: pointer;
+}
+.pd-row:active { opacity: .7; }
+.pd-row-ico {
+  width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .58rem; background: #e0dcd4; color: #7a746c;
+}
+.pd-row-ico.grav { background: #f3e2b3; color: #7a5f1e; }
+.pd-row-ico.ok { background: #52b88a; color: #fff; }
+.pd-row-txt { flex: 1; font-size: .8rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pd-vazio { font-size: .8rem; color: var(--text-muted); text-align: center; padding: 8px 0 12px; }
+.pd-botoes { display: flex; gap: 8px; margin-top: 10px; }
+.pd-botoes button {
+  border: none; border-radius: 10px; padding: 11px; font-size: .78rem; font-weight: 600;
+  font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.pd-btn-evento { flex: 1; background: var(--surface2); color: var(--text-muted); }
+.pd-btn-plano { flex: 1.5; background: var(--accent); color: #fff; }
+
+/* legenda dos indicadores de campanha */
+.cal-legenda {
+  display: flex; gap: 16px; margin: -8px 2px 18px; padding: 0 4px;
+  font-size: .66rem; color: var(--text-muted); align-items: center; flex-wrap: wrap;
+}
+.cal-legenda > span { display: flex; align-items: center; gap: 6px; }
+.leg-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.leg-strip { width: 22px; height: 3px; border-radius: 2px; background: #a78bfa; opacity: .7; flex-shrink: 0; }
+.leg-strip.diad { height: 5px; opacity: 1; }
+
 /* ── ANUAL ─────────────────────────────── */
 #view-anual { padding: 0 10px; max-width: 480px; margin: 0 auto; display: none; }
 .year-grid {
@@ -1212,7 +1267,7 @@ textarea.form-input { resize: none; height: 76px; }
 .camp-expand-hint{text-align:center;color:#c8c2ba;font-size:.7rem;margin-top:8px;line-height:1;display:flex;align-items:center;justify-content:center;gap:5px;}
 
 /* faixa de preparação no calendário mensal */
-.camp-prep-strip{position:absolute;left:3px;right:3px;bottom:2px;height:3px;border-radius:2px;background:#a78bfa;opacity:.5;pointer-events:none;}
+.camp-prep-strip{position:absolute;left:3px;right:3px;bottom:2px;height:3px;border-radius:2px;background:#a78bfa;opacity:.7;pointer-events:none;}
 .camp-prep-strip.d2{bottom:6px;background:#7bcfde;}
 .camp-prep-strip.diaD{height:5px;opacity:1;}
 /* pills de antecedência no modal */
@@ -1283,9 +1338,15 @@ textarea.form-input { resize: none; height: 76px; }
 <div id="view-mensal">
   <div class="cal-wrap">
     <div class="cal-grid" id="cal-grid">
-      <div class="cal-dow">Dom</div><div class="cal-dow">Seg</div><div class="cal-dow">Ter</div>
-      <div class="cal-dow">Qua</div><div class="cal-dow">Qui</div><div class="cal-dow">Sex</div><div class="cal-dow">Sáb</div>
+      <div class="cal-dow">Seg</div><div class="cal-dow">Ter</div><div class="cal-dow">Qua</div>
+      <div class="cal-dow">Qui</div><div class="cal-dow">Sex</div><div class="cal-dow">Sáb</div><div class="cal-dow">Dom</div>
     </div>
+    <div class="cal-legenda" id="cal-legenda" style="display:none">
+      <span><span class="leg-dot"></span>campanha</span>
+      <span><span class="leg-strip"></span>preparação de campanha</span>
+      <span><span class="leg-strip diad"></span>dia da campanha</span>
+    </div>
+    <div id="painel-dia"></div>
   </div>
   <div class="events-wrap">
     <div class="section-title" id="events-title"><i class="ti ti-calendar-event"></i> Eventos do mês</div>
@@ -1823,7 +1884,7 @@ function renderMensal() {
   const prefix  = `${viewYear}-${pad(viewMonth+1)}`;
   const doMes   = eventos.filter(e => e.data.startsWith(prefix));
 
-  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+  const firstDay = (new Date(viewYear, viewMonth, 1).getDay() + 6) % 7; // semana começa na segunda
   const days     = new Date(viewYear, viewMonth+1, 0).getDate();
   const isThisMonth = viewYear===todayY && viewMonth===todayM-1;
 
@@ -1844,58 +1905,219 @@ function renderMensal() {
     }
   });
 
+  // tela larga mostra mais conteúdo dentro de cada dia
+  const largo = window.innerWidth >= 1280;
+  const maxEv = largo ? 4 : (window.innerWidth >= 768 ? 3 : 2);
+  let temPrep = false, temCamp = false;
+
   for (let i=0; i<firstDay; i++) {
     const el = document.createElement('div'); el.className='cal-day empty'; grid.appendChild(el);
   }
+  // celular: grade compacta (número + bolinhas) e dia selecionado com painel
+  const mobile = window.innerWidth < 768;
+  if (mobile && (!diaSelecionado || !diaSelecionado.startsWith(prefix))) {
+    diaSelecionado = isThisMonth ? today : `${prefix}-01`;
+  }
+
   for (let d=1; d<=days; d++) {
     const dataStr = `${viewYear}-${pad(viewMonth+1)}-${pad(d)}`;
     const evs = doMes.filter(e => e.data===dataStr)
                      .sort((a,b) => (a.tipo==='loja'?0:1)-(b.tipo==='loja'?0:1));
     const isToday = isThisMonth && d===todayD;
+    const planos = planoMap[dataStr] || [];
+    const grupos = planos.length ? _agruparPosts(planos) : [];
+    const posts = grupos.filter(_ehGrupoPost);
+    const prontos = posts.filter(p => (_ancoraPost(p).st) === 'postado').length;
+    const tudoOk = posts.length > 0 && prontos === posts.length;
+    const hasCamp = campanhas.some(c => c.data_campanha===dataStr);
+
     const el = document.createElement('div');
-    el.className = 'cal-day' + (isToday?' today':'');
-    el.onclick = () => showDayEvents(dataStr, d);
-    const primCor = evs.length ? (evs[0].cor || (evs[0].tipo==='loja' ? 'var(--accent)' : 'var(--yellow)')) : null;
-    const numStyle = primCor && !isToday ? `style="background:color-mix(in srgb,${primCor} 30%,transparent);color:${primCor};font-weight:700"` : '';
-    let html = `<span class="day-num" ${numStyle}>${d}</span>`;
-    evs.slice(0,2).forEach(e => {
-      const lbl = e.titulo.length>10 ? e.titulo.slice(0,9)+'…' : e.titulo;
-      const c = e.cor || (e.tipo==='loja' ? 'var(--accent)' : 'var(--yellow)');
-      html += `<div class="ev-pill" style="background:color-mix(in srgb,${c} 25%,transparent);color:${c}">${lbl}</div>`;
-    });
-    if (evs.length>2) html += `<div class="ev-pill more">+${evs.length-2}</div>`;
-    const planos = planoMap[dataStr];
-    if (planos && planos.length) {
-      const grupos = _agruparPosts(planos);
-      const posts = grupos.filter(_ehGrupoPost);
+    el.className = 'cal-day' + (isToday?' today':'')
+      + (mobile ? ' compacto' : '') + (mobile && dataStr===diaSelecionado ? ' sel' : '');
+    el.dataset.ds = dataStr;
+    el.onclick = mobile ? (() => selecionarDia(dataStr)) : (() => showDayEvents(dataStr, d));
+
+    let html;
+    if (mobile) {
+      let dots = '';
+      if (evs.length) {
+        const c = evs[0].cor || (evs[0].tipo==='loja' ? 'var(--accent)' : 'var(--yellow)');
+        dots += `<span class="dia-dot" style="background:${c}"></span>`;
+      }
+      if (posts.length) dots += `<span class="dia-dot" style="background:${tudoOk?'var(--green)':'var(--accent)'}"></span>`;
+      else if (grupos.length) dots += `<span class="dia-dot" style="background:var(--accent);opacity:.45"></span>`;
+      if (hasCamp) dots += `<span class="dia-dot camp"></span>`;
+      html = `<span class="day-num">${d}</span><div class="dia-dots">${dots}</div>`;
+    } else {
+      const primCor = evs.length ? (evs[0].cor || (evs[0].tipo==='loja' ? 'var(--accent)' : 'var(--yellow)')) : null;
+      const numStyle = primCor && !isToday ? `style="background:color-mix(in srgb,${primCor} 30%,transparent);color:${primCor};font-weight:700"` : '';
+      html = `<span class="day-num" ${numStyle}>${d}</span>`;
+      evs.slice(0, maxEv).forEach(e => {
+        const c = e.cor || (e.tipo==='loja' ? 'var(--accent)' : 'var(--yellow)');
+        html += `<div class="ev-pill" style="background:color-mix(in srgb,${c} 25%,transparent);color:${c}">${e.titulo}</div>`;
+      });
+      if (evs.length>maxEv) html += `<div class="ev-pill more">+${evs.length-maxEv}</div>`;
       if (posts.length) {
-        const prontos = posts.filter(p => (_ancoraPost(p).st) === 'postado').length;
-        const tudoOk = prontos === posts.length;
-        const lbl = prontos
-          ? `<i class="ti ti-check"></i> ${prontos}/${posts.length}`
-          : `<i class="ti ti-player-play"></i> ${posts.length} post${posts.length>1?'s':''}`;
-        html += `<div class="ev-pill plano${tudoOk?' ok':''}">${lbl}</div>`;
+        if (largo) {
+          // desktop: um pill por post, com o título
+          posts.slice(0, 3).forEach(p => {
+            const ok = _ancoraPost(p).st === 'postado';
+            html += `<div class="ev-pill plano${ok?' ok':''}"><i class="ti ${ok?'ti-check':'ti-player-play'}"></i> ${_esc(_tituloPost(p))}</div>`;
+          });
+          if (posts.length>3) html += `<div class="ev-pill more">+${posts.length-3}</div>`;
+        } else {
+          const lbl = prontos
+            ? `<i class="ti ti-check"></i> ${prontos}/${posts.length}`
+            : `<i class="ti ti-player-play"></i> ${posts.length} post${posts.length>1?'s':''}`;
+          html += `<div class="ev-pill plano${tudoOk?' ok':''}">${lbl}</div>`;
+        }
       } else if (grupos.length) {
         html += `<div class="ev-pill plano"><i class="ti ti-notes"></i> ${grupos.length} ite${grupos.length>1?'ns':'m'}</div>`;
       }
+      if (hasCamp) html += `<span class="campanha-dot" title="Tem campanha"></span>`;
     }
-    const hasCamp = campanhas.some(c => c.data_campanha===dataStr);
-    if (hasCamp) html += `<span class="campanha-dot" title="Tem campanha"></span>`;
+    if (hasCamp) temCamp = true;
     const preps = prepMap[dataStr];
-    if (preps) preps.slice(0,2).forEach((p,i) =>
-      html += `<div class="camp-prep-strip${p.diaD?' diaD':''}${i?' d2':''}" title="Preparação: ${p.titulo}"></div>`);
+    if (preps) { temPrep = true; preps.slice(0,2).forEach((p,i) =>
+      html += `<div class="camp-prep-strip${p.diaD?' diaD':''}${i?' d2':''}" title="Preparação: ${p.titulo}"></div>`); }
     el.innerHTML = html;
-    if (evs.length) {
+    if (!mobile && evs.length) {
       el.addEventListener('mouseenter', ev => showTooltip(ev, evs));
       el.addEventListener('mouseleave', hideTooltip);
     }
     grid.appendChild(el);
   }
+  if (mobile) renderPainelDia(diaSelecionado);
 
-  // lista abaixo
-  document.getElementById('events-title').innerHTML = '<i class="ti ti-calendar-event"></i> Eventos do mês';
+  // legenda só aparece quando o mês tem campanha/preparação
+  document.getElementById('cal-legenda').style.display = (temPrep || temCamp) ? 'flex' : 'none';
+
+  // agenda do mês: eventos + campanhas + posts planejados
+  document.getElementById('events-title').innerHTML = '<i class="ti ti-calendar-event"></i> Agenda do mês';
+  const campsMes = campanhas.filter(c => (c.data_campanha || '').startsWith(prefix))
+    .sort((a, b) => a.data_campanha.localeCompare(b.data_campanha));
+  const diasPlanejados = Object.keys(planoMap).filter(ds => ds.startsWith(prefix)).sort();
   renderEventCards('events-list', doMes.sort((a,b)=>a.data.localeCompare(b.data)));
+  const lista = document.getElementById('events-list');
+  if (!doMes.length && (campsMes.length || diasPlanejados.length)) lista.innerHTML = '';
+  if (campsMes.length) renderCampanhaCards('events-list', campsMes, true);
+  diasPlanejados.forEach(ds => {
+    const posts = _agruparPosts(planoMap[ds]).filter(_ehGrupoPost);
+    if (!posts.length) return;
+    const prontos = posts.filter(p => _ancoraPost(p).st === 'postado').length;
+    const [, m2, d2] = ds.split('-').map(Number);
+    const cor = prontos === posts.length ? 'var(--green)' : 'var(--accent)';
+    lista.insertAdjacentHTML('beforeend', `
+      <div class="event-card" style="border-left:3px solid var(--accent);cursor:pointer" onclick="abrirPlanoDiaData('${ds}')">
+        <div class="event-date-box">
+          <div class="event-date-day">${d2}</div>
+          <div class="event-date-mon">${MESES[m2-1].slice(0,3)}</div>
+        </div>
+        <div class="event-info">
+          <div class="event-title">${posts.length} post${posts.length>1?'s':''} planejado${posts.length>1?'s':''}</div>
+          <div class="event-desc">${_esc(posts.map(_tituloPost).join(' · '))}</div>
+          <span class="event-badge" style="background:color-mix(in srgb,${cor} 18%,transparent);color:${cor}">${prontos}/${posts.length} postados</span>
+        </div>
+      </div>`);
+  });
 }
+
+// ── CELULAR: DIA SELECIONADO + PAINEL DO DIA ──────────
+let diaSelecionado = null;
+
+function selecionarDia(dataStr) {
+  diaSelecionado = dataStr;
+  diaAberto = dataStr;
+  document.querySelectorAll('#cal-grid .cal-day').forEach(c =>
+    c.classList.toggle('sel', c.dataset.ds === dataStr));
+  renderPainelDia(dataStr);
+}
+
+function renderPainelDia(dataStr) {
+  const el = document.getElementById('painel-dia');
+  if (!el || !dataStr) return;
+  const [y, m, d] = dataStr.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  const ehHoje = dataStr === today;
+  const evs = allEventos(viewYear).filter(e => e.data === dataStr);
+  const planos = _planejadoMap()[dataStr] || [];
+  const posts = planos.length ? _agruparPosts(planos).filter(_ehGrupoPost) : [];
+  const campsDia = campanhas.filter(c => c.data_campanha === dataStr);
+
+  let html = `<div class="pd-head">
+    <div class="pd-titulo">${ehHoje ? 'Hoje · ' : ''}${DOWS[dt.getDay()]}, ${d} de ${MESES[m-1].toLowerCase()}</div>
+    ${posts.length ? `<div class="pd-chip">${posts.length} post${posts.length>1?'s':''}</div>` : ''}
+  </div>`;
+
+  const ST_ICO = { ideia: ['ti-bulb', ''], gravado: ['ti-movie', 'grav'], postado: ['ti-check', 'ok'] };
+  posts.forEach(p => {
+    const st = _ancoraPost(p).st || 'ideia';
+    html += `<div class="pd-row" onclick="abrirPlanoDiaData('${dataStr}')">
+      <span class="pd-row-ico ${ST_ICO[st][1]}"><i class="ti ${ST_ICO[st][0]}"></i></span>
+      <div class="pd-row-txt">${_esc(_tituloPost(p))}</div>
+      <span class="plano-post-st st-${st}">${ST_POST[st][1]}</span>
+    </div>`;
+  });
+  evs.forEach(e => {
+    const idx = _evCache.push(e) - 1;
+    const c = e.cor || (e.tipo === 'loja' ? 'var(--accent)' : 'var(--yellow)');
+    html += `<div class="pd-row" style="background:color-mix(in srgb,${c} 10%,transparent)" onclick="openEventDetail(${idx})">
+      <span class="pd-row-ico" style="background:none;color:${c};font-size:.85rem"><i class="ti ${e.tipo==='loja'?'ti-calendar-event':'ti-calendar-star'}"></i></span>
+      <div class="pd-row-txt" style="color:${c};font-weight:600">${e.titulo}</div>
+    </div>`;
+  });
+  campsDia.forEach(c => {
+    html += `<div class="pd-row" onclick="abrirCampanha('${dataStr}','${c.id}')">
+      <span class="pd-row-ico" style="background:none;color:var(--accent);font-size:.85rem"><i class="ti ti-speakerphone"></i></span>
+      <div class="pd-row-txt" style="font-weight:600">${c.titulo}</div>
+      <span class="camp-status-indicator status-${c.status}">${c.status}</span>
+    </div>`;
+  });
+  if (!posts.length && !evs.length && !campsDia.length) {
+    html += `<div class="pd-vazio">Nada neste dia ainda</div>`;
+  }
+
+  html += `<div class="pd-botoes">
+    <button class="pd-btn-evento" onclick="document.getElementById('ev-data').value='${dataStr}';openModal('modal-add')"><i class="ti ti-plus"></i> Evento</button>
+    <button class="pd-btn-plano" onclick="abrirQuadroDaData('${dataStr}')"><i class="ti ti-layout-board-split"></i> Abrir planejamento</button>
+  </div>`;
+  el.innerHTML = html;
+}
+
+// arrastar a grade pro lado troca o mês
+let _calSwipe = null;
+document.getElementById('cal-grid').addEventListener('touchstart', e => {
+  _calSwipe = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+}, { passive: true });
+document.getElementById('cal-grid').addEventListener('touchend', e => {
+  if (!_calSwipe) return;
+  const dx = e.changedTouches[0].clientX - _calSwipe.x;
+  const dy = e.changedTouches[0].clientY - _calSwipe.y;
+  _calSwipe = null;
+  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) changePeriod(dx < 0 ? 1 : -1);
+}, { passive: true });
+
+// abre o modal de planejado a partir da agenda do mês
+function abrirPlanoDiaData(ds) {
+  const planos = _planejadoMap()[ds] || [];
+  if (planos.length) abrirPlanoDia(ds, planos);
+}
+
+// título curto de um post do quadro (primeiro texto; senão pergunta/tipo)
+function _tituloPost(p) {
+  const t = p.find(e => (e.type === 'text' || e.type === 'postit') && (e.content || '').trim());
+  if (t) return t.content.trim();
+  const anc = _ancoraPost(p);
+  if (anc.type === 'enquete') return (anc.q || '').trim() || 'Enquete';
+  return anc.type === 'photo' ? 'Foto' : anc.type === 'video' ? 'Vídeo' : 'Post';
+}
+
+// tela mudou de tamanho: re-renderiza o mês (nº de pills por dia depende da largura)
+let _calResizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(_calResizeTimer);
+  _calResizeTimer = setTimeout(() => { if (currentView === 'mensal') renderMensal(); }, 200);
+});
 
 function showDayEvents(dataStr, dia) {
   diaAberto = dataStr;
@@ -1987,14 +2209,14 @@ function renderAnual() {
     const prefix = `${viewYear}-${pad(m+1)}`;
     const doMes  = eventos.filter(e => e.data.startsWith(prefix));
     const isThisMes = viewYear===todayY && m===todayM-1;
-    const firstDay  = new Date(viewYear, m, 1).getDay();
+    const firstDay  = (new Date(viewYear, m, 1).getDay() + 6) % 7; // semana começa na segunda
     const days      = new Date(viewYear, m+1, 0).getDate();
 
     const box = document.createElement('div');
     box.className = 'mini-month';
 
     let miniHTML = `<div class="mini-month-title">${MESES[m]}</div><div class="mini-grid">`;
-    DOWS.forEach(d => miniHTML += `<div class="mini-dow">${d[0]}</div>`);
+    [...DOWS.slice(1), DOWS[0]].forEach(d => miniHTML += `<div class="mini-dow">${d[0]}</div>`);
     for (let i=0; i<firstDay; i++) miniHTML += '<div class="mini-day"></div>';
     for (let d=1; d<=days; d++) {
       const dataStr = `${viewYear}-${pad(m+1)}-${pad(d)}`;
