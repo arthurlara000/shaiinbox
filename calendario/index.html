@@ -250,6 +250,27 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   padding: 2px 7px; border-radius: 20px; display: inline-block; margin-top: 5px;
 }
 .badge-comemorativa { background: color-mix(in srgb, var(--yellow) 18%, transparent); color: var(--yellow); }
+.event-badge.badge-prio { color: #fff; letter-spacing: .05em; }
+
+/* seletor de cor/prioridade das caixas */
+.event-card { flex-wrap: wrap; }
+.card-cor-btn {
+  background: none; border: none; color: #c8c2ba; cursor: pointer;
+  font-size: 1rem; padding: 4px; flex-shrink: 0; align-self: flex-start;
+}
+.card-cor-btn:hover { color: var(--accent); }
+.cor-picker {
+  display: none; width: 100%; gap: 9px; align-items: center;
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+.cor-picker.open { display: flex; }
+.cor-picker-lbl { font-size: .68rem; color: var(--text-muted); margin-right: 2px; }
+.cor-dot { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; flex-shrink: 0; transition: transform .1s; }
+.cor-dot:hover { transform: scale(1.2); }
+.cor-dot.atual { outline: 2px solid var(--text); outline-offset: 2px; }
+.camp-cor-row { display: flex; flex-direction: column; align-items: flex-end; margin-top: 4px; }
+.camp-cor-row .cor-picker { justify-content: flex-end; }
 .badge-loja         { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
 .event-del { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.9rem; padding: 2px; }
 .empty { text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 32px 0; }
@@ -1768,9 +1789,60 @@ function allEventos(ano) {
   });
   const comMerged = com.map(c => {
     const s = shadows[c.data + '|' + c.titulo];
-    return s ? { ...c, id: s.id, canvas: s.canvas } : c;
+    return s ? { ...c, id: s.id, canvas: s.canvas, cor: s.cor || c.cor, corExplicita: !!s.cor } : c;
   });
   return [...comMerged, ...loja];
+}
+
+// ===== COR / PRIORIDADE DAS CAIXAS DA AGENDA =====
+const CORES_PRIO = ['#c44848','#b87830','#3a9a6a','#5b4fcf','#de7bb8','#9a9490'];
+const PRIO_LABEL = { '#c44848': 'Prioridade alta', '#b87830': 'Atenção' };
+
+function toggleCorPicker(id) {
+  document.querySelectorAll('.cor-picker.open').forEach(p => { if (p.id !== id) p.classList.remove('open'); });
+  const p = document.getElementById(id);
+  if (p) p.classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.cor-picker') && !e.target.closest('.card-cor-btn'))
+    document.querySelectorAll('.cor-picker.open').forEach(p => p.classList.remove('open'));
+});
+
+async function definirCorEvento(idx, cor) {
+  const e = _evCache[idx]; if (!e) return;
+  if (e.id) {
+    const { error } = await sb.from('eventos_loja').update({ cor }).eq('id', e.id);
+    if (error) { showToast('Erro ao salvar: ' + error.message, 'error'); return; }
+    const i = eventosLoja.findIndex(x => x.id === e.id);
+    if (i >= 0) eventosLoja[i].cor = cor;
+  } else {
+    // comemorativa: registro espelho guarda a cor escolhida
+    const { data: row, error } = await sb.from('eventos_loja')
+      .insert({ data: e.data, titulo: e.titulo, cor, canvas: e.canvas || [] }).select().single();
+    if (error) { showToast('Erro ao salvar: ' + error.message, 'error'); return; }
+    eventosLoja.push({ ...row, tipo: 'loja' });
+  }
+  e.cor = cor; e.corExplicita = true;
+  renderView();
+  showToast('Cor atualizada!');
+}
+
+async function definirCorCampanha(id, cor) {
+  const { error } = await sb.from('campanhas').update({ cor }).eq('id', id);
+  if (error) { showToast('Erro ao salvar: ' + error.message, 'error'); return; }
+  const c = campanhas.find(x => x.id === id);
+  if (c) c.cor = cor;
+  renderView();
+  showToast('Cor atualizada!');
+}
+
+// chamada: início da função sem o argumento da cor — ex.: "definirCorEvento(3"
+function _corPickerHTML(id, corAtual, chamada) {
+  return `<div class="cor-picker" id="${id}">
+    <span class="cor-picker-lbl">cor:</span>
+    ${CORES_PRIO.map(h => `<span class="cor-dot${corAtual === h ? ' atual' : ''}" style="background:${h}"
+      onclick="event.stopPropagation();${chamada},'${h}')"></span>`).join('')}
+  </div>`;
 }
 
 // ===== SUPABASE =====
@@ -1929,7 +2001,8 @@ function renderMensal() {
     const posts = grupos.filter(_ehGrupoPost);
     const prontos = posts.filter(p => (_ancoraPost(p).st) === 'postado').length;
     const tudoOk = posts.length > 0 && prontos === posts.length;
-    const hasCamp = campanhas.some(c => c.data_campanha===dataStr);
+    const campDia = campanhas.find(c => c.data_campanha===dataStr);
+    const hasCamp = !!campDia;
 
     const el = document.createElement('div');
     el.className = 'cal-day' + (isToday?' today':'')
@@ -1946,7 +2019,7 @@ function renderMensal() {
       }
       if (posts.length) dots += `<span class="dia-dot" style="background:${tudoOk?'var(--green)':'var(--accent)'}"></span>`;
       else if (grupos.length) dots += `<span class="dia-dot" style="background:var(--accent);opacity:.45"></span>`;
-      if (hasCamp) dots += `<span class="dia-dot camp"></span>`;
+      if (hasCamp) dots += `<span class="dia-dot camp"${campDia.cor?` style="border-color:${campDia.cor}"`:''}></span>`;
       html = `<span class="day-num">${d}</span><div class="dia-dots">${dots}</div>`;
     } else {
       const primCor = evs.length ? (evs[0].cor || (evs[0].tipo==='loja' ? 'var(--accent)' : 'var(--yellow)')) : null;
@@ -1974,7 +2047,7 @@ function renderMensal() {
       } else if (grupos.length) {
         html += `<div class="ev-pill plano"><i class="ti ti-notes"></i> ${grupos.length} ite${grupos.length>1?'ns':'m'}</div>`;
       }
-      if (hasCamp) html += `<span class="campanha-dot" title="Tem campanha"></span>`;
+      if (hasCamp) html += `<span class="campanha-dot" title="Tem campanha"${campDia.cor?` style="background:${campDia.cor}"`:''}></span>`;
     }
     if (hasCamp) temCamp = true;
     const preps = prepMap[dataStr];
@@ -2008,8 +2081,8 @@ function renderMensal() {
     const [, m2, d2] = ds.split('-').map(Number);
     const cor = prontos === posts.length ? 'var(--green)' : 'var(--accent)';
     lista.insertAdjacentHTML('beforeend', `
-      <div class="event-card" style="border-left:3px solid var(--accent);cursor:pointer" onclick="abrirPlanoDiaData('${ds}')">
-        <div class="event-date-box">
+      <div class="event-card" style="border:2px solid var(--accent);border-left:6px solid var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--surface));cursor:pointer" onclick="abrirPlanoDiaData('${ds}')">
+        <div class="event-date-box" style="background:color-mix(in srgb,var(--accent) 12%,transparent)">
           <div class="event-date-day">${d2}</div>
           <div class="event-date-mon">${MESES[m2-1].slice(0,3)}</div>
         </div>
@@ -2271,21 +2344,27 @@ function renderEventCards(elId, eventos) {
     const badge = e.tipo==='loja'
       ? `<span class="event-badge" style="background:color-mix(in srgb,${cor} 18%,transparent);color:${cor}">Loja</span>`
       : '<span class="event-badge badge-comemorativa">Data comemorativa</span>';
+    // etiqueta automática só quando a cor foi escolhida de propósito
+    const prio = (e.tipo==='loja' || e.corExplicita) && PRIO_LABEL[e.cor]
+      ? `<span class="event-badge badge-prio" style="background:${e.cor}">${PRIO_LABEL[e.cor]}</span>`
+      : '';
     const del = e.tipo==='loja' && e.id
       ? `<button class="event-del" onclick="event.stopPropagation();deletarEvento('${e.id}')"><i class="ti ti-x"></i></button>`
       : '';
     return `
-      <div class="event-card" style="border-left:3px solid ${cor};cursor:pointer" onclick="openEventDetail(${idx})">
-        <div class="event-date-box" style="border-color:color-mix(in srgb,${cor} 30%,transparent)">
+      <div class="event-card" style="border:2px solid ${cor};border-left:6px solid ${cor};background:color-mix(in srgb,${cor} 8%,var(--surface));cursor:pointer" onclick="openEventDetail(${idx})">
+        <div class="event-date-box" style="background:color-mix(in srgb,${cor} 14%,transparent)">
           <div class="event-date-day" style="color:${cor}">${parseInt(d)}</div>
           <div class="event-date-mon">${MESES_ABREV[parseInt(m)-1]}</div>
         </div>
         <div class="event-info">
           <div class="event-title">${e.titulo}</div>
           ${e.desc||e.descricao ? `<div class="event-desc">${e.desc||e.descricao}</div>` : ''}
-          ${badge}
+          ${badge} ${prio}
         </div>
+        <button class="card-cor-btn" title="Cor da caixa" onclick="event.stopPropagation();toggleCorPicker('cp-ev-${idx}')"><i class="ti ti-palette"></i></button>
         ${del}
+        ${_corPickerHTML('cp-ev-' + idx, e.cor, 'definirCorEvento(' + idx)}
       </div>`;
   }).join('');
 }
@@ -4451,13 +4530,17 @@ function _campanhaCardHTML(c) {
   if (c.objetivo)
     chips.push(`<span class="camp-fase-chip"><i class="ti ti-target-arrow"></i> ${_esc(c.objetivo)}${c.meta ? ' · ' + _esc(c.meta) : ''}</span>`);
 
-  return `<div class="campanha-card ${cc}">
+  const corC = c.cor || null;
+  const estiloCor = corC ? ` style="border:2px solid ${corC};border-left:6px solid ${corC};background:color-mix(in srgb,${corC} 7%,var(--surface))"` : '';
+  const prioC = PRIO_LABEL[corC]
+    ? `<span class="event-badge badge-prio" style="background:${corC}">${PRIO_LABEL[corC]}</span>` : '';
+  return `<div class="campanha-card ${cc}"${estiloCor}>
     <div class="camp-click" onclick="abrirQuadroCampanha('${c.id}')">
       <div class="camp-top-row">
         <div>
           <div class="camp-canal-tag ${cc}">${_canalIconSVG(c.canal)} ${c.canal}</div>
           <div class="camp-titulo-big">${_esc(c.titulo)}</div>
-          <div class="camp-data-sub">${parseInt(d)}/${parseInt(m)}/${y}</div>
+          <div class="camp-data-sub">${parseInt(d)}/${parseInt(m)}/${y} ${prioC}</div>
           ${c.oferta ? `<div class="camp-oferta-sub"><i class="ti ti-tag"></i> ${_esc(c.oferta)}</div>` : ''}
         </div>
         ${countdown}
@@ -4468,6 +4551,10 @@ function _campanhaCardHTML(c) {
       </div>` : ''}
       ${chips.length ? `<div class="camp-chips-row">${chips.join('')}</div>` : ''}
       <div class="camp-expand-hint"><i class="ti ti-sitemap"></i> toque para abrir o quadro</div>
+    </div>
+    <div class="camp-cor-row">
+      <button class="card-cor-btn" title="Cor da caixa" onclick="event.stopPropagation();toggleCorPicker('cp-camp-${c.id}')"><i class="ti ti-palette"></i></button>
+      ${_corPickerHTML('cp-camp-' + c.id, corC, `definirCorCampanha('${c.id}'`)}
     </div>
   </div>`;
 }
