@@ -1156,6 +1156,36 @@ textarea.form-input { resize: none; height: 76px; }
 
 /* ── TAREFAS (estilo To Do) ── */
 .tarefas-wrap { padding: 14px 14px 0; max-width: 640px; margin: 0 auto; }
+.tf-dias {
+  display: flex; gap: 7px; overflow-x: auto; padding: 2px 2px 12px;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.tf-dias::-webkit-scrollbar { display: none; }
+.tf-chip {
+  flex-shrink: 0; border: 1.5px solid var(--border); background: var(--surface);
+  color: var(--text-muted); border-radius: 20px; padding: 7px 14px;
+  font-family: inherit; font-size: .78rem; font-weight: 600; cursor: pointer;
+  white-space: nowrap;
+}
+.tf-chip.active { border-color: var(--accent); color: #fff; background: var(--accent); }
+.tf-aviso-atraso {
+  display: flex; align-items: center; gap: 6px; width: 100%;
+  border: 1px solid color-mix(in srgb, var(--red) 40%, transparent);
+  background: color-mix(in srgb, var(--red) 8%, transparent); color: var(--red);
+  border-radius: 10px; padding: 8px 12px; margin-bottom: 10px;
+  font-family: inherit; font-size: .76rem; font-weight: 700; cursor: pointer;
+}
+/* celular: barra de adicionar fixa embaixo, no alcance do polegar */
+@media (max-width: 767px) {
+  .tf-add {
+    position: fixed; left: 10px; right: 10px;
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    z-index: 60; margin-bottom: 0;
+    box-shadow: 0 4px 18px rgba(0,0,0,.18);
+    background: var(--surface);
+  }
+  .tarefas-wrap { padding-bottom: 130px; }
+}
 .tf-add {
   display: flex; gap: 8px; align-items: center; margin-bottom: 14px;
   background: var(--surface); border: 1.5px dashed #c0b9ae; border-radius: 14px; padding: 8px 10px;
@@ -1503,9 +1533,9 @@ textarea.form-input { resize: none; height: 76px; }
 <!-- VIEW: TAREFAS -->
 <div id="view-tarefas" style="display:none">
   <div class="tarefas-wrap">
+    <div class="tf-dias" id="tf-dias"></div>
     <div class="tf-add">
       <input type="text" id="tf-nova" placeholder="Adicionar tarefa..." onkeydown="if(event.key==='Enter')adicionarTarefa()">
-      <input type="date" id="tf-data" title="Data (opcional)">
       <button onclick="adicionarTarefa()" title="Adicionar"><i class="ti ti-plus"></i></button>
     </div>
     <div id="tf-lista"></div>
@@ -2110,11 +2140,15 @@ const COR_TAREFA = '#3d8ba0';
 
 function _tarefasDia(ds) { return tarefas.filter(t => t.data === ds); }
 
+// dia selecionado na aba: 'todas' | 'semdata' | 'AAAA-MM-DD'
+let tfDiaFiltro = today;
+
 async function adicionarTarefa() {
   const inp = document.getElementById('tf-nova');
   const titulo = inp.value.trim();
   if (!titulo) return;
-  const data = document.getElementById('tf-data').value || null;
+  // a data vem do dia escolhido nos chips — digita direto, sem escolher data por tarefa
+  const data = (tfDiaFiltro === 'todas' || tfDiaFiltro === 'semdata') ? null : tfDiaFiltro;
   const { data: row, error } = await sb.from('tarefas')
     .insert({ titulo, data }).select().single();
   if (error) { showToast('Erro: ' + error.message, 'error'); return; }
@@ -2185,25 +2219,63 @@ function _tfRowHTML(t) {
   </div>`;
 }
 
+// chips de dia: escolhe uma vez, todas as tarefas digitadas caem naquele dia
+function _tfChipsHTML() {
+  const chips = [{ k: 'todas', l: 'Todas' }, { k: 'semdata', l: 'Sem data' }];
+  for (let i = 0; i < 14; i++) {
+    const dt = new Date(todayY, todayM - 1, todayD + i);
+    chips.push({ k: iso(dt), l: i === 0 ? 'Hoje' : i === 1 ? 'Amanhã' : `${DOWS[dt.getDay()]} ${dt.getDate()}` });
+  }
+  return chips.map(c =>
+    `<button class="tf-chip${tfDiaFiltro === c.k ? ' active' : ''}" onclick="tfDiaFiltro='${c.k}';renderTarefas()">${c.l}</button>`
+  ).join('');
+}
+
 function renderTarefas() {
   document.getElementById('header-sub').textContent = 'Tarefas';
+  document.getElementById('tf-dias').innerHTML = _tfChipsHTML();
+  const inp = document.getElementById('tf-nova');
+  inp.placeholder = tfDiaFiltro === 'todas' || tfDiaFiltro === 'semdata'
+    ? 'Adicionar tarefa (sem data)...'
+    : tfDiaFiltro === today ? 'Adicionar tarefa para hoje...'
+    : `Adicionar tarefa para ${(() => { const [y,m,d] = tfDiaFiltro.split('-').map(Number); return d + '/' + m; })()}...`;
+
   const el = document.getElementById('tf-lista');
-  const pend = tarefas.filter(t => !t.done);
-  const atrasadas = pend.filter(t => t.data && t.data < today);
   const ordena = (a, b) => (b.importante - a.importante)
     || ((a.data || '9999') < (b.data || '9999') ? -1 : (a.data || '9999') > (b.data || '9999') ? 1 : 0)
     || (a.criada_em || '').localeCompare(b.criada_em || '');
-  const fazer = pend.filter(t => !atrasadas.includes(t)).sort(ordena);
-  const feitas = tarefas.filter(t => t.done).sort((a, b) => (b.criada_em || '').localeCompare(a.criada_em || ''));
+  const atrasadasTotal = tarefas.filter(t => !t.done && t.data && t.data < today);
   let html = '';
-  if (atrasadas.length) html += `<div class="tf-secao atrasada"><i class="ti ti-alert-circle"></i> ATRASADAS (${atrasadas.length})</div>`
-    + atrasadas.sort(ordena).map(_tfRowHTML).join('');
-  html += fazer.map(_tfRowHTML).join('');
-  if (!pend.length) html += '<div class="empty">Nenhuma tarefa pendente — adicione uma acima 🎉</div>';
-  if (feitas.length) {
-    html += `<button class="tf-secao clicavel" onclick="tfMostrarFeitas=!tfMostrarFeitas;renderTarefas()">
-      <i class="ti ti-chevron-${tfMostrarFeitas ? 'down' : 'right'}"></i> CONCLUÍDAS (${feitas.length})</button>`;
-    if (tfMostrarFeitas) html += feitas.map(_tfRowHTML).join('');
+
+  if (tfDiaFiltro === 'todas') {
+    const pend = tarefas.filter(t => !t.done);
+    const fazer = pend.filter(t => !atrasadasTotal.includes(t)).sort(ordena);
+    const feitas = tarefas.filter(t => t.done).sort((a, b) => (b.criada_em || '').localeCompare(a.criada_em || ''));
+    if (atrasadasTotal.length) html += `<div class="tf-secao atrasada"><i class="ti ti-alert-circle"></i> ATRASADAS (${atrasadasTotal.length})</div>`
+      + atrasadasTotal.sort(ordena).map(_tfRowHTML).join('');
+    html += fazer.map(_tfRowHTML).join('');
+    if (!pend.length) html += '<div class="empty">Nenhuma tarefa pendente 🎉</div>';
+    if (feitas.length) {
+      html += `<button class="tf-secao clicavel" onclick="tfMostrarFeitas=!tfMostrarFeitas;renderTarefas()">
+        <i class="ti ti-chevron-${tfMostrarFeitas ? 'down' : 'right'}"></i> CONCLUÍDAS (${feitas.length})</button>`;
+      if (tfMostrarFeitas) html += feitas.map(_tfRowHTML).join('');
+    }
+  } else {
+    const alvo = tfDiaFiltro === 'semdata' ? null : tfDiaFiltro;
+    const doDia = tarefas.filter(t => (t.data || null) === alvo);
+    const pend = doDia.filter(t => !t.done).sort(ordena);
+    const feitas = doDia.filter(t => t.done);
+    // aviso de atrasadas quando se está olhando um dia específico
+    if (atrasadasTotal.length && alvo !== null)
+      html += `<button class="tf-aviso-atraso" onclick="tfDiaFiltro='todas';renderTarefas()">
+        <i class="ti ti-alert-circle"></i> ${atrasadasTotal.length} tarefa${atrasadasTotal.length>1?'s':''} atrasada${atrasadasTotal.length>1?'s':''} — ver todas</button>`;
+    html += pend.map(_tfRowHTML).join('');
+    if (!doDia.length) html += '<div class="empty">Nada aqui — digite abaixo e dê Enter</div>';
+    if (feitas.length) {
+      html += `<button class="tf-secao clicavel" onclick="tfMostrarFeitas=!tfMostrarFeitas;renderTarefas()">
+        <i class="ti ti-chevron-${tfMostrarFeitas ? 'down' : 'right'}"></i> CONCLUÍDAS (${feitas.length})</button>`;
+      if (tfMostrarFeitas) html += feitas.map(_tfRowHTML).join('');
+    }
   }
   el.innerHTML = html;
 }
