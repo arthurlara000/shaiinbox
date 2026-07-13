@@ -1167,7 +1167,9 @@ textarea.form-input { resize: none; height: 76px; }
   font-family: inherit; font-size: .78rem; font-weight: 600; cursor: pointer;
   white-space: nowrap;
 }
+.tf-chip.hoje { border-color: var(--accent); color: var(--accent); font-weight: 700; }
 .tf-chip.active { border-color: var(--accent); color: #fff; background: var(--accent); }
+.tf-chip-data { color: var(--accent); font-size: .9rem; padding: 7px 11px; }
 .tf-aviso-atraso {
   display: flex; align-items: center; gap: 6px; width: 100%;
   border: 1px solid color-mix(in srgb, var(--red) 40%, transparent);
@@ -1534,6 +1536,8 @@ textarea.form-input { resize: none; height: 76px; }
 <div id="view-tarefas" style="display:none">
   <div class="tarefas-wrap">
     <div class="tf-dias" id="tf-dias"></div>
+    <input type="date" id="tf-data-pick" style="position:absolute;width:0;height:0;opacity:0;border:0;padding:0"
+      onchange="if(this.value){tfDiaFiltro=this.value;renderTarefas();this.value='';}">
     <div class="tf-add">
       <input type="text" id="tf-nova" placeholder="Adicionar tarefa..." onkeydown="if(event.key==='Enter')adicionarTarefa()">
       <button onclick="adicionarTarefa()" title="Adicionar"><i class="ti ti-plus"></i></button>
@@ -2219,16 +2223,32 @@ function _tfRowHTML(t) {
   </div>`;
 }
 
-// chips de dia: escolhe uma vez, todas as tarefas digitadas caem naquele dia
+// chips da semana (seg→dom): escolhe o dia uma vez e as tarefas digitadas caem nele
 function _tfChipsHTML() {
   const chips = [{ k: 'todas', l: 'Todas' }, { k: 'semdata', l: 'Sem data' }];
-  for (let i = 0; i < 14; i++) {
-    const dt = new Date(todayY, todayM - 1, todayD + i);
-    chips.push({ k: iso(dt), l: i === 0 ? 'Hoje' : i === 1 ? 'Amanhã' : `${DOWS[dt.getDay()]} ${dt.getDate()}` });
+  const hoje = new Date(todayY, todayM - 1, todayD);
+  const seg = new Date(todayY, todayM - 1, todayD - ((hoje.getDay() + 6) % 7));
+  const diasSemana = [];
+  for (let i = 0; i < 7; i++) {
+    const dt = new Date(seg.getFullYear(), seg.getMonth(), seg.getDate() + i);
+    const ds = iso(dt);
+    diasSemana.push(ds);
+    chips.push({ k: ds, l: `${DOWS[dt.getDay()]} ${dt.getDate()}`, hoje: ds === today });
   }
-  return chips.map(c =>
-    `<button class="tf-chip${tfDiaFiltro === c.k ? ' active' : ''}" onclick="tfDiaFiltro='${c.k}';renderTarefas()">${c.l}</button>`
+  let html = chips.map(c =>
+    `<button class="tf-chip${c.hoje ? ' hoje' : ''}${tfDiaFiltro === c.k ? ' active' : ''}"
+      onclick="tfDiaFiltro='${c.k}';renderTarefas()">${c.l}</button>`
   ).join('');
+  // data escolhida fora da semana: aparece como chip extra
+  if (/^\d{4}-/.test(tfDiaFiltro) && !diasSemana.includes(tfDiaFiltro)) {
+    const [, m2, d2] = tfDiaFiltro.split('-').map(Number);
+    html += `<button class="tf-chip active">${d2}/${m2}</button>`;
+  }
+  // botão de escolher qualquer data no calendário
+  html += `<button class="tf-chip tf-chip-data" title="Escolher outra data"
+    onclick="const p=document.getElementById('tf-data-pick'); p.showPicker ? p.showPicker() : p.click()">
+    <i class="ti ti-calendar-search"></i></button>`;
+  return html;
 }
 
 function renderTarefas() {
