@@ -1144,6 +1144,7 @@ function setConfigView(v, btn) {
 // ===== WEEK / MONTH OFFSETS =====
 let dashOffset = 0, dashMonthOffset = 0, comOffset = 0;
 function dashWeek(d) { dashOffset += d; loadDashboard(); }
+function comWeek(d)  { comOffset  += d; loadComissoes(); }
 function dashMonth(d) { dashMonthOffset += d; loadDashboard(); }
 
 // ===== TIER PROGRESS BLOCK =====
