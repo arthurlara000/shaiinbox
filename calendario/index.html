@@ -1547,6 +1547,7 @@ textarea.form-input { resize: none; height: 76px; }
       onchange="if(this.value){_aplicarDataTarefa(this.value);this.value='';}">
     <div class="tf-add">
       <input type="text" id="tf-nova" placeholder="Adicionar tarefa..." onkeydown="if(event.key==='Enter')adicionarTarefa()">
+      <input type="date" id="tf-data-add" style="display:none" title="Data (opcional)">
       <button onclick="adicionarTarefa()" title="Adicionar"><i class="ti ti-plus"></i></button>
     </div>
     <div id="tf-lista"></div>
@@ -2158,8 +2159,13 @@ async function adicionarTarefa() {
   const inp = document.getElementById('tf-nova');
   const titulo = inp.value.trim();
   if (!titulo) return;
-  // a data vem do dia escolhido nos chips — digita direto, sem escolher data por tarefa
-  const data = (tfDiaFiltro === 'todas' || tfDiaFiltro === 'semdata') ? null : tfDiaFiltro;
+  // a data vem do dia escolhido nos chips — no modo Sem data, a caixinha
+  // de data (opcional) permite já criar com uma data futura
+  const dataAdd = document.getElementById('tf-data-add');
+  const data = (tfDiaFiltro === 'todas' || tfDiaFiltro === 'semdata')
+    ? (tfDiaFiltro === 'semdata' && dataAdd.value ? dataAdd.value : null)
+    : tfDiaFiltro;
+  if (dataAdd.value) dataAdd.value = '';
   const { data: row, error } = await sb.from('tarefas')
     .insert({ titulo, data }).select().single();
   if (error) { showToast('Erro: ' + error.message, 'error'); return; }
@@ -2290,6 +2296,8 @@ function renderTarefas() {
     ? 'Adicionar tarefa (sem data)...'
     : tfDiaFiltro === today ? 'Adicionar tarefa para hoje...'
     : `Adicionar tarefa para ${(() => { const [y,m,d] = tfDiaFiltro.split('-').map(Number); return d + '/' + m; })()}...`;
+  // modo Sem data: mostra a caixinha de data futura (opcional) na barra
+  document.getElementById('tf-data-add').style.display = tfDiaFiltro === 'semdata' ? '' : 'none';
 
   const el = document.getElementById('tf-lista');
   const ordena = (a, b) => (b.importante - a.importante)
