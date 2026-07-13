@@ -1154,6 +1154,78 @@ textarea.form-input { resize: none; height: 76px; }
 }
 .auth-gate-err { font-size: .8rem; color: var(--red); margin-top: 10px; min-height: 18px; text-align: center; }
 
+/* ── TAREFAS (estilo To Do) ── */
+.tarefas-wrap { padding: 14px 14px 0; max-width: 640px; margin: 0 auto; }
+.tf-add {
+  display: flex; gap: 8px; align-items: center; margin-bottom: 14px;
+  background: var(--surface); border: 1.5px dashed #c0b9ae; border-radius: 14px; padding: 8px 10px;
+}
+.tf-add input[type="text"] {
+  flex: 1; border: none; background: none; outline: none; min-width: 0;
+  font-family: inherit; font-size: .9rem; color: var(--text);
+}
+.tf-add input[type="date"] {
+  border: 1px solid var(--border); background: var(--surface2); border-radius: 8px;
+  padding: 6px 8px; font-family: inherit; font-size: .74rem; color: var(--text-muted); outline: none;
+}
+.tf-add button {
+  border: none; background: var(--accent); color: #fff; width: 32px; height: 32px;
+  border-radius: 9px; cursor: pointer; font-size: .95rem; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.tf-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 10px 12px; margin-bottom: 7px;
+}
+.tf-row.done { background: var(--surface2); opacity: .75; }
+.tf-check {
+  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+  border: 1.5px solid #b3aca2; background: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: transparent; font-size: .62rem; padding: 0;
+}
+.tf-check.on { background: var(--green); border-color: var(--green); color: #fff; }
+.tf-info { flex: 1; min-width: 0; }
+.tf-titulo { font-size: .88rem; font-weight: 500; word-break: break-word; }
+.tf-row.done .tf-titulo { text-decoration: line-through; color: var(--text-muted); }
+.tf-data { font-size: .68rem; color: var(--text-muted); margin-top: 1px; }
+.tf-data.hoje { color: #c17b3f; font-weight: 600; }
+.tf-data.atrasada { color: var(--red); font-weight: 600; }
+.tf-star {
+  border: none; background: none; cursor: pointer; font-size: .95rem;
+  color: #c8c2ba; padding: 4px; flex-shrink: 0;
+}
+.tf-star.on { color: #e3b322; }
+.tf-del {
+  border: none; background: none; cursor: pointer; font-size: .8rem;
+  color: #c8c2ba; padding: 4px; flex-shrink: 0;
+}
+.tf-del:hover { color: var(--red); }
+.tf-secao {
+  display: flex; align-items: center; gap: 6px; margin: 16px 2px 8px;
+  font-size: .68rem; font-weight: 700; letter-spacing: .05em; color: var(--text-muted);
+  border: none; background: none; font-family: inherit; padding: 0;
+}
+.tf-secao.atrasada { color: var(--red); }
+.tf-secao.clicavel { cursor: pointer; }
+.ev-pill.tarefa { background: color-mix(in srgb, #3d8ba0 15%, transparent); color: #3d8ba0; cursor: pointer; }
+.ev-pill.tarefa.ok { background: color-mix(in srgb, var(--green) 18%, transparent); color: var(--green); }
+#tarefas-dia-list {
+  background-color: #f0ede8;
+  background-image: radial-gradient(circle, #ccc8c0 1px, transparent 1px);
+  background-size: 24px 24px;
+  border: 1px solid var(--border); border-radius: 14px;
+  padding: 14px; margin-bottom: 10px; color: #1a1814;
+}
+.tf-dia-row { cursor: pointer; margin-bottom: 8px; }
+.tf-dia-row .ck-box { pointer-events: none; }
+.tf-modal-add input {
+  width: 100%; border: 1.5px dashed #c0b9ae; background: var(--surface);
+  border-radius: 10px; padding: 10px 12px; font-family: inherit; font-size: .84rem;
+  color: var(--text); outline: none; box-sizing: border-box; margin-bottom: 4px;
+}
+
 /* TOAST */
 #toast {
   position: fixed; bottom: calc(88px + env(safe-area-inset-bottom, 0px)); left: 50%;
@@ -1425,6 +1497,37 @@ textarea.form-input { resize: none; height: 76px; }
   <div class="events-wrap">
     <div class="section-title" id="year-events-title"><i class="ti ti-calendar-event"></i> Todos os eventos</div>
     <div id="year-events-list"></div>
+  </div>
+</div>
+
+<!-- VIEW: TAREFAS -->
+<div id="view-tarefas" style="display:none">
+  <div class="tarefas-wrap">
+    <div class="tf-add">
+      <input type="text" id="tf-nova" placeholder="Adicionar tarefa..." onkeydown="if(event.key==='Enter')adicionarTarefa()">
+      <input type="date" id="tf-data" title="Data (opcional)">
+      <button onclick="adicionarTarefa()" title="Adicionar"><i class="ti ti-plus"></i></button>
+    </div>
+    <div id="tf-lista"></div>
+  </div>
+</div>
+
+<!-- MODAL: TAREFAS DO DIA -->
+<div class="modal-overlay center" id="modal-tarefas">
+  <div class="modal" style="max-height:85vh;overflow-y:auto;">
+    <div class="modal-title" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <span><i class="ti ti-circle-check"></i> <span id="tarefas-titulo"></span></span>
+      <span class="plano-count" id="tarefas-count"></span>
+    </div>
+    <div id="tarefas-dia-list"></div>
+    <div class="tf-modal-add">
+      <input type="text" id="tf-nova-dia" placeholder="+ tarefa para este dia..."
+        onkeydown="if(event.key==='Enter')adicionarTarefaDia()">
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal('modal-tarefas')">Fechar</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-tarefas');setView('tarefas')">Todas as tarefas</button>
+    </div>
   </div>
 </div>
 
@@ -1706,6 +1809,9 @@ textarea.form-input { resize: none; height: 76px; }
   <button class="nav-item active" id="nav-mensal" onclick="setView('mensal')">
     <span class="nav-icon"><i class="ti ti-calendar-month"></i></span>Calendário
   </button>
+  <button class="nav-item" id="nav-tarefas" onclick="setView('tarefas')">
+    <span class="nav-icon"><i class="ti ti-circle-check"></i></span>Tarefas
+  </button>
   <button class="nav-item" id="nav-campanhas" onclick="setView('campanhas')">
     <span class="nav-icon"><i class="ti ti-speakerphone"></i></span>Campanhas
   </button>
@@ -1921,12 +2027,14 @@ function _corPickerHTML(corAtual, chamada) {
 
 // ===== SUPABASE =====
 async function loadEventosLoja() {
-  const [evRes, campRes] = await Promise.all([
+  const [evRes, campRes, tfRes] = await Promise.all([
     sb.from('eventos_loja').select('*').order('data'),
-    sb.from('campanhas').select('*').order('data_campanha')
+    sb.from('campanhas').select('*').order('data_campanha'),
+    sb.from('tarefas').select('*').order('criada_em')
   ]);
   eventosLoja = (evRes.data || []).map(e => ({ ...e, tipo:'loja' }));
   campanhas = campRes.data || [];
+  tarefas = tfRes.data || [];
   await _estenderRecorrentes();
   renderView();
   _restoreOpenEvent();
@@ -1992,6 +2100,136 @@ function _restoreOpenEvent() {
     _setHash('');
     abrirQuadroDaData(ev.data);
   }
+}
+
+// ===== TAREFAS (estilo Microsoft To Do) =====
+let tarefas = [];
+let tarefasDiaAtual = null;
+let tfMostrarFeitas = false;
+const COR_TAREFA = '#3d8ba0';
+
+function _tarefasDia(ds) { return tarefas.filter(t => t.data === ds); }
+
+async function adicionarTarefa() {
+  const inp = document.getElementById('tf-nova');
+  const titulo = inp.value.trim();
+  if (!titulo) return;
+  const data = document.getElementById('tf-data').value || null;
+  const { data: row, error } = await sb.from('tarefas')
+    .insert({ titulo, data }).select().single();
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  tarefas.push(row);
+  inp.value = '';
+  renderTarefas();
+  inp.focus();
+}
+
+async function adicionarTarefaDia() {
+  const inp = document.getElementById('tf-nova-dia');
+  const titulo = inp.value.trim();
+  if (!titulo || !tarefasDiaAtual) return;
+  const { data: row, error } = await sb.from('tarefas')
+    .insert({ titulo, data: tarefasDiaAtual }).select().single();
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  tarefas.push(row);
+  inp.value = '';
+  _renderTarefasDiaLista();
+  if (currentView === 'mensal') renderMensal();
+  inp.focus();
+}
+
+async function toggleTarefa(id) {
+  const t = tarefas.find(x => x.id === id); if (!t) return;
+  const novo = !t.done;
+  const { error } = await sb.from('tarefas').update({ done: novo }).eq('id', id);
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  t.done = novo;
+  if (document.getElementById('modal-tarefas').classList.contains('open')) _renderTarefasDiaLista();
+  if (currentView === 'tarefas') renderTarefas(); else renderView();
+}
+
+async function toggleImportanteTarefa(id) {
+  const t = tarefas.find(x => x.id === id); if (!t) return;
+  const { error } = await sb.from('tarefas').update({ importante: !t.importante }).eq('id', id);
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  t.importante = !t.importante;
+  renderTarefas();
+}
+
+async function deletarTarefa(id) {
+  const t = tarefas.find(x => x.id === id); if (!t) return;
+  if (!confirm(`Apagar a tarefa "${t.titulo}"?`)) return;
+  await sb.from('tarefas').delete().eq('id', id);
+  tarefas = tarefas.filter(x => x.id !== id);
+  renderTarefas();
+}
+
+function _tfDataLabel(t) {
+  if (!t.data) return '';
+  const [y, m, d] = t.data.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  if (t.data === today) return `<div class="tf-data hoje"><i class="ti ti-calendar"></i> hoje</div>`;
+  if (t.data < today && !t.done) return `<div class="tf-data atrasada"><i class="ti ti-alert-circle"></i> atrasada — ${d}/${m}</div>`;
+  return `<div class="tf-data"><i class="ti ti-calendar"></i> ${DOWS[dt.getDay()].toLowerCase()}, ${d}/${m}</div>`;
+}
+
+function _tfRowHTML(t) {
+  return `<div class="tf-row${t.done ? ' done' : ''}">
+    <button class="tf-check${t.done ? ' on' : ''}" onclick="toggleTarefa('${t.id}')"><i class="ti ti-check"></i></button>
+    <div class="tf-info">
+      <div class="tf-titulo">${_esc(t.titulo)}</div>
+      ${_tfDataLabel(t)}
+    </div>
+    <button class="tf-star${t.importante ? ' on' : ''}" title="Importante" onclick="toggleImportanteTarefa('${t.id}')"><i class="ti ${t.importante ? 'ti-star-filled' : 'ti-star'}"></i></button>
+    <button class="tf-del" title="Apagar" onclick="deletarTarefa('${t.id}')"><i class="ti ti-x"></i></button>
+  </div>`;
+}
+
+function renderTarefas() {
+  document.getElementById('header-sub').textContent = 'Tarefas';
+  const el = document.getElementById('tf-lista');
+  const pend = tarefas.filter(t => !t.done);
+  const atrasadas = pend.filter(t => t.data && t.data < today);
+  const ordena = (a, b) => (b.importante - a.importante)
+    || ((a.data || '9999') < (b.data || '9999') ? -1 : (a.data || '9999') > (b.data || '9999') ? 1 : 0)
+    || (a.criada_em || '').localeCompare(b.criada_em || '');
+  const fazer = pend.filter(t => !atrasadas.includes(t)).sort(ordena);
+  const feitas = tarefas.filter(t => t.done).sort((a, b) => (b.criada_em || '').localeCompare(a.criada_em || ''));
+  let html = '';
+  if (atrasadas.length) html += `<div class="tf-secao atrasada"><i class="ti ti-alert-circle"></i> ATRASADAS (${atrasadas.length})</div>`
+    + atrasadas.sort(ordena).map(_tfRowHTML).join('');
+  html += fazer.map(_tfRowHTML).join('');
+  if (!pend.length) html += '<div class="empty">Nenhuma tarefa pendente — adicione uma acima 🎉</div>';
+  if (feitas.length) {
+    html += `<button class="tf-secao clicavel" onclick="tfMostrarFeitas=!tfMostrarFeitas;renderTarefas()">
+      <i class="ti ti-chevron-${tfMostrarFeitas ? 'down' : 'right'}"></i> CONCLUÍDAS (${feitas.length})</button>`;
+    if (tfMostrarFeitas) html += feitas.map(_tfRowHTML).join('');
+  }
+  el.innerHTML = html;
+}
+
+// ── modal "tarefas do dia" (aberto pelo calendário) ──
+function abrirTarefasDia(ds) {
+  tarefasDiaAtual = ds;
+  const [y, m, d] = ds.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  document.getElementById('tarefas-titulo').textContent =
+    `Tarefas — ${DOWS[dt.getDay()]} ${d}/${m}`;
+  _renderTarefasDiaLista();
+  openModal('modal-tarefas');
+}
+
+function _renderTarefasDiaLista() {
+  const lista = _tarefasDia(tarefasDiaAtual);
+  const feitas = lista.filter(t => t.done).length;
+  document.getElementById('tarefas-count').textContent = lista.length ? `${feitas}/${lista.length}` : '';
+  document.getElementById('tarefas-dia-list').innerHTML = lista.length
+    ? lista.map(t => `
+      <div class="ck-row tf-dia-row" onclick="toggleTarefa('${t.id}')">
+        <span class="ck-box${t.done ? ' done' : ''}"><i class="ti ti-check"></i></span>
+        <div class="ck-txt${t.done ? ' done' : ''}">${_esc(t.titulo)}</div>
+      </div>`).join('')
+    : '<div class="empty">Nenhuma tarefa neste dia</div>';
 }
 
 // ===== COMEMORATIVAS: REMOVER / EDITAR =====
@@ -2125,17 +2363,20 @@ function setView(v) {
   document.getElementById('view-mensal').style.display    = v==='mensal'    ? 'block' : 'none';
   document.getElementById('view-anual').style.display     = v==='anual'     ? 'block' : 'none';
   document.getElementById('view-campanhas').style.display = v==='campanhas' ? 'block' : 'none';
-  document.getElementById('period-nav').style.display     = v==='campanhas' ? 'none' : 'flex';
+  document.getElementById('view-tarefas').style.display   = v==='tarefas'   ? 'block' : 'none';
+  document.getElementById('period-nav').style.display     = (v==='campanhas' || v==='tarefas') ? 'none' : 'flex';
   document.getElementById('vt-mensal').classList.toggle('active', v==='mensal');
   document.getElementById('vt-anual').classList.toggle('active', v==='anual');
   document.getElementById('nav-mensal').classList.toggle('active', v==='mensal' || v==='anual');
   document.getElementById('nav-campanhas').classList.toggle('active', v==='campanhas');
+  document.getElementById('nav-tarefas').classList.toggle('active', v==='tarefas');
   renderView();
 }
 
 function renderView() {
   if (currentView === 'mensal') renderMensal();
   else if (currentView === 'anual') renderAnual();
+  else if (currentView === 'tarefas') renderTarefas();
   else renderCampanhasView();
 }
 
@@ -2177,7 +2418,8 @@ function renderMensal() {
   }
   // celular: grade compacta (número + bolinhas) e dia selecionado com painel
   const mobile = window.innerWidth < 768;
-  if (mobile && (!diaSelecionado || !diaSelecionado.startsWith(prefix))) {
+  // dia selecionado vale em qualquer tela: hoje (no mês atual) ou dia 1
+  if (!diaSelecionado || !diaSelecionado.startsWith(prefix)) {
     diaSelecionado = isThisMonth ? today : `${prefix}-01`;
   }
 
@@ -2191,12 +2433,15 @@ function renderMensal() {
     const posts = grupos.filter(_ehGrupoPost);
     const prontos = posts.filter(p => (_ancoraPost(p).st) === 'postado').length;
     const tudoOk = posts.length > 0 && prontos === posts.length;
+    const tarefasDia = _tarefasDia(dataStr);
+    const tfFeitas = tarefasDia.filter(t => t.done).length;
+    const tfOk = tarefasDia.length > 0 && tfFeitas === tarefasDia.length;
 
     const el = document.createElement('div');
     el.className = 'cal-day' + (isToday?' today':'')
-      + (mobile ? ' compacto' : '') + (mobile && dataStr===diaSelecionado ? ' sel' : '');
+      + (mobile ? ' compacto' : '') + (dataStr===diaSelecionado ? ' sel' : '');
     el.dataset.ds = dataStr;
-    el.onclick = mobile ? (() => selecionarDia(dataStr)) : (() => showDayEvents(dataStr, d));
+    el.onclick = () => selecionarDia(dataStr);
 
     let html;
     if (mobile) {
@@ -2207,6 +2452,7 @@ function renderMensal() {
       }
       if (posts.length) dots += `<span class="dia-dot" style="background:${tudoOk?'var(--green)':'var(--accent)'}"></span>`;
       else if (grupos.length) dots += `<span class="dia-dot" style="background:var(--accent);opacity:.45"></span>`;
+      if (tarefasDia.length) dots += `<span class="dia-dot" style="background:${tfOk?'var(--green)':COR_TAREFA}"></span>`;
       html = `<span class="day-num">${d}</span><div class="dia-dots">${dots}</div>`;
     } else {
       const primCor = evs.length ? _corEvento(evs[0]) : null;
@@ -2234,10 +2480,14 @@ function renderMensal() {
       } else if (grupos.length) {
         html += `<div class="ev-pill plano"><i class="ti ti-notes"></i> ${grupos.length} ite${grupos.length>1?'ns':'m'}</div>`;
       }
+      if (tarefasDia.length) {
+        html += `<div class="ev-pill tarefa${tfOk?' ok':''}" onclick="event.stopPropagation();abrirTarefasDia('${dataStr}')">
+          <i class="ti ${tfOk?'ti-check':'ti-circle-check'}"></i> ${tfOk ? tfFeitas+'/'+tarefasDia.length : tarefasDia.length + ' tarefa' + (tarefasDia.length>1?'s':'')}</div>`;
+      }
     }
     el.innerHTML = html;
-    if (!mobile && (evs.length || posts.length)) {
-      el.addEventListener('mouseenter', ev => showTooltipDia(ev, evs, posts));
+    if (!mobile && (evs.length || posts.length || tarefasDia.length)) {
+      el.addEventListener('mouseenter', ev => showTooltipDia(ev, evs, posts, tarefasDia));
       el.addEventListener('mouseleave', hideTooltip);
     }
     grid.appendChild(el);
@@ -2247,36 +2497,72 @@ function renderMensal() {
   // barras de campanha atravessando os dias (preparação → dia D)
   _renderCampBars();
 
-  // agenda do mês: eventos + campanhas + posts planejados
-  document.getElementById('events-title').innerHTML = '<i class="ti ti-calendar-event"></i> Agenda do mês';
-  const campsMes = campanhas.filter(c => (c.data_campanha || '').startsWith(prefix))
-    .sort((a, b) => a.data_campanha.localeCompare(b.data_campanha));
-  const diasPlanejados = Object.keys(planoMap).filter(ds => ds.startsWith(prefix)).sort();
-  // vencimento pago sai da agenda (segue verde na grade; desfazer tocando no dia)
-  const agendaMes = doMes.filter(e => !(e.tipo_ev === 'vencimento' && e.pago));
-  renderEventCards('events-list', agendaMes.sort((a,b)=>a.data.localeCompare(b.data)));
+  // agenda mostra só o dia selecionado
+  renderAgendaDia(diaSelecionado);
+}
+
+// card-resumo dos posts planejados de um dia
+function _postsCardHTML(ds, posts) {
+  const prontos = posts.filter(p => _ancoraPost(p).st === 'postado').length;
+  const [, m2, d2] = ds.split('-').map(Number);
+  const cor = prontos === posts.length ? 'var(--green)' : 'var(--accent)';
+  return `
+    <div class="event-card" style="border:2px solid var(--accent);border-left:6px solid var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--surface));cursor:pointer" onclick="abrirPlanoDiaData('${ds}')">
+      <div class="event-date-box" style="background:color-mix(in srgb,var(--accent) 12%,transparent)">
+        <div class="event-date-day">${d2}</div>
+        <div class="event-date-mon">${MESES[m2-1].slice(0,3)}</div>
+      </div>
+      <div class="event-info">
+        <div class="event-title">${posts.length} post${posts.length>1?'s':''} planejado${posts.length>1?'s':''}</div>
+        <div class="event-desc">${_esc(posts.map(_tituloPost).join(' · '))}</div>
+        <span class="event-badge" style="background:color-mix(in srgb,${cor} 18%,transparent);color:${cor}">${prontos}/${posts.length} postados</span>
+      </div>
+    </div>`;
+}
+
+// agenda do dia selecionado: eventos (inclusive pagos, p/ desfazer) + campanha + posts
+function renderAgendaDia(ds) {
+  if (!ds) return;
+  const [y, m, d] = ds.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  document.getElementById('events-title').innerHTML =
+    `<i class="ti ti-calendar-event"></i> Agenda do dia · ${ds === today ? 'hoje, ' : ''}${DOWS[dt.getDay()]} ${d}/${m}`;
+  const evs = allEventos(viewYear).filter(e => e.data === ds);
+  const campsDia = campanhas.filter(c => c.data_campanha === ds);
+  const planos = _planejadoMap()[ds] || [];
+  const posts = planos.length ? _agruparPosts(planos).filter(_ehGrupoPost) : [];
+  renderEventCards('events-list', evs);
   const lista = document.getElementById('events-list');
-  if (!agendaMes.length && (campsMes.length || diasPlanejados.length)) lista.innerHTML = '';
-  if (campsMes.length) renderCampanhaCards('events-list', campsMes, true);
-  diasPlanejados.forEach(ds => {
-    const posts = _agruparPosts(planoMap[ds]).filter(_ehGrupoPost);
-    if (!posts.length) return;
-    const prontos = posts.filter(p => _ancoraPost(p).st === 'postado').length;
-    const [, m2, d2] = ds.split('-').map(Number);
-    const cor = prontos === posts.length ? 'var(--green)' : 'var(--accent)';
+  if (!evs.length) lista.innerHTML = '';
+  if (campsDia.length) renderCampanhaCards('events-list', campsDia, true);
+  if (posts.length) lista.insertAdjacentHTML('beforeend', _postsCardHTML(ds, posts));
+  const tfsDia = _tarefasDia(ds);
+  if (tfsDia.length) {
+    const fts = tfsDia.filter(t => t.done).length;
+    const corT = fts === tfsDia.length ? 'var(--green)' : COR_TAREFA;
+    const [, m3, d3] = ds.split('-').map(Number);
     lista.insertAdjacentHTML('beforeend', `
-      <div class="event-card" style="border:2px solid var(--accent);border-left:6px solid var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--surface));cursor:pointer" onclick="abrirPlanoDiaData('${ds}')">
-        <div class="event-date-box" style="background:color-mix(in srgb,var(--accent) 12%,transparent)">
-          <div class="event-date-day">${d2}</div>
-          <div class="event-date-mon">${MESES[m2-1].slice(0,3)}</div>
+      <div class="event-card" style="border:2px solid ${corT};border-left:6px solid ${corT};background:color-mix(in srgb,${corT} 7%,var(--surface));cursor:pointer" onclick="abrirTarefasDia('${ds}')">
+        <div class="event-date-box" style="background:color-mix(in srgb,${corT} 12%,transparent)">
+          <div class="event-date-day" style="color:${corT}">${d3}</div>
+          <div class="event-date-mon">${MESES[m3-1].slice(0,3)}</div>
         </div>
         <div class="event-info">
-          <div class="event-title">${posts.length} post${posts.length>1?'s':''} planejado${posts.length>1?'s':''}</div>
-          <div class="event-desc">${_esc(posts.map(_tituloPost).join(' · '))}</div>
-          <span class="event-badge" style="background:color-mix(in srgb,${cor} 18%,transparent);color:${cor}">${prontos}/${posts.length} postados</span>
+          <div class="event-title">${tfsDia.length} tarefa${tfsDia.length>1?'s':''} do dia</div>
+          <div class="event-desc">${_esc(tfsDia.map(t => t.titulo).join(' · '))}</div>
+          <span class="event-badge" style="background:color-mix(in srgb,${corT} 18%,transparent);color:${corT}">${fts}/${tfsDia.length} concluídas</span>
         </div>
       </div>`);
-  });
+  }
+  if (!evs.length && !campsDia.length && !posts.length && !tfsDia.length)
+    lista.innerHTML = '<div class="empty">Nada neste dia — toque em outro dia da grade para ver a agenda dele</div>';
+  // desktop: ações rápidas (no celular o painel do dia já tem)
+  if (window.innerWidth >= 768) {
+    lista.insertAdjacentHTML('beforeend', `<div class="pd-botoes" style="max-width:360px">
+      <button class="pd-btn-evento" onclick="document.getElementById('ev-data').value='${ds}';openModal('modal-add')"><i class="ti ti-plus"></i> Evento</button>
+      <button class="pd-btn-plano" onclick="abrirQuadroDaData('${ds}')"><i class="ti ti-layout-board-split"></i> Abrir planejamento</button>
+    </div>`);
+  }
 }
 
 // ── BARRAS DE CAMPANHA NA GRADE (preparação → dia D) ──
@@ -2352,6 +2638,7 @@ function selecionarDia(dataStr) {
   document.querySelectorAll('#cal-grid .cal-day').forEach(c =>
     c.classList.toggle('sel', c.dataset.ds === dataStr));
   renderPainelDia(dataStr);
+  renderAgendaDia(dataStr);
 }
 
 function renderPainelDia(dataStr) {
@@ -2405,7 +2692,16 @@ function renderPainelDia(dataStr) {
       <span class="camp-status-indicator status-${c.status}">${c.status}</span>
     </div>`;
   });
-  if (!posts.length && !evs.length && !campsDia.length) {
+  const tfsDia = _tarefasDia(dataStr);
+  if (tfsDia.length) {
+    const fts = tfsDia.filter(t => t.done).length;
+    html += `<div class="pd-row" onclick="abrirTarefasDia('${dataStr}')">
+      <span class="pd-row-ico" style="background:none;color:${COR_TAREFA};font-size:.85rem"><i class="ti ti-circle-check"></i></span>
+      <div class="pd-row-txt" style="color:${COR_TAREFA};font-weight:600">${tfsDia.length} tarefa${tfsDia.length>1?'s':''} do dia</div>
+      <span class="plano-post-st ${fts===tfsDia.length?'st-postado':'st-ideia'}">${fts}/${tfsDia.length}</span>
+    </div>`;
+  }
+  if (!posts.length && !evs.length && !campsDia.length && !tfsDia.length) {
     html += `<div class="pd-vazio">Nada neste dia ainda</div>`;
   }
 
@@ -2451,26 +2747,8 @@ window.addEventListener('resize', () => {
   _calResizeTimer = setTimeout(() => { if (currentView === 'mensal') renderMensal(); }, 200);
 });
 
-function showDayEvents(dataStr, dia) {
-  diaAberto = dataStr;
-  const eventos = allEventos(viewYear).filter(e => e.data===dataStr);
-  const campsDay = campanhas.filter(c => c.data_campanha===dataStr);
-  const planos = _planejadoMap()[dataStr] || [];
-  if (planos.length) abrirPlanoDia(dataStr, planos);
-  if (!eventos.length && !campsDay.length) {
-    if (!planos.length) {
-      document.getElementById('ev-data').value = dataStr;
-      openModal('modal-add');
-    }
-    return;
-  }
-  const [,m] = dataStr.split('-');
-  document.getElementById('events-title').innerHTML =
-    `<i class="ti ti-calendar-event"></i> ${dia}/${parseInt(m)} — ${eventos.length} evento(s)`;
-  renderEventCards('events-list', eventos);
-  if (campsDay.length) renderCampanhaCards('events-list', campsDay, true);
-  document.getElementById('events-list').scrollIntoView({ behavior:'smooth', block:'start' });
-}
+// hoje a agenda é sempre do dia selecionado — mantido pela assinatura antiga
+function showDayEvents(dataStr) { selecionarDia(dataStr); }
 
 // ===== CAMPANHAS (organograma + contagem regressiva) =====
 const FASES = [
@@ -5410,9 +5688,13 @@ function _tooltipLinha(cor, texto, sub) {
   </div>`;
 }
 
-// tooltip do dia: eventos (com hora/valor/status) + posts planejados
-function showTooltipDia(e, evs, posts) {
+// tooltip do dia: eventos (com hora/valor/status) + posts planejados + tarefas
+function showTooltipDia(e, evs, posts, tfs) {
   const linhas = [];
+  (tfs || []).forEach(t => {
+    linhas.push(_tooltipLinha(t.done ? 'var(--green)' : COR_TAREFA,
+      (t.done ? '☑ ' : '☐ ') + _esc(t.titulo), ''));
+  });
   (evs || []).forEach(ev => {
     const c = _corEvento(ev);
     let sub = '';
