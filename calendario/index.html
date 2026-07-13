@@ -170,9 +170,25 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   font-size: .66rem; color: var(--text-muted); align-items: center; flex-wrap: wrap;
 }
 .cal-legenda > span { display: flex; align-items: center; gap: 6px; }
-.leg-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
-.leg-strip { width: 22px; height: 3px; border-radius: 2px; background: #a78bfa; opacity: .7; flex-shrink: 0; }
-.leg-strip.diad { height: 5px; opacity: 1; }
+.leg-bar { width: 26px; height: 10px; border-radius: 3px; background: #a78bfa; opacity: .4; flex-shrink: 0; }
+
+/* barra de campanha atravessando os dias */
+#cal-grid { position: relative; }
+.camp-bar {
+  position: absolute; z-index: 3; border-radius: 4px; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between; gap: 4px;
+  padding: 0 6px; font-size: .62rem; font-weight: 700; color: #fff;
+  overflow: hidden; box-sizing: border-box;
+}
+.camp-bar.diad { box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+.camp-bar .cb-t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.camp-bar .cb-c { flex-shrink: 0; opacity: .8; }
+.camp-bar span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#cal-grid.com-barras .cal-day { padding-bottom: calc(8px + var(--lanes, 1) * 22px); }
+@media (max-width: 767px) {
+  .camp-bar { font-size: .5rem; padding: 0 5px; }
+  #cal-grid.com-barras .cal-day { padding-bottom: calc(6px + var(--lanes, 1) * 18px); }
+}
 
 /* ── ANUAL ─────────────────────────────── */
 #view-anual { padding: 0 10px; max-width: 480px; margin: 0 auto; display: none; }
@@ -224,6 +240,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
 }
 .tooltip-sep { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+.tooltip-sub { display: block; font-size: 0.68rem; font-weight: 400; color: var(--text-muted); }
 
 /* ── LISTA DE EVENTOS ─────────────────────────────── */
 .events-wrap { padding: 0 14px; max-width: 480px; margin: 0 auto; }
@@ -252,6 +269,30 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .badge-comemorativa { background: color-mix(in srgb, var(--yellow) 18%, transparent); color: var(--yellow); }
 .event-badge.badge-prio { color: #fff; letter-spacing: .05em; }
 
+/* tipos de evento: compromisso e vencimento */
+.ev-tipo-pills { display: flex; gap: 8px; }
+.ev-tipo-pill {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 6px; border-radius: 10px; border: 1.5px solid var(--border);
+  background: var(--surface2); color: var(--text-muted);
+  font-family: inherit; font-size: .82rem; font-weight: 600; cursor: pointer;
+}
+.ev-tipo-pill.active { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.ev-tipo-pill.venc.active { border-color: #b3423a; color: #b3423a; background: rgba(179,66,58,.08); }
+.ev-rec-row { display: flex; align-items: center; gap: 8px; font-size: .85rem; color: var(--text); cursor: pointer; }
+.ev-rec-row input { width: 17px; height: 17px; accent-color: var(--accent); }
+.ev-pill.pago { text-decoration: line-through; opacity: .7; }
+.ev-valor-big { font-size: 1.05rem; font-weight: 700; margin: 1px 0 2px; }
+.btn-pago {
+  border: 1.5px solid var(--green); color: var(--green); background: none;
+  border-radius: 16px; padding: 5px 11px; font-size: .72rem; font-weight: 700;
+  font-family: inherit; cursor: pointer; white-space: nowrap; align-self: center; flex-shrink: 0;
+}
+.btn-pago.desfazer { border-color: var(--text-muted); color: var(--text-muted); }
+.event-badge.badge-apagar { background: #b3423a; color: #fff; letter-spacing: .05em; }
+.event-badge.badge-pago { background: var(--green); color: #fff; letter-spacing: .05em; }
+.event-badge.badge-mensal { background: color-mix(in srgb, var(--text-muted) 16%, transparent); color: var(--text-muted); }
+
 /* seletor de cor/prioridade das caixas */
 .event-card { flex-wrap: wrap; }
 .card-cor-btn {
@@ -260,7 +301,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 }
 .card-cor-btn:hover { color: var(--accent); }
 .cor-picker {
-  display: none; width: 100%; gap: 9px; align-items: center;
+  display: none; width: 100%; gap: 9px; align-items: center; flex-wrap: wrap;
   margin-top: 10px; padding-top: 10px;
   border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
 }
@@ -632,6 +673,11 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .cn-tpl { cursor: default !important; pointer-events: none; user-select: none; }
 /* título do quadro de campanha: fixo, mas o seletor de estilo/cor e o + braço funcionam */
 .cn-tpl .cat-style-btn, .cn-tpl .cat-pop, .cn-tpl .titulo-add-braco { pointer-events: auto; }
+/* nome da campanha editável: toque no texto para renomear */
+.cn-camp-titulo .cn-content { pointer-events: auto; cursor: text; }
+.cn-camp-titulo .cn-content:focus {
+  outline: 1.5px dashed var(--accent); outline-offset: 3px; border-radius: 4px;
+}
 .titulo-add-braco {
   display: inline-flex; align-items: center; gap: 4px; margin-top: 7px;
   background: none; border: 1.5px dashed #c0b9ae; border-radius: 14px;
@@ -1363,9 +1409,7 @@ textarea.form-input { resize: none; height: 76px; }
       <div class="cal-dow">Qui</div><div class="cal-dow">Sex</div><div class="cal-dow">Sáb</div><div class="cal-dow">Dom</div>
     </div>
     <div class="cal-legenda" id="cal-legenda" style="display:none">
-      <span><span class="leg-dot"></span>campanha</span>
-      <span><span class="leg-strip"></span>preparação de campanha</span>
-      <span><span class="leg-strip diad"></span>dia da campanha</span>
+      <span><span class="leg-bar"></span>campanha — a barra vai da preparação até o dia D (toque para abrir o quadro)</span>
     </div>
     <div id="painel-dia"></div>
   </div>
@@ -1527,23 +1571,41 @@ textarea.form-input { resize: none; height: 76px; }
   <div class="modal">
     <div class="modal-title">Novo Evento</div>
     <div class="form-group">
+      <label class="form-label">Tipo</label>
+      <div class="ev-tipo-pills">
+        <button class="ev-tipo-pill active" data-tipo="compromisso" onclick="setTipoEv(this)"><i class="ti ti-pin"></i> Compromisso</button>
+        <button class="ev-tipo-pill venc" data-tipo="vencimento" onclick="setTipoEv(this)"><i class="ti ti-cash"></i> Vencimento</button>
+      </div>
+    </div>
+    <div class="form-group">
       <label class="form-label">Data</label>
       <input type="date" class="form-input" id="ev-data">
     </div>
     <div class="form-group">
       <label class="form-label">Título</label>
-      <input type="text" class="form-input" id="ev-titulo" placeholder="Ex: Liquidação de inverno">
+      <input type="text" class="form-input" id="ev-titulo" placeholder="Ex: Reunião com o contador">
+    </div>
+    <div class="form-group" id="grp-hora">
+      <label class="form-label">Horário (opcional)</label>
+      <input type="time" class="form-input" id="ev-hora">
+    </div>
+    <div class="form-group" id="grp-valor" style="display:none">
+      <label class="form-label">Valor (R$)</label>
+      <input type="number" step="0.01" min="0" class="form-input" id="ev-valor" placeholder="0,00">
+    </div>
+    <div class="form-group" id="grp-recorrente" style="display:none">
+      <label class="ev-rec-row"><input type="checkbox" id="ev-recorrente"> Repete todo mês</label>
     </div>
     <div class="form-group">
       <label class="form-label">Descrição (opcional)</label>
-      <textarea class="form-input" id="ev-desc" placeholder="Detalhes do evento..."></textarea>
+      <textarea class="form-input" id="ev-desc" placeholder="Detalhes..."></textarea>
     </div>
-    <div class="form-group">
+    <div class="form-group" id="grp-cor">
       <label class="form-label">Cor do evento</label>
       <div class="color-picker" id="color-picker"></div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-ghost" onclick="closeModal('modal-add')">Cancelar</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-add');_ocultarAoSalvar=null;limparModal()">Cancelar</button>
       <button class="btn btn-primary" onclick="salvarEvento()">Salvar</button>
     </div>
   </div>
@@ -1776,13 +1838,19 @@ function iso(d) { return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getD
 function pad(n) { return String(n).padStart(2,'0'); }
 
 function allEventos(ano) {
+  // comemorativas removidas pelo usuário (valem para todos os anos)
+  const ocultas = new Set(eventosLoja
+    .filter(e => e.tipo_ev === 'comemorativa_oculta')
+    .map(e => (e.titulo || '').trim().toLowerCase()));
   // registros espelho (mesma data+título de uma comemorativa) guardam o canvas
   // da comemorativa — funde no evento gerado e tira da lista de eventos da loja
-  const com = getComemorativas(ano);
+  const com = getComemorativas(ano).filter(c => !ocultas.has((c.titulo || '').trim().toLowerCase()));
   const loja = [];
   const shadows = {};
   eventosLoja.forEach(e => {
     if (e.titulo === 'Planejamento semanal') return; // quadros não são eventos do calendário
+    if (e.tipo_ev === 'comemorativa_oculta') return; // marcador de remoção, não é evento
+    if (ocultas.has((e.titulo || '').trim().toLowerCase())) return; // espelho de comemorativa removida
     const m = com.find(c => c.data === e.data && c.titulo === e.titulo);
     if (m) shadows[e.data + '|' + e.titulo] = e;
     else loja.push(e);
@@ -1795,13 +1863,19 @@ function allEventos(ano) {
 }
 
 // ===== COR / PRIORIDADE DAS CAIXAS DA AGENDA =====
-const CORES_PRIO = ['#c44848','#b87830','#3a9a6a','#5b4fcf','#de7bb8','#9a9490'];
+const CORES_PRIO = [
+  '#c44848','#b87830','#3a9a6a','#5b4fcf','#de7bb8','#9a9490',      // sóbrias
+  '#e3b322','#3ecf6a','#f857a6','#38a3f5','#ff8c42','#9d6bff'       // marca-texto
+];
 const PRIO_LABEL = { '#c44848': 'Prioridade alta', '#b87830': 'Atenção' };
 
-function toggleCorPicker(id) {
-  document.querySelectorAll('.cor-picker.open').forEach(p => { if (p.id !== id) p.classList.remove('open'); });
-  const p = document.getElementById(id);
-  if (p) p.classList.toggle('open');
+// recebe o botão clicado e acha o picker do MESMO card (o card pode
+// aparecer em mais de uma tela ao mesmo tempo — id não serve aqui)
+function toggleCorPicker(botao) {
+  const wrap = botao.closest('.event-card, .camp-cor-row');
+  const alvo = wrap ? wrap.querySelector('.cor-picker') : null;
+  document.querySelectorAll('.cor-picker.open').forEach(p => { if (p !== alvo) p.classList.remove('open'); });
+  if (alvo) alvo.classList.toggle('open');
 }
 document.addEventListener('click', e => {
   if (!e.target.closest('.cor-picker') && !e.target.closest('.card-cor-btn'))
@@ -1837,8 +1911,8 @@ async function definirCorCampanha(id, cor) {
 }
 
 // chamada: início da função sem o argumento da cor — ex.: "definirCorEvento(3"
-function _corPickerHTML(id, corAtual, chamada) {
-  return `<div class="cor-picker" id="${id}">
+function _corPickerHTML(corAtual, chamada) {
+  return `<div class="cor-picker">
     <span class="cor-picker-lbl">cor:</span>
     ${CORES_PRIO.map(h => `<span class="cor-dot${corAtual === h ? ' atual' : ''}" style="background:${h}"
       onclick="event.stopPropagation();${chamada},'${h}')"></span>`).join('')}
@@ -1853,8 +1927,39 @@ async function loadEventosLoja() {
   ]);
   eventosLoja = (evRes.data || []).map(e => ({ ...e, tipo:'loja' }));
   campanhas = campRes.data || [];
+  await _estenderRecorrentes();
   renderView();
   _restoreOpenEvent();
+}
+
+// vencimentos mensais: garante lançamentos até 12 meses à frente,
+// cada mês com o próprio controle de pago
+async function _estenderRecorrentes() {
+  const series = {};
+  eventosLoja.forEach(e => {
+    if (!e.recorrente || e.tipo_ev !== 'vencimento') return;
+    const k = (e.titulo || '').trim().toLowerCase();
+    (series[k] = series[k] || []).push(e);
+  });
+  const limite = iso(new Date(todayY, todayM - 1 + 12, todayD));
+  const novos = [];
+  Object.values(series).forEach(insts => {
+    insts.sort((a, b) => a.data.localeCompare(b.data));
+    const base = insts[0];
+    const diaBase = Number(base.data.split('-')[2]);
+    let [y, m] = insts[insts.length - 1].data.split('-').map(Number);
+    while (true) {
+      m++; if (m > 12) { m = 1; y++; }
+      const dia = Math.min(diaBase, new Date(y, m, 0).getDate());
+      const ds = `${y}-${pad(m)}-${pad(dia)}`;
+      if (ds > limite) break;
+      novos.push({ data: ds, titulo: base.titulo, descricao: base.descricao || null,
+        tipo_ev: 'vencimento', valor: base.valor, pago: false, recorrente: true });
+    }
+  });
+  if (!novos.length) return;
+  const { data: rows, error } = await sb.from('eventos_loja').insert(novos).select();
+  if (!error && rows) eventosLoja.push(...rows.map(r => ({ ...r, tipo: 'loja' })));
 }
 
 // reabre o evento indicado na URL (#ev=...) após o reload
@@ -1879,38 +1984,136 @@ function _restoreOpenEvent() {
     ev = allEventos(viewYear).find(e => e.id === ref) || eventosLoja.find(e => e.id === ref);
   }
   if (!ev) { _setHash(''); return; }
-  const idx = _evCache.push(ev) - 1;
-  openEventDetail(idx);
+  // sem canvas livre: quadro semanal restaura direto; evento comum vai pro quadro da semana
+  if (ev.titulo === 'Planejamento semanal') {
+    const [y, mm, dd] = ev.data.split('-').map(Number);
+    abrirPlanejamentoSemanal(new Date(y, mm - 1, dd));
+  } else {
+    _setHash('');
+    abrirQuadroDaData(ev.data);
+  }
+}
+
+// ===== COMEMORATIVAS: REMOVER / EDITAR =====
+let _ocultarAoSalvar = null; // título da comemorativa a esconder quando o evento editado for salvo
+
+// marca a comemorativa como removida (vale para todos os anos)
+async function _ocultarTitulo(titulo) {
+  const { data: row, error } = await sb.from('eventos_loja')
+    .insert({ data: today, titulo, tipo_ev: 'comemorativa_oculta' }).select().single();
+  if (error) { showToast('Erro: ' + error.message, 'error'); return false; }
+  eventosLoja.push({ ...row, tipo: 'loja' });
+  return true;
+}
+
+async function ocultarComemorativa(idx) {
+  const e = _evCache[idx]; if (!e) return;
+  if (!confirm(`Remover "${e.titulo}" do calendário? Ela não vai mais aparecer em nenhum ano.`)) return;
+  if (await _ocultarTitulo(e.titulo)) {
+    renderView();
+    showToast('Data removida do calendário');
+  }
+}
+
+// editar = abre o modal preenchido; ao salvar, o evento novo substitui a comemorativa
+function editarComemorativa(idx) {
+  const e = _evCache[idx]; if (!e) return;
+  document.getElementById('ev-data').value = e.data;
+  document.getElementById('ev-titulo').value = e.titulo;
+  document.getElementById('ev-desc').value = e.desc || e.descricao || '';
+  setTipoEv(document.querySelector('.ev-tipo-pill[data-tipo="compromisso"]'));
+  _ocultarAoSalvar = e.titulo;
+  openModal('modal-add');
+  showToast('Ajuste o que quiser e salve — a data original será substituída');
+}
+
+// ===== TIPOS DE EVENTO: COMPROMISSO / VENCIMENTO =====
+let tipoEvSelecionado = 'compromisso';
+
+function setTipoEv(btn) {
+  tipoEvSelecionado = btn.dataset.tipo;
+  document.querySelectorAll('.ev-tipo-pill').forEach(b => b.classList.toggle('active', b === btn));
+  const venc = tipoEvSelecionado === 'vencimento';
+  document.getElementById('grp-hora').style.display = venc ? 'none' : '';
+  document.getElementById('grp-valor').style.display = venc ? '' : 'none';
+  document.getElementById('grp-recorrente').style.display = venc ? '' : 'none';
+  document.getElementById('grp-cor').style.display = venc ? 'none' : ''; // vencimento: cor automática (vermelho → verde ao pagar)
+  document.getElementById('ev-titulo').placeholder = venc ? 'Ex: Boleto fornecedor Meira' : 'Ex: Reunião com o contador';
+}
+
+function _corEvento(e) {
+  if (e.tipo_ev === 'vencimento') return e.pago ? 'var(--green)' : '#b3423a';
+  return e.cor || (e.tipo === 'loja' ? 'var(--accent)' : 'var(--yellow)');
+}
+
+function _fmtValor(v) {
+  return Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+// rótulo do pill na grade: ícone do tipo + hora/valor
+function _labelEvento(e) {
+  if (e.tipo_ev === 'vencimento')
+    return `<i class="ti ${e.pago ? 'ti-check' : 'ti-cash'}"></i> ${e.titulo}${e.valor ? ' R$ ' + _fmtValor(e.valor) : ''}`;
+  if (e.tipo_ev === 'compromisso')
+    return `<i class="ti ti-pin"></i> ${e.hora ? e.hora.slice(0,5) + ' ' : ''}${e.titulo}`;
+  return e.titulo;
+}
+
+async function marcarPago(id) {
+  const e = eventosLoja.find(x => x.id === id); if (!e) return;
+  const novo = !e.pago;
+  const { error } = await sb.from('eventos_loja').update({ pago: novo }).eq('id', id);
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  e.pago = novo;
+  showToast(novo ? 'Pago!' : 'Pagamento desmarcado');
+  renderView();
 }
 
 async function salvarEvento() {
   const data   = document.getElementById('ev-data').value;
   const titulo = document.getElementById('ev-titulo').value.trim();
   const desc   = document.getElementById('ev-desc').value.trim();
-  const cor    = corSelecionada;
   if (!data || !titulo) { showToast('Preencha a data e o título','error'); return; }
-  const { error } = await sb.from('eventos_loja').insert({ data, titulo, descricao: desc||null, cor });
-  if (error) {
-    if (error.code === '42P01' || error.message?.includes('does not exist')) {
-      eventosLoja.push({ id: Date.now().toString(), data, titulo, descricao:desc||null, cor, tipo:'loja' });
-      closeModal('modal-add'); limparModal(); renderView();
-      showToast('Salvo localmente — rode o SQL no Supabase para persistir');
-      return;
-    }
-    if (error.code === '42703' || error.message?.includes('column')) {
-      // tabela existe mas sem coluna cor — salva sem a cor
-      const { error: e2 } = await sb.from('eventos_loja').insert({ data, titulo, descricao: desc||null });
-      if (!e2) { closeModal('modal-add'); limparModal(); await loadEventosLoja(); showToast('Evento salvo! (rode o SQL para adicionar coluna cor)'); return; }
-    }
-    showToast('Erro: ' + (error.message || error.code), 'error'); return;
-  }
+  const venc = tipoEvSelecionado === 'vencimento';
+  const row = {
+    data, titulo, descricao: desc || null,
+    tipo_ev: tipoEvSelecionado,
+    cor: venc ? null : corSelecionada,
+    hora: venc ? null : (document.getElementById('ev-hora').value || null),
+    valor: venc ? (parseFloat(document.getElementById('ev-valor').value) || null) : null,
+    pago: false,
+    recorrente: venc ? document.getElementById('ev-recorrente').checked : false
+  };
+  const { error } = await sb.from('eventos_loja').insert(row);
+  if (error) { showToast('Erro: ' + (error.message || error.code), 'error'); return; }
+  // veio do "editar comemorativa": a original sai de cena
+  if (_ocultarAoSalvar) { await _ocultarTitulo(_ocultarAoSalvar); _ocultarAoSalvar = null; }
   closeModal('modal-add'); limparModal();
   await loadEventosLoja();
   showToast('Evento salvo!');
 }
 
 async function deletarEvento(id) {
-  if (!confirm('Remover este evento?')) return;
+  const ev = eventosLoja.find(e => e.id === id);
+  // vencimento mensal: oferece encerrar a série inteira
+  if (ev && ev.recorrente) {
+    if (confirm('Este vencimento repete todo mês. Apagar também os lançamentos dos próximos meses?')) {
+      const serie = (ev.titulo || '').trim().toLowerCase();
+      const futuros = eventosLoja.filter(e => e.recorrente &&
+        (e.titulo || '').trim().toLowerCase() === serie && e.data >= ev.data);
+      for (const f of futuros) await sb.from('eventos_loja').delete().eq('id', f.id);
+      // os meses passados param de gerar novos
+      const passados = eventosLoja.filter(e => e.recorrente &&
+        (e.titulo || '').trim().toLowerCase() === serie && e.data < ev.data);
+      for (const p of passados) await sb.from('eventos_loja').update({ recorrente: false }).eq('id', p.id);
+      await loadEventosLoja();
+      showToast('Vencimento mensal encerrado');
+      return;
+    }
+    if (!confirm('Apagar só este mês?')) return;
+  } else {
+    if (!confirm('Remover este evento?')) return;
+  }
   await sb.from('eventos_loja').delete().eq('id', id);
   await loadEventosLoja();
   showToast('Evento removido');
@@ -1965,22 +2168,9 @@ function renderMensal() {
 
   const planoMap = _planejadoMap();
 
-  // dias dentro da janela de preparação de alguma campanha
-  const prepMap = {};
-  campanhas.forEach(c => {
-    if (!c.data_campanha) return;
-    const { antecedencia } = _prepDe(c);
-    const [cy, cm, cd] = c.data_campanha.split('-').map(Number);
-    for (let i = 0; i <= antecedencia; i++) {
-      const ds = iso(new Date(cy, cm-1, cd - i));
-      (prepMap[ds] = prepMap[ds] || []).push({ titulo: c.titulo, diaD: i === 0 });
-    }
-  });
-
   // tela larga mostra mais conteúdo dentro de cada dia
   const largo = window.innerWidth >= 1280;
   const maxEv = largo ? 4 : (window.innerWidth >= 768 ? 3 : 2);
-  let temPrep = false, temCamp = false;
 
   for (let i=0; i<firstDay; i++) {
     const el = document.createElement('div'); el.className='cal-day empty'; grid.appendChild(el);
@@ -2001,8 +2191,6 @@ function renderMensal() {
     const posts = grupos.filter(_ehGrupoPost);
     const prontos = posts.filter(p => (_ancoraPost(p).st) === 'postado').length;
     const tudoOk = posts.length > 0 && prontos === posts.length;
-    const campDia = campanhas.find(c => c.data_campanha===dataStr);
-    const hasCamp = !!campDia;
 
     const el = document.createElement('div');
     el.className = 'cal-day' + (isToday?' today':'')
@@ -2014,20 +2202,19 @@ function renderMensal() {
     if (mobile) {
       let dots = '';
       if (evs.length) {
-        const c = evs[0].cor || (evs[0].tipo==='loja' ? 'var(--accent)' : 'var(--yellow)');
+        const c = _corEvento(evs[0]);
         dots += `<span class="dia-dot" style="background:${c}"></span>`;
       }
       if (posts.length) dots += `<span class="dia-dot" style="background:${tudoOk?'var(--green)':'var(--accent)'}"></span>`;
       else if (grupos.length) dots += `<span class="dia-dot" style="background:var(--accent);opacity:.45"></span>`;
-      if (hasCamp) dots += `<span class="dia-dot camp"${campDia.cor?` style="border-color:${campDia.cor}"`:''}></span>`;
       html = `<span class="day-num">${d}</span><div class="dia-dots">${dots}</div>`;
     } else {
-      const primCor = evs.length ? (evs[0].cor || (evs[0].tipo==='loja' ? 'var(--accent)' : 'var(--yellow)')) : null;
+      const primCor = evs.length ? _corEvento(evs[0]) : null;
       const numStyle = primCor && !isToday ? `style="background:color-mix(in srgb,${primCor} 30%,transparent);color:${primCor};font-weight:700"` : '';
       html = `<span class="day-num" ${numStyle}>${d}</span>`;
       evs.slice(0, maxEv).forEach(e => {
-        const c = e.cor || (e.tipo==='loja' ? 'var(--accent)' : 'var(--yellow)');
-        html += `<div class="ev-pill" style="background:color-mix(in srgb,${c} 25%,transparent);color:${c}">${e.titulo}</div>`;
+        const c = _corEvento(e);
+        html += `<div class="ev-pill${e.tipo_ev==='vencimento' && e.pago ? ' pago' : ''}" style="background:color-mix(in srgb,${c} 25%,transparent);color:${c}">${_labelEvento(e)}</div>`;
       });
       if (evs.length>maxEv) html += `<div class="ev-pill more">+${evs.length-maxEv}</div>`;
       if (posts.length) {
@@ -2047,32 +2234,29 @@ function renderMensal() {
       } else if (grupos.length) {
         html += `<div class="ev-pill plano"><i class="ti ti-notes"></i> ${grupos.length} ite${grupos.length>1?'ns':'m'}</div>`;
       }
-      if (hasCamp) html += `<span class="campanha-dot" title="Tem campanha"${campDia.cor?` style="background:${campDia.cor}"`:''}></span>`;
     }
-    if (hasCamp) temCamp = true;
-    const preps = prepMap[dataStr];
-    if (preps) { temPrep = true; preps.slice(0,2).forEach((p,i) =>
-      html += `<div class="camp-prep-strip${p.diaD?' diaD':''}${i?' d2':''}" title="Preparação: ${p.titulo}"></div>`); }
     el.innerHTML = html;
-    if (!mobile && evs.length) {
-      el.addEventListener('mouseenter', ev => showTooltip(ev, evs));
+    if (!mobile && (evs.length || posts.length)) {
+      el.addEventListener('mouseenter', ev => showTooltipDia(ev, evs, posts));
       el.addEventListener('mouseleave', hideTooltip);
     }
     grid.appendChild(el);
   }
   if (mobile) renderPainelDia(diaSelecionado);
 
-  // legenda só aparece quando o mês tem campanha/preparação
-  document.getElementById('cal-legenda').style.display = (temPrep || temCamp) ? 'flex' : 'none';
+  // barras de campanha atravessando os dias (preparação → dia D)
+  _renderCampBars();
 
   // agenda do mês: eventos + campanhas + posts planejados
   document.getElementById('events-title').innerHTML = '<i class="ti ti-calendar-event"></i> Agenda do mês';
   const campsMes = campanhas.filter(c => (c.data_campanha || '').startsWith(prefix))
     .sort((a, b) => a.data_campanha.localeCompare(b.data_campanha));
   const diasPlanejados = Object.keys(planoMap).filter(ds => ds.startsWith(prefix)).sort();
-  renderEventCards('events-list', doMes.sort((a,b)=>a.data.localeCompare(b.data)));
+  // vencimento pago sai da agenda (segue verde na grade; desfazer tocando no dia)
+  const agendaMes = doMes.filter(e => !(e.tipo_ev === 'vencimento' && e.pago));
+  renderEventCards('events-list', agendaMes.sort((a,b)=>a.data.localeCompare(b.data)));
   const lista = document.getElementById('events-list');
-  if (!doMes.length && (campsMes.length || diasPlanejados.length)) lista.innerHTML = '';
+  if (!agendaMes.length && (campsMes.length || diasPlanejados.length)) lista.innerHTML = '';
   if (campsMes.length) renderCampanhaCards('events-list', campsMes, true);
   diasPlanejados.forEach(ds => {
     const posts = _agruparPosts(planoMap[ds]).filter(_ehGrupoPost);
@@ -2092,6 +2276,70 @@ function renderMensal() {
           <span class="event-badge" style="background:color-mix(in srgb,${cor} 18%,transparent);color:${cor}">${prontos}/${posts.length} postados</span>
         </div>
       </div>`);
+  });
+}
+
+// ── BARRAS DE CAMPANHA NA GRADE (preparação → dia D) ──
+function _renderCampBars() {
+  const grid = document.getElementById('cal-grid');
+  grid.querySelectorAll('.camp-bar').forEach(b => b.remove());
+  const prefix = `${viewYear}-${pad(viewMonth+1)}`;
+  const mesFim = `${prefix}-${pad(new Date(viewYear, viewMonth+1, 0).getDate())}`;
+  const mesIni = `${prefix}-01`;
+
+  const barras = [];
+  campanhas.forEach(c => {
+    if (!c.data_campanha) return;
+    const { antecedencia } = _prepDe(c);
+    const [cy, cm, cd] = c.data_campanha.split('-').map(Number);
+    const ini = iso(new Date(cy, cm - 1, cd - antecedencia));
+    if (c.data_campanha < mesIni || ini > mesFim) return;
+    barras.push({ c, ini: ini < mesIni ? mesIni : ini, fim: c.data_campanha > mesFim ? mesFim : c.data_campanha });
+  });
+
+  const legenda = document.getElementById('cal-legenda');
+  legenda.style.display = barras.length ? 'flex' : 'none';
+  grid.classList.toggle('com-barras', !!barras.length);
+  if (!barras.length) return;
+  grid.style.setProperty('--lanes', Math.min(barras.length, 3));
+
+  const cellByDs = {};
+  grid.querySelectorAll('.cal-day[data-ds]').forEach(el => { cellByDs[el.dataset.ds] = el; });
+  const mobile = window.innerWidth < 768;
+  const altura = mobile ? 15 : 19;
+
+  barras.forEach((b, lane) => {
+    if (lane > 2) return;
+    const cor = b.c.cor || '#a78bfa';
+    const d1 = Number(b.ini.split('-')[2]), d2 = Number(b.fim.split('-')[2]);
+    const temDiaD = b.fim === b.c.data_campanha;
+    const [cy2, cm2, cd2] = b.c.data_campanha.split('-').map(Number);
+    for (let d = d1; d <= d2; d++) {
+      const cell = cellByDs[`${prefix}-${pad(d)}`];
+      if (!cell) continue;
+      const ehDiaD = temDiaD && d === d2;
+      const diasFalta = Math.round((new Date(cy2, cm2 - 1, cd2) - new Date(viewYear, viewMonth, d)) / 86400000);
+      const bar = document.createElement('div');
+      bar.className = 'camp-bar' + (ehDiaD ? ' diad' : '');
+      bar.style.left = (cell.offsetLeft + 3) + 'px';
+      bar.style.width = (cell.offsetWidth - 10) + 'px';
+      bar.style.top = (cell.offsetTop + cell.offsetHeight - altura - 4 - lane * (altura + 3)) + 'px';
+      bar.style.height = altura + 'px';
+      if (ehDiaD) { bar.style.background = cor; }
+      else {
+        bar.style.background = `color-mix(in srgb, ${cor} 26%, transparent)`;
+        bar.style.color = cor;
+      }
+      bar.title = ehDiaD
+        ? `${b.c.titulo} — dia da campanha!`
+        : `Planejamento da campanha ${b.c.titulo} — ${diasFalta === 1 ? 'falta 1 dia' : 'faltam ' + diasFalta + ' dias'}`;
+      const contador = diasFalta === 1 ? 'falta 1 dia' : `faltam ${diasFalta} dias`;
+      bar.innerHTML = ehDiaD
+        ? `<span class="cb-t">★ ${_esc(b.c.titulo)}${b.c.data_campanha === today ? ' — é hoje!' : ''}</span>`
+        : `<span class="cb-t"><i class="ti ti-notes"></i> planejamento · ${_esc(b.c.titulo)}</span><span class="cb-c">${mobile ? diasFalta + 'd' : contador}</span>`;
+      bar.onclick = ev => { ev.stopPropagation(); abrirQuadroCampanha(b.c.id); };
+      grid.appendChild(bar);
+    }
   });
 }
 
@@ -2133,10 +2381,21 @@ function renderPainelDia(dataStr) {
   });
   evs.forEach(e => {
     const idx = _evCache.push(e) - 1;
-    const c = e.cor || (e.tipo === 'loja' ? 'var(--accent)' : 'var(--yellow)');
-    html += `<div class="pd-row" style="background:color-mix(in srgb,${c} 10%,transparent)" onclick="openEventDetail(${idx})">
-      <span class="pd-row-ico" style="background:none;color:${c};font-size:.85rem"><i class="ti ${e.tipo==='loja'?'ti-calendar-event':'ti-calendar-star'}"></i></span>
-      <div class="pd-row-txt" style="color:${c};font-weight:600">${e.titulo}</div>
+    const c = _corEvento(e);
+    const venc = e.tipo_ev === 'vencimento';
+    const ico = venc ? (e.pago ? 'ti-check' : 'ti-cash')
+      : e.tipo_ev === 'compromisso' ? 'ti-pin'
+      : e.tipo === 'loja' ? 'ti-calendar-event' : 'ti-calendar-star';
+    const rotulo = venc
+      ? `${e.titulo}${e.valor ? ' — R$ ' + _fmtValor(e.valor) : ''}`
+      : (e.tipo_ev === 'compromisso' && e.hora ? `${e.hora.slice(0,5)} · ${e.titulo}` : e.titulo);
+    const acao = venc && e.id
+      ? `<button class="btn-pago${e.pago?' desfazer':''}" onclick="event.stopPropagation();marcarPago('${e.id}')">${e.pago?'desfazer':'✓ pago'}</button>`
+      : '';
+    html += `<div class="pd-row" style="background:color-mix(in srgb,${c} 10%,transparent)" onclick="abrirDoEvento(${idx})">
+      <span class="pd-row-ico" style="background:none;color:${c};font-size:.85rem"><i class="ti ${ico}"></i></span>
+      <div class="pd-row-txt" style="color:${c};font-weight:600;${venc && e.pago ? 'text-decoration:line-through;opacity:.75' : ''}">${rotulo}</div>
+      ${acao}
     </div>`;
   });
   campsDia.forEach(c => {
@@ -2311,9 +2570,9 @@ function renderAnual() {
     grid.appendChild(box);
   }
 
-  // lista eventos do ano
+  // lista eventos do ano (vencimentos pagos ficam de fora)
   document.getElementById('year-events-title').innerHTML = '<i class="ti ti-calendar-event"></i> Todos os eventos do ano';
-  renderEventCards('year-events-list', eventos.sort((a,b) => a.data.localeCompare(b.data)));
+  renderEventCards('year-events-list', eventos.filter(e => !(e.tipo_ev === 'vencimento' && e.pago)).sort((a,b) => a.data.localeCompare(b.data)));
 }
 
 function showMiniDay(dataStr) {
@@ -2340,31 +2599,56 @@ function renderEventCards(elId, eventos) {
   el.innerHTML = eventos.map(e => {
     const idx = _evCache.push(e) - 1;
     const [, m, d] = e.data.split('-');
-    const cor = e.cor || (e.tipo==='loja' ? 'var(--accent)' : 'var(--yellow)');
-    const badge = e.tipo==='loja'
+    const cor = _corEvento(e);
+    const venc = e.tipo_ev === 'vencimento';
+    let badge;
+    if (venc) badge = e.pago
+      ? '<span class="event-badge badge-pago">Pago</span>'
+      : '<span class="event-badge badge-apagar">A pagar</span>';
+    else if (e.tipo_ev === 'compromisso')
+      badge = `<span class="event-badge" style="background:color-mix(in srgb,${cor} 18%,transparent);color:${cor}"><i class="ti ti-pin"></i> Compromisso</span>`;
+    else badge = e.tipo==='loja'
       ? `<span class="event-badge" style="background:color-mix(in srgb,${cor} 18%,transparent);color:${cor}">Loja</span>`
       : '<span class="event-badge badge-comemorativa">Data comemorativa</span>';
+    const mensal = venc && e.recorrente ? '<span class="event-badge badge-mensal"><i class="ti ti-repeat"></i> Mensal</span>' : '';
     // etiqueta automática só quando a cor foi escolhida de propósito
-    const prio = (e.tipo==='loja' || e.corExplicita) && PRIO_LABEL[e.cor]
+    const prio = !venc && (e.tipo==='loja' || e.corExplicita) && PRIO_LABEL[e.cor]
       ? `<span class="event-badge badge-prio" style="background:${e.cor}">${PRIO_LABEL[e.cor]}</span>`
+      : '';
+    const valorHTML = venc && e.valor
+      ? `<div class="ev-valor-big" style="color:${cor}">R$ ${_fmtValor(e.valor)}</div>` : '';
+    const horaHTML = e.tipo_ev === 'compromisso' && e.hora
+      ? `<div class="event-desc"><i class="ti ti-clock"></i> ${e.hora.slice(0,5)}</div>` : '';
+    const btnPago = venc && e.id
+      ? `<button class="btn-pago${e.pago?' desfazer':''}" onclick="event.stopPropagation();marcarPago('${e.id}')">${e.pago?'desfazer':'✓ marcar pago'}</button>`
+      : '';
+    const paleta = !venc
+      ? `<button class="card-cor-btn" title="Cor da caixa" onclick="event.stopPropagation();toggleCorPicker(this)"><i class="ti ti-palette"></i></button>
+         ${_corPickerHTML(e.cor, 'definirCorEvento(' + idx)}`
       : '';
     const del = e.tipo==='loja' && e.id
       ? `<button class="event-del" onclick="event.stopPropagation();deletarEvento('${e.id}')"><i class="ti ti-x"></i></button>`
+      : `<button class="event-del" title="Remover do calendário (todos os anos)" onclick="event.stopPropagation();ocultarComemorativa(${idx})"><i class="ti ti-x"></i></button>`;
+    const editar = e.tipo !== 'loja'
+      ? `<button class="card-cor-btn" title="Editar esta data" onclick="event.stopPropagation();editarComemorativa(${idx})"><i class="ti ti-pencil"></i></button>`
       : '';
     return `
-      <div class="event-card" style="border:2px solid ${cor};border-left:6px solid ${cor};background:color-mix(in srgb,${cor} 8%,var(--surface));cursor:pointer" onclick="openEventDetail(${idx})">
+      <div class="event-card" style="border:2px solid ${cor};border-left:6px solid ${cor};background:color-mix(in srgb,${cor} 8%,var(--surface));cursor:pointer" onclick="abrirDoEvento(${idx})">
         <div class="event-date-box" style="background:color-mix(in srgb,${cor} 14%,transparent)">
           <div class="event-date-day" style="color:${cor}">${parseInt(d)}</div>
           <div class="event-date-mon">${MESES_ABREV[parseInt(m)-1]}</div>
         </div>
         <div class="event-info">
           <div class="event-title">${e.titulo}</div>
+          ${valorHTML}
+          ${horaHTML}
           ${e.desc||e.descricao ? `<div class="event-desc">${e.desc||e.descricao}</div>` : ''}
-          ${badge} ${prio}
+          ${badge} ${mensal} ${prio}
         </div>
-        <button class="card-cor-btn" title="Cor da caixa" onclick="event.stopPropagation();toggleCorPicker('cp-ev-${idx}')"><i class="ti ti-palette"></i></button>
+        ${btnPago}
+        ${editar}
+        ${paleta}
         ${del}
-        ${_corPickerHTML('cp-ev-' + idx, e.cor, 'definirCorEvento(' + idx)}
       </div>`;
   }).join('');
 }
@@ -2811,7 +3095,12 @@ function _renderCanvas() {
       return `<div class="cn-el cn-text cn-tpl cn-cat cn-camp-titulo estilo-${est}" data-id="${el.id}"
         style="left:${el.x}px;top:${el.y}px;width:${el.w||200}px;text-align:center;${wrapCor}${_wrapStyle(el)}">
         ${_catSeletorHTML(el, est, true)}
-        <div class="cn-content${est === 'marca' ? ' hl' : ''}" style="${_textStyle({ ...el, hl: false, hlc: '' })}${marcaHl}">${el.content||''}</div>
+        <div class="cn-content${est === 'marca' ? ' hl' : ''}" contenteditable="false"
+          style="${_textStyle({ ...el, hl: false, hlc: '' })}${marcaHl}"
+          onclick="_editarTituloCampanha(event, this)"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
+          onblur="_salvarTituloCampanha('${el.id}', this)"
+          onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">${el.content||''}</div>
         <button class="titulo-add-braco" onclick="event.stopPropagation();addCategoriaCampanha()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-plus"></i> braço</button>
       </div>`;
     }
@@ -3749,6 +4038,12 @@ function abrirQuadroDaData(dataStr) {
   abrirPlanejamentoSemanal(new Date(y, m - 1, d));
 }
 
+// sem canvas livre: clicar num evento abre o planejamento da semana dele
+function abrirDoEvento(idx) {
+  const e = _evCache[idx];
+  if (e) abrirQuadroDaData(e.data);
+}
+
 function _planejadoMap() {
   const map = {};
   eventosLoja.filter(e => e.titulo === 'Planejamento semanal').forEach(b => {
@@ -3947,6 +4242,33 @@ function _ehTplEl(el) {
   if (el.type !== 'text' || !el.bold || !el.hl) return false;
   const t = (el.content || '').trim().toLowerCase();
   return t === 'planejamento semanal' || DIAS_TPL.some(n => n.toLowerCase() === t);
+}
+
+// ── RENOMEAR CAMPANHA PELO QUADRO ─────────────────────
+function _editarTituloCampanha(e, node) {
+  e.stopPropagation();
+  if (node.isContentEditable) return;
+  node.contentEditable = 'true';
+  node.focus();
+}
+
+async function _salvarTituloCampanha(elId, node) {
+  node.contentEditable = 'false';
+  if (!edEvent || !edEvent.campId) return;
+  const el = (edEvent.canvas || []).find(x => x.id === elId);
+  const c = campanhas.find(x => x.id === edEvent.campId);
+  const novo = (node.textContent || '').trim();
+  if (!novo) { node.textContent = (c && c.titulo) || (el && el.content) || ''; return; }
+  if (el) el.content = novo;
+  if (c && c.titulo !== novo) {
+    const { error } = await sb.from('campanhas').update({ titulo: novo }).eq('id', c.id);
+    if (error) { showToast('Erro ao renomear: ' + error.message, 'error'); return; }
+    c.titulo = novo;
+    edEvent.titulo = novo;
+    document.getElementById('ed-titulo').textContent = novo;
+    showToast('Campanha renomeada!');
+  }
+  _scheduleCanvasSave();
 }
 
 // ── STATUS DO POST (ideia → gravado → postado) ────────
@@ -4553,8 +4875,8 @@ function _campanhaCardHTML(c) {
       <div class="camp-expand-hint"><i class="ti ti-sitemap"></i> toque para abrir o quadro</div>
     </div>
     <div class="camp-cor-row">
-      <button class="card-cor-btn" title="Cor da caixa" onclick="event.stopPropagation();toggleCorPicker('cp-camp-${c.id}')"><i class="ti ti-palette"></i></button>
-      ${_corPickerHTML('cp-camp-' + c.id, corC, `definirCorCampanha('${c.id}'`)}
+      <button class="card-cor-btn" title="Cor da caixa" onclick="event.stopPropagation();toggleCorPicker(this)"><i class="ti ti-palette"></i></button>
+      ${_corPickerHTML(corC, `definirCorCampanha('${c.id}'`)}
     </div>
   </div>`;
 }
@@ -5067,32 +5389,51 @@ function openModal(id)  {
 }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 function limparModal() {
-  ['ev-data','ev-titulo','ev-desc'].forEach(id => document.getElementById(id).value='');
+  ['ev-data','ev-titulo','ev-desc','ev-hora','ev-valor'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('ev-recorrente').checked = false;
   corSelecionada = CORES[0].hex;
   initColorPicker();
+  setTipoEv(document.querySelector('.ev-tipo-pill[data-tipo="compromisso"]')); // volta pro padrão
 }
 document.querySelectorAll('.modal-overlay').forEach(m =>
-  m.addEventListener('click', e => { if (e.target===m) m.classList.remove('open'); })
+  m.addEventListener('click', e => { if (e.target===m) { m.classList.remove('open'); _ocultarAoSalvar = null; } })
 );
 
 // ===== TOOLTIP =====
 const tooltip = document.getElementById('cal-tooltip');
 let tooltipTimer = null;
 
-function showTooltip(e, evs) {
-  if (!evs.length) return;
+function _tooltipLinha(cor, texto, sub) {
+  return `<div class="tooltip-item">
+    <div class="tooltip-dot" style="background:${cor}"></div>
+    <span>${texto}${sub ? `<small class="tooltip-sub">${sub}</small>` : ''}</span>
+  </div>`;
+}
+
+// tooltip do dia: eventos (com hora/valor/status) + posts planejados
+function showTooltipDia(e, evs, posts) {
+  const linhas = [];
+  (evs || []).forEach(ev => {
+    const c = _corEvento(ev);
+    let sub = '';
+    if (ev.tipo_ev === 'vencimento')
+      sub = (ev.valor ? 'R$ ' + _fmtValor(ev.valor) : '') + (ev.pago ? ' · pago ✓' : ' · a pagar');
+    else if (ev.tipo_ev === 'compromisso' && ev.hora) sub = ev.hora.slice(0, 5);
+    linhas.push(_tooltipLinha(c, _esc(ev.titulo), sub));
+  });
+  (posts || []).forEach(p => {
+    const st = _ancoraPost(p).st || 'ideia';
+    const c = st === 'postado' ? 'var(--green)' : 'var(--accent)';
+    linhas.push(_tooltipLinha(c, '▶ ' + _esc(_tituloPost(p)), ST_POST[st][1].toLowerCase()));
+  });
+  if (!linhas.length) return;
   clearTimeout(tooltipTimer);
-  tooltip.innerHTML = evs.map((ev, i) => {
-    const c = ev.cor || (ev.tipo==='loja' ? 'var(--accent)' : 'var(--yellow)');
-    return `${i > 0 ? '<hr class="tooltip-sep">' : ''}
-      <div class="tooltip-item">
-        <div class="tooltip-dot" style="background:${c}"></div>
-        <span>${ev.titulo}</span>
-      </div>`;
-  }).join('');
+  tooltip.innerHTML = linhas.join('<hr class="tooltip-sep">');
   tooltip.classList.add('visible');
   positionTooltip(e);
 }
+
+function showTooltip(e, evs) { showTooltipDia(e, evs, []); }
 
 function positionTooltip(e) {
   const tw = tooltip.offsetWidth, th = tooltip.offsetHeight;
