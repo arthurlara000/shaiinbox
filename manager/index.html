@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
 <link rel="apple-touch-icon" href="assets/icon.png">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#0a0a0a">
+<meta name="theme-color" content="#f5f1ea">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Shai Manager">
@@ -18,25 +18,26 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root {
-  --bg: #0d0f11;
-  --surface: #16191c;
-  --surface2: #1b1f23;
-  --surface3: #22272c;
-  --border: #262b2f;
-  --text: #eceff2;
-  --text-muted: #7d858c;
-  --accent: #7c93a6;
-  --accent-hover: #93a7b8;
-  --red: #cf8080;
-  --green: #6fa88a;
-  --yellow: #b3a06a;
-  --purple: #8b93b0;
-  --loja1: #7c93a6;
-  --loja2: #a2958a;
+  /* Paleta Shai — café com leite (igual ao calendário) */
+  --bg: #f5f1ea;
+  --surface: #fbf8f3;
+  --surface2: #efe8dd;
+  --surface3: #e7dccb;
+  --border: #ddd2c2;
+  --text: #2b2118;
+  --text-muted: #a08b76;
+  --accent: #a5713d;
+  --accent-hover: #8a5a36;
+  --red: #c44848;
+  --green: #3a9a6a;
+  --yellow: #b87830;
+  --purple: #7a6a9a;
+  --loja1: #3d7ab8;
+  --loja2: #c65b3f;
   /* tiers */
-  --meta-color: #6fa88a;
-  --super-color: #b3a06a;
-  --mega-color: #7c93a6;
+  --meta-color: #3a9a6a;
+  --super-color: #b87830;
+  --mega-color: #a5713d;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
@@ -72,10 +73,10 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 
 /* TIER BADGES */
 .tier-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 99px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; }
-.tier-none   { background: rgba(136,136,136,0.12); color: var(--text-muted); }
-.tier-meta   { background: rgba(111,168,138,0.14); color: var(--meta-color); }
-.tier-super  { background: rgba(179,160,106,0.14); color: var(--super-color); }
-.tier-mega   { background: rgba(124,147,166,0.18); color: var(--mega-color); }
+.tier-none   { background: color-mix(in srgb, var(--text-muted) 14%, transparent); color: var(--text-muted); }
+.tier-meta   { background: color-mix(in srgb, var(--meta-color) 14%, transparent); color: var(--meta-color); }
+.tier-super  { background: color-mix(in srgb, var(--super-color) 14%, transparent); color: var(--super-color); }
+.tier-mega   { background: color-mix(in srgb, var(--mega-color) 16%, transparent); color: var(--mega-color); }
 
 /* PROGRESS 3 TIERS */
 .tier-progress { margin-top: 8px; }
@@ -91,10 +92,10 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .tier-label-name { font-weight: 600; }
 
 .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 0.7rem; font-weight: 600; }
-.badge-loja1 { background: rgba(124,147,166,0.16); color: var(--loja1); }
-.badge-loja2 { background: rgba(162,149,138,0.16); color: var(--loja2); }
-.badge-green { background: rgba(111,168,138,0.15); color: var(--green); }
-.badge-red   { background: rgba(207,128,128,0.15); color: var(--red); }
+.badge-loja1 { background: color-mix(in srgb, var(--loja1) 14%, transparent); color: var(--loja1); }
+.badge-loja2 { background: color-mix(in srgb, var(--loja2) 14%, transparent); color: var(--loja2); }
+.badge-green { background: color-mix(in srgb, var(--green) 14%, transparent); color: var(--green); }
+.badge-red   { background: color-mix(in srgb, var(--red) 14%, transparent); color: var(--red); }
 .badge-muted { background: var(--surface3); color: var(--text-muted); }
 
 .form-group { margin-bottom: 14px; }
@@ -106,15 +107,17 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
 
 .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
-.btn-primary { background: var(--accent); color: #0f0f0f; }
+.btn-primary { background: var(--accent); color: #fff; }
 .btn-primary:hover { background: var(--accent-hover); }
 .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
 .btn-ghost:hover { color: var(--text); border-color: var(--text-muted); }
-.btn-danger { background: rgba(207,128,128,0.1); color: var(--red); border: 1px solid rgba(207,128,128,0.22); }
-.btn-danger:hover { background: rgba(207,128,128,0.2); }
+.btn-danger { background: color-mix(in srgb, var(--red) 10%, transparent); color: var(--red); border: 1px solid color-mix(in srgb, var(--red) 25%, transparent); }
+.btn-danger:hover { background: color-mix(in srgb, var(--red) 20%, transparent); }
 .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
 
 .table-wrap { overflow-x: auto; }
+.btn-share-msg { background:none; border:none; color:var(--green); cursor:pointer; font-size:1rem; padding:2px 4px; vertical-align:middle; opacity:0.75; }
+.btn-share-msg:hover { opacity:1; }
 table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
 th { text-align: left; padding: 10px 12px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
 td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text); }
@@ -127,22 +130,22 @@ tr:hover td { background: var(--surface2); }
 .ranking-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
 .ranking-item:last-child { border-bottom: none; }
 .ranking-pos { width: 24px; height: 24px; border-radius: 50%; background: var(--surface3); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); flex-shrink: 0; }
-.ranking-pos.gold   { background: rgba(124,147,166,0.2); color: var(--accent); }
-.ranking-pos.silver { background: rgba(180,180,180,0.15); color: #bbb; }
-.ranking-pos.bronze { background: rgba(180,120,60,0.15); color: #b8865a; }
+.ranking-pos.gold   { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); }
+.ranking-pos.silver { background: rgba(150,140,125,0.18); color: #8d8579; }
+.ranking-pos.bronze { background: rgba(180,120,60,0.15); color: #a06b3e; }
 
 .check-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--surface2); border-radius: 8px; margin-bottom: 8px; }
 .check-item.done { opacity: 0.45; }
 .check-item.done .check-text { text-decoration: line-through; color: var(--text-muted); }
 .check-box { width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--border); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
 .check-box.checked { background: var(--accent); border-color: var(--accent); }
-.check-box.checked::after { content: '✓'; font-size: 12px; color: #0f0f0f; font-weight: 700; }
+.check-box.checked::after { content: '✓'; font-size: 12px; color: #fff; font-weight: 700; }
 .check-text { flex: 1; font-size: 0.875rem; }
 .check-qty { font-size: 0.75rem; color: var(--text-muted); }
 .check-del { cursor: pointer; color: var(--red); font-size: 16px; opacity: 0; transition: opacity 0.2s; background: none; border: none; }
 .check-item:hover .check-del { opacity: 1; }
 
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 24px; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(43,33,24,0.45); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 24px; }
 .modal-overlay.open { display: flex; }
 .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
 .modal-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; }
@@ -160,11 +163,11 @@ tr:hover td { background: var(--surface2); }
 
 .tab-pills { display: flex; gap: 6px; margin-bottom: 20px; }
 .tab-pill { padding: 6px 16px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text-muted); transition: all 0.2s; }
-.tab-pill.active { background: var(--accent); color: #0f0f0f; border-color: var(--accent); }
+.tab-pill.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
 .divider { height: 1px; background: var(--border); margin: 24px 0; }
 .empty { text-align: center; padding: 32px; color: var(--text-muted); font-size: 0.875rem; }
-.info-box { background: rgba(124,147,166,0.08); border: 1px solid rgba(124,147,166,0.2); border-radius: 8px; padding: 12px 16px; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; }
+.info-box { background: color-mix(in srgb, var(--accent) 8%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent); border-radius: 8px; padding: 12px 16px; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; }
 
 /* DRE */
 .dre-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; font-size:0.88rem; }
@@ -350,7 +353,7 @@ tr:hover td { background: var(--surface2); }
         </div>
         <div class="card">
           <div class="card-title">Vendas por Dia</div>
-          <canvas id="chart-dias" height="200"></canvas>
+          <div style="position:relative;height:230px"><canvas id="chart-dias"></canvas></div>
         </div>
       </div>
     </div>
@@ -411,12 +414,6 @@ tr:hover td { background: var(--surface2); }
         <span class="week-label" id="com-week-label">—</span>
         <button onclick="comWeek(1)">›</button>
       </div>
-    </div>
-
-    <div class="info-box">
-      <strong style="color:var(--text)">Tabela de comissões:</strong><br>
-      Gerente → Meta: 1% + R$80 | Super: 1,5% + R$100 | Mega: 2% + R$150 (sobre total da loja)<br>
-      Vendedora → Meta: 1% + R$35 | Super: 1,5% + R$50 | Mega: 2% + R$65 (sobre vendas individuais)
     </div>
 
     <div class="card" style="margin-bottom:20px" id="comissoes-resumo">
@@ -1073,7 +1070,8 @@ function tierBadgeHtml(tier) {
   const map = { Meta: 'tier-meta', Super: 'tier-super', Mega: 'tier-mega', Nenhum: 'tier-none' };
   const icons = { Meta: 'ti-circle-check', Super: 'ti-star', Mega: 'ti-trophy', Nenhum: '' };
   const ic = icons[tier] ? `<i class="ti ${icons[tier]}"></i> ` : '';
-  return `<span class="tier-badge ${map[tier] || 'tier-none'}">${ic}${tier}</span>`;
+  const labels = { Nenhum: 'Não bateu' };
+  return `<span class="tier-badge ${map[tier] || 'tier-none'}">${ic}${labels[tier] || tier}</span>`;
 }
 
 function showToast(msg, type = 'success') {
@@ -1093,7 +1091,9 @@ function showTab(name, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
+  if (!btn) btn = document.querySelector(`.nav-tab[onclick*="'${name}'"]`);
   if (btn) btn.classList.add('active');
+  localStorage.setItem('shai-manager-tab', name);
   if (name === 'dashboard') loadDashboard();
   if (name === 'metas') loadMetasSemanal();
   if (name === 'historico') { initHistFilters(); loadHistDiario(); }
@@ -1142,10 +1142,13 @@ function setConfigView(v, btn) {
 }
 
 // ===== WEEK / MONTH OFFSETS =====
-let dashOffset = 0, dashMonthOffset = 0, comOffset = 0;
-function dashWeek(d) { dashOffset += d; loadDashboard(); }
-function comWeek(d)  { comOffset  += d; loadComissoes(); }
-function dashMonth(d) { dashMonthOffset += d; loadDashboard(); }
+// Offsets de navegação (semana/mês) persistem no F5 — a página reabre onde estava
+const _offs = (() => { try { return JSON.parse(localStorage.getItem('shai-manager-offsets')) || {}; } catch(e) { return {}; } })();
+function saveOff(k, v) { _offs[k] = v; localStorage.setItem('shai-manager-offsets', JSON.stringify(_offs)); }
+let dashOffset = _offs.dash || 0, dashMonthOffset = _offs.dashMonth || 0, comOffset = _offs.com || 0;
+function dashWeek(d) { dashOffset += d; saveOff('dash', dashOffset); loadDashboard(); }
+function comWeek(d)  { comOffset  += d; saveOff('com', comOffset); loadComissoes(); }
+function dashMonth(d) { dashMonthOffset += d; saveOff('dashMonth', dashMonthOffset); loadDashboard(); }
 
 // ===== TIER PROGRESS BLOCK =====
 function renderTierProgress(realizado, meta, lojaColor) {
@@ -1157,7 +1160,7 @@ function renderTierProgress(realizado, meta, lojaColor) {
 
   const tier = calcTier(realizado, meta);
   const fillClass = tier === 'Mega' ? 'mega-fill' : tier === 'Super' ? 'super-fill' : tier === 'Meta' ? 'meta-fill' : '';
-  const fillColor = tier === 'Mega' ? 'var(--mega-color)' : tier === 'Super' ? 'var(--super-color)' : tier === 'Meta' ? 'var(--meta-color)' : 'var(--border)';
+  const fillColor = tier === 'Mega' ? 'var(--mega-color)' : tier === 'Super' ? 'var(--super-color)' : tier === 'Meta' ? 'var(--meta-color)' : lojaColor;
 
   const faltaMeta  = realizado < meta.valor_meta  ? fmt(meta.valor_meta  - realizado) + ' p/ Meta'  : null;
   const faltaSuper = realizado < meta.valor_super ? fmt(meta.valor_super - realizado) + ' p/ Super' : null;
@@ -1250,16 +1253,38 @@ async function loadDashSemanal() {
     return d.toISOString().split('T')[0];
   });
   const labels = days.map(d=>new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit'}));
-  const vals = days.map(d=>(vendas||[]).filter(v=>v.data_venda===d).reduce((s,v)=>s+v.valor,0));
+  const somaLoja = (d,loja)=>(vendas||[]).filter(v=>v.data_venda===d && v.loja===loja).reduce((s,v)=>s+v.valor,0);
+  const valsAreal = days.map(d=>somaLoja(d,'Loja Areal'));
+  const valsTres  = days.map(d=>somaLoja(d,'Loja Três Rios'));
 
   if (chartDias) chartDias.destroy();
   chartDias = new Chart(document.getElementById('chart-dias').getContext('2d'), {
     type: 'bar',
-    data: { labels, datasets:[{ data:vals, backgroundColor:'rgba(124,147,166,0.35)', borderColor:'#7c93a6', borderWidth:1.5, borderRadius:6 }] },
-    options: { plugins:{legend:{display:false}}, scales: {
-      x:{ticks:{color:'#7d858c',font:{size:11}},grid:{color:'#262b2f'}},
-      y:{ticks:{color:'#7d858c',font:{size:11},callback:v=>'R$'+v.toLocaleString('pt-BR')},grid:{color:'#262b2f'}}
-    }}
+    data: { labels, datasets:[
+      { label:'Loja Areal',     data:valsAreal, backgroundColor:'#3d7ab8', borderRadius:5, barPercentage:1.5, categoryPercentage:0.5, borderColor:'#fbf8f3', borderWidth:2 },
+      { label:'Loja Três Rios', data:valsTres,  backgroundColor:'#c65b3f', borderRadius:5, barPercentage:1.5, categoryPercentage:0.5, borderColor:'#fbf8f3', borderWidth:2 },
+    ] },
+    options: {
+      maintainAspectRatio:false,
+      layout:{padding:{top:6}},
+      plugins:{
+        legend:{display:true,position:'top',align:'end',labels:{color:'#8a7359',font:{size:11.5,weight:'500'},boxWidth:8,boxHeight:8,usePointStyle:true,pointStyle:'circle',padding:16}},
+        tooltip:{
+          backgroundColor:'#fbf8f3', titleColor:'#2b2118', bodyColor:'#5c4a38', footerColor:'#2b2118',
+          borderColor:'#ddd2c2', borderWidth:1, cornerRadius:8, padding:11, boxPadding:5, usePointStyle:true,
+          titleFont:{size:12,weight:'500'}, bodyFont:{size:12}, footerFont:{size:12,weight:'500'},
+          callbacks:{
+            label:c=>'  '+c.dataset.label+': '+fmt(c.parsed.y),
+            footer:items=>'Total do dia: '+fmt(items.reduce((s,i)=>s+i.parsed.y,0))
+          }
+        }
+      },
+      scales: {
+        x:{border:{display:false}, ticks:{color:'#a08b76',font:{size:11}}, grid:{display:false}},
+        y:{border:{display:false}, ticks:{color:'#b3a48f',font:{size:10.5},maxTicksLimit:5,callback:v=>'R$'+(v>=1000?(v/1000)+'k':v)}, grid:{color:'#ebe3d6',drawTicks:false}, grace:'8%'}
+      },
+      animation:{duration:600,easing:'easeOutQuart'}
+    }
   });
 }
 
@@ -1346,6 +1371,18 @@ async function deleteFunc(id) {
 }
 
 // ===== COMISSÕES =====
+// Mensagens prontas para mandar às funcionárias (preenchidas em loadComissoes)
+const comMsgs = {};
+async function shareComissao(id) {
+  const msg = comMsgs[id];
+  if (!msg) return;
+  if (navigator.share) {
+    try { await navigator.share({ text: msg }); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
 async function loadComissoes() {
   await loadFuncionarias();
   const monday = currentMonday(comOffset);
@@ -1371,71 +1408,297 @@ async function loadComissoes() {
   const resumoEl = document.getElementById('comissoes-resumo');
   if (!ativas.length) { resumoEl.innerHTML='<div class="empty">Nenhuma funcionária ativa</div>'; return; }
 
-  let totalPagar = 0;
-  const funcRow = f => {
-    const tier = tierLoja[f.loja];
+  const hoje = new Date().toISOString().split('T')[0];
+  const semanaPassada = sunday < hoje;
+  const semanaCorrente = monday <= hoje && hoje <= sunday;
+  const pctBR = n => n.toFixed(1).replace('.', ',');
+  const vendasDe = f => (vendas||[]).filter(v => v.funcionaria_id === f.id).reduce((s,v) => s + v.valor, 0);
 
-    let vendido, baseCalculo;
-    if (f.cargo === 'Gerente') {
-      // Gerente recebe sobre o total da loja
-      vendido = totalLoja[f.loja] || 0;
-      baseCalculo = vendido;
-    } else {
-      // Vendedora recebe sobre as próprias vendas
-      vendido = (vendas||[]).filter(v=>v.funcionaria_id===f.id).reduce((s,v)=>s+v.valor,0);
-      baseCalculo = vendido;
+  // REGRA DAS METAS (confirmada pelo Arthur em 13/07/2026):
+  // - Vendedoras (as duas lojas): meta INDIVIDUAL = meta/super/mega da loja ÷ nº de
+  //   ativas QUE VENDERAM na semana (quem não vendeu não conta na divisão — ex.:
+  //   semana 06-12/07 em Três Rios foi ÷2 porque a Helen não vendeu).
+  //   Cada uma bate o tier pelas PRÓPRIAS vendas.
+  // - Gerente Joana (Areal): SÓ recebe se a LOJA bater (tier pelo total, % sobre o total).
+  // - Gerente Helen (Três Rios): se a LOJA bater, recebe como gerente (% sobre o total);
+  //   se a loja NÃO bater, concorre como vendedora pela meta individual dela.
+  const metaIndDe = {}; const nAtivasDe = {};
+  ['Loja Areal','Loja Três Rios'].forEach(l => {
+    const m = metas?.find(x => x.loja === l);
+    const daLoja = ativas.filter(f => f.loja === l);
+    const venderam = daLoja.filter(f => vendasDe(f) > 0).length;
+    const n = venderam || daLoja.length || 1;
+    nAtivasDe[l] = n;
+    metaIndDe[l] = m ? { valor_meta: m.valor_meta / n, valor_super: m.valor_super / n, valor_mega: m.valor_mega / n } : null;
+  });
+  // Define como cada funcionária é avaliada e paga nesta semana
+  const modoDe = f => {
+    if (f.cargo !== 'Gerente') {
+      return { tier: calcTier(vendasDe(f), metaIndDe[f.loja]), papel: 'Vendedora', base: vendasDe(f), fallback: false };
     }
+    if (tierLoja[f.loja] !== 'Nenhum') {
+      return { tier: tierLoja[f.loja], papel: 'Gerente', base: totalLoja[f.loja] || 0, fallback: false };
+    }
+    if (f.loja === 'Loja Três Rios') {
+      // Helen: loja não bateu → vale a meta individual dela, paga como vendedora
+      return { tier: calcTier(vendasDe(f), metaIndDe[f.loja]), papel: 'Vendedora', base: vendasDe(f), fallback: true };
+    }
+    return { tier: 'Nenhum', papel: 'Gerente', base: totalLoja[f.loja] || 0, fallback: false };
+  };
+  const tierDe = f => modoDe(f).tier;
 
-    const tabela = COMISSAO[f.cargo] || COMISSAO.Vendedora;
+  // Dias restantes da semana corrente (úteis seg–sáb), usado nas projeções
+  const diasPassados = Math.min(Math.max((new Date(hoje) - new Date(monday)) / 86400000, 0), 6);
+  const diasRestantes = Math.max(6 - diasPassados, 0);
+
+  // Botãozinho de WhatsApp ao lado do nome
+  const whatsBtn = f => ` <button class="btn-share-msg" onclick="shareComissao('${f.id}')" title="Compartilhar mensagem da semana com ${f.nome}"><i class="ti ti-brand-whatsapp"></i></button>`;
+
+  // Barra compacta: nome + barra + um dado à direita (comissão se bateu, % · faltou se não)
+  const barraIndividual = (f, extraLabel = '') => {
+    const mi = metaIndDe[f.loja];
+    const cor = f.loja === 'Loja Areal' ? 'var(--loja1)' : 'var(--loja2)';
+    const v = vendasDe(f);
+    const t = calcTier(v, mi);
+    const pct = mi.valor_meta > 0 ? v / mi.valor_meta * 100 : 0;
+    const direita = t !== 'Nenhum'
+      ? `<b style="color:var(--green)">${fmt(calculoDe(f).total)}</b>`
+      : `<span style="color:var(--text-muted)">${pctBR(pct)}% · ${semanaCorrente ? 'falta' : 'faltou'} ${fmt(mi.valor_meta - v)}</span>`;
+    return `<div style="margin-bottom:11px">
+      <div style="display:flex;justify-content:space-between;gap:8px;font-size:0.8rem;margin-bottom:3px;flex-wrap:wrap">
+        <span><b>${f.nome}</b>${extraLabel}${t !== 'Nenhum' ? ' ' + tierBadgeHtml(t) : ''}</span>
+        <span>${direita}</span>
+      </div>
+      <div style="height:6px;border-radius:3px;background:var(--bg);overflow:hidden">
+        <div style="height:100%;width:${Math.min(pct, 100)}%;background:${pct >= 100 ? 'var(--green)' : cor};border-radius:3px"></div>
+      </div>
+    </div>`;
+  };
+
+  // Progresso da meta por loja: barras compactas das vendedoras + linha da loja (gerente)
+  const progressoHTML = l => {
+    const meta = metas?.find(m => m.loja === l);
+    const vendido = totalLoja[l] || 0;
+    const cor = l === 'Loja Areal' ? 'var(--loja1)' : 'var(--loja2)';
+    let corpo;
+    if (!meta) {
+      corpo = `<div style="font-size:0.78rem;color:var(--text-muted)">Sem meta definida — vendido ${fmt(vendido)}</div>`;
+    } else {
+      const vendedoras = ativas.filter(f => f.loja === l && f.cargo !== 'Gerente');
+      const gerente = ativas.find(f => f.loja === l && f.cargo === 'Gerente');
+      const lojaBateu = tierLoja[l] !== 'Nenhum';
+      // Helen (Três Rios) tem barra individual quando a loja não bate
+      let barras = vendedoras.map(f => barraIndividual(f)).join('');
+      if (l === 'Loja Três Rios' && gerente && !lojaBateu) {
+        barras += barraIndividual(gerente, ' <span style="color:var(--text-muted);font-weight:400">(gerente)</span>');
+      }
+      // Linha da loja inteira = a meta da gerente
+      const pctLoja = meta.valor_meta > 0 ? vendido / meta.valor_meta * 100 : 0;
+      const direitaLoja = lojaBateu && gerente
+        ? `<b style="color:var(--green)">${fmt(calculoDe(gerente).total)}</b>`
+        : `<span style="color:var(--text-muted)">${pctBR(pctLoja)}% · ${semanaCorrente ? 'falta' : 'faltou'} ${fmt(Math.max(meta.valor_meta - vendido, 0))}</span>`;
+      let projLoja = '';
+      if (semanaCorrente && diasPassados > 0 && !lojaBateu) {
+        const proj = vendido / diasPassados * 6;
+        projLoja = `<div style="font-size:0.72rem;color:var(--text-muted);margin-top:3px">Nesse ritmo fecha em <b style="color:${proj >= meta.valor_meta ? 'var(--green)' : 'var(--red)'}">${fmt(proj)}</b>${diasRestantes > 0 ? ` · precisa ${fmt((meta.valor_meta - vendido) / diasRestantes)}/dia` : ''}</div>`;
+      }
+      corpo = barras
+        + `<div style="padding-top:9px;border-top:1px dashed var(--border)">
+            <div style="display:flex;justify-content:space-between;gap:8px;font-size:0.8rem;margin-bottom:3px;flex-wrap:wrap">
+              <span><b>Loja</b>${gerente ? ` <span style="color:var(--text-muted);font-weight:400">(${gerente.nome})</span>` : ''}${lojaBateu ? ' ' + tierBadgeHtml(tierLoja[l]) : ''}</span>
+              <span>${direitaLoja}</span>
+            </div>
+            <div style="height:6px;border-radius:3px;background:var(--bg);overflow:hidden">
+              <div style="height:100%;width:${Math.min(pctLoja, 100)}%;background:${pctLoja >= 100 ? 'var(--green)' : cor};border-radius:3px"></div>
+            </div>${projLoja}
+          </div>`;
+    }
+    return `<div style="flex:1;min-width:250px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px">
+      <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:${cor};margin-bottom:10px">${l}</div>
+      ${corpo}</div>`;
+  };
+
+  let totalPagar = 0;
+  const calculoDe = f => {
+    const { tier, papel, base, fallback } = modoDe(f);
+    const tabela = COMISSAO[papel] || COMISSAO.Vendedora;
     const regra = tabela[tier] || { pct: 0, bonus: 0 };
-    const comissao = baseCalculo * (regra.pct / 100);
-    const bonus = regra.bonus;
-    const total = tier === 'Nenhum' ? 0 : comissao + bonus;
+    const comissao = base * (regra.pct / 100);
+    const total = tier === 'Nenhum' ? 0 : comissao + regra.bonus;
+    return { tier, papel, fallback, baseCalculo: base, tabela, regra, comissao, bonus: regra.bonus, total };
+  };
+
+  // Mensagem pronta pra mandar no WhatsApp de cada funcionária (curta, sem emoji)
+  const msgDe = f => {
+    const { tier, papel, total } = calculoDe(f);
+    const lojaBateu = tierLoja[f.loja] !== 'Nenhum';
+    const nivelTxt = { Meta: 'a Meta', Super: 'o Super', Mega: 'o Mega' };
+    const mi = metaIndDe[f.loja];
+    const linhas = [];
+    if (papel === 'Vendedora' && mi) {
+      const v = vendasDe(f);
+      const pct = mi.valor_meta > 0 ? v / mi.valor_meta * 100 : 0;
+      if (tier !== 'Nenhum' && lojaBateu) {
+        linhas.push(`Parabéns, ${f.nome}! Batemos a meta da loja e você bateu ${nivelTxt[tier]} da sua meta individual.`);
+      } else if (tier !== 'Nenhum') {
+        linhas.push(`Parabéns, ${f.nome}! A meta da loja ficou distante, mas você bateu ${nivelTxt[tier]} da sua meta individual.`);
+      } else if (lojaBateu) {
+        linhas.push(`${f.nome}, a loja bateu a meta, mas a sua individual não veio dessa vez.`);
+      } else {
+        linhas.push(`${f.nome}, semana difícil pra todo mundo.`);
+      }
+      linhas.push(`Vendas: ${fmt(v)} (${pctBR(pct)}% da meta de ${fmt(mi.valor_meta)})`);
+      if (tier !== 'Nenhum') linhas.push(`Comissão: ${fmt(total)}`);
+      else linhas.push(`Faltaram ${fmt(mi.valor_meta - v)}. Semana que vem a gente busca.`);
+    } else {
+      // Gerente avaliada pela loja inteira
+      const m = metas?.find(x => x.loja === f.loja);
+      const vLoja = totalLoja[f.loja] || 0;
+      const pctLoja = m && m.valor_meta > 0 ? vLoja / m.valor_meta * 100 : 0;
+      if (tier !== 'Nenhum') {
+        linhas.push(`Parabéns, ${f.nome}! A loja bateu ${nivelTxt[tier]}: ${fmt(vLoja)} vendidos.`,
+          `Comissão: ${fmt(total)}`);
+      } else {
+        linhas.push(`${f.nome}, a loja fez ${pctBR(pctLoja)}% da meta (${fmt(vLoja)} de ${m ? fmt(m.valor_meta) : '—'}).`,
+          `Semana que vem a gente busca.`);
+      }
+    }
+    return linhas.join('\n');
+  };
+
+  const funcRow = f => {
+    const { tier, papel, fallback, baseCalculo, tabela, regra, comissao, bonus, total } = calculoDe(f);
     totalPagar += total;
 
+    // Meta individual embaixo da base de cálculo (quando é avaliada individualmente)
+    let baseExtra = '';
+    const mi = metaIndDe[f.loja];
+    if (mi && papel === 'Vendedora') {
+      const minhas = vendasDe(f);
+      const pctInd = mi.valor_meta > 0 ? minhas / mi.valor_meta * 100 : 0;
+      baseExtra = `<div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px">meta individual: ${fmt(mi.valor_meta)} (${pctBR(pctInd)}%)</div>`;
+    }
+
+    // Cargo (com aviso quando a gerente está concorrendo como vendedora)
+    const cargoCell = fallback
+      ? `<span class="badge badge-muted">${f.cargo}</span><div style="font-size:0.68rem;color:var(--text-muted);margin-top:2px">como vendedora (loja não bateu)</div>`
+      : `<span class="badge badge-muted">${f.cargo}</span>`;
+
+    // Quando não bateu a meta, mostra quanto receberia se tivesse batido
+    const temMeta = !!metas?.find(m => m.loja === f.loja);
+    let totalCell = '—';
+    if (tier !== 'Nenhum') {
+      totalCell = `<span style="font-weight:700;color:var(--accent)">${fmt(total)}</span>`;
+    } else if (temMeta) {
+      const rMeta = tabela['Meta'] || { pct: 0, bonus: 0 };
+      const potencial = baseCalculo * (rMeta.pct / 100) + rMeta.bonus;
+      totalCell = `<span style="font-size:0.75rem;color:var(--text-muted)" title="Quanto receberia se ${semanaPassada ? 'tivesse batido' : 'bater'} a Meta">${fmt(potencial)} se ${semanaPassada ? 'batesse' : 'bater'} a Meta</span>`;
+    }
+
+    // Mensagem da semana + botão de WhatsApp (só aqui na tabela de cálculo)
+    let shareBtn = '';
+    if (temMeta) {
+      comMsgs[f.id] = msgDe(f);
+      shareBtn = whatsBtn(f);
+    }
+
     return `<tr>
-      <td>${f.nome}</td>
-      <td><span class="badge badge-muted">${f.cargo}</span></td>
+      <td>${f.nome}${shareBtn}</td>
+      <td>${cargoCell}</td>
       <td>${tierBadgeHtml(tier)}</td>
-      <td>${fmt(vendido)}</td>
+      <td>${fmt(baseCalculo)}${baseExtra}</td>
       <td>${tier!=='Nenhum'?regra.pct+'%':'—'}</td>
       <td>${tier!=='Nenhum'?fmt(comissao):'—'}</td>
       <td>${tier!=='Nenhum'?fmt(bonus):'—'}</td>
-      <td style="font-weight:700;color:var(--accent)">${tier!=='Nenhum'?fmt(total):'—'}</td>
+      <td>${totalCell}</td>
     </tr>`;
   };
   const rows = ['Loja Areal','Loja Três Rios'].map(loja => {
     const doLoja = ativas.filter(f => f.loja === loja);
     if (!doLoja.length) return '';
-    const subtotal = doLoja.reduce((s,f) => {
-      const tier = tierLoja[f.loja];
-      if (tier === 'Nenhum') return s;
-      const base = f.cargo === 'Gerente' ? (totalLoja[f.loja]||0) : (vendas||[]).filter(v=>v.funcionaria_id===f.id).reduce((a,v)=>a+v.valor,0);
-      const regra = (COMISSAO[f.cargo]||COMISSAO.Vendedora)[tier] || {pct:0,bonus:0};
-      return s + base*(regra.pct/100) + regra.bonus;
-    }, 0);
-    return `<tr><td colspan="7" style="background:var(--surface2);font-weight:600;font-size:0.78rem;color:var(--${loja==='Loja Areal'?'loja1':'loja2'});text-transform:uppercase;letter-spacing:0.06em">${loja} ${tierBadgeHtml(tierLoja[loja])}</td>`
+    const subtotal = doLoja.reduce((s,f) => s + calculoDe(f).total, 0);
+    const selo = metaIndDe[loja]
+      ? (() => { const n = doLoja.filter(f => tierDe(f) !== 'Nenhum').length;
+          return `<span class="tier-badge ${n ? 'tier-meta' : 'tier-none'}">${n} de ${doLoja.length} bateram</span>`; })()
+      : tierBadgeHtml(tierLoja[loja]);
+    return `<tr><td colspan="7" style="background:var(--surface2);font-weight:600;font-size:0.78rem;color:var(--${loja==='Loja Areal'?'loja1':'loja2'});text-transform:uppercase;letter-spacing:0.06em">${loja} ${selo}</td>`
       + `<td style="background:var(--surface2);font-weight:700;color:var(--accent)">${fmt(subtotal)}</td></tr>`
       + doLoja.map(funcRow).join('');
   }).join('');
+
+  // Frase-resumo em linguagem clara (pra bater o olho e entender)
+  const nomeTier = t => t === 'Meta' ? 'a Meta' : 'o ' + t;
+  const frases = [];
+  let alguemBateu = false;
+  ['Loja Areal','Loja Três Rios'].forEach(l => {
+    if (!metas?.find(x => x.loja === l)) {
+      frases.push(`<span style="color:var(--text-muted)"><i class="ti ti-help-circle"></i> ${l}: sem meta definida para a semana</span>`);
+      return;
+    }
+    const doLoja = ativas.filter(f => f.loja === l);
+    const bateram = doLoja.filter(f => tierDe(f) !== 'Nenhum');
+    const naoBateram = doLoja.filter(f => tierDe(f) === 'Nenhum');
+    if (!bateram.length) {
+      frases.push(`<span style="color:var(--red)"><i class="ti ti-x"></i> ${l}: ninguém ${semanaPassada ? 'bateu' : 'bateu ainda'} a meta — sem comissão</span>`);
+    } else {
+      alguemBateu = true;
+      const parte1 = bateram.map(f => `${f.nome} bateu ${nomeTier(tierDe(f))}${modoDe(f).fallback ? ' (como vendedora)' : ''}`).join(', ');
+      const parte2 = naoBateram.length ? ` · <span style="color:var(--red)">${naoBateram.map(f => f.nome).join(' e ')} não ${naoBateram.length > 1 ? 'bateram' : 'bateu'}</span>` : '';
+      frases.push(`<span style="color:var(--green)"><i class="ti ti-check"></i> ${l}: ${parte1} — comissão liberada</span>${parte2}`);
+    }
+  });
+
+  const nenhumaBateu = !alguemBateu && metas?.find(x => x.loja === 'Loja Areal') && metas?.find(x => x.loja === 'Loja Três Rios');
+  let statusHTML;
+  if (nenhumaBateu) {
+    statusHTML = `<div style="margin-top:10px;padding:10px 14px;border-radius:8px;background:color-mix(in srgb, var(--red) 10%, transparent);border:1px solid color-mix(in srgb, var(--red) 35%, transparent);color:var(--red);font-size:0.88rem;font-weight:600">
+      <i class="ti ti-alert-circle"></i> Ninguém bateu a meta ${semanaPassada ? 'nesta semana' : 'até agora'} — não há comissões a pagar.</div>`;
+  } else {
+    statusHTML = `<div style="margin-top:10px;font-size:0.85rem;line-height:1.9">${frases.join('<br>')}</div>`;
+  }
 
   resumoEl.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px">
       <div>
         <div class="card-title">Resumo de Comissões</div>
-        <div style="font-size:1.4rem;font-weight:700;color:var(--accent)">Total a pagar: ${fmt(totalPagar)}</div>
-        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px">
-          Loja Areal ${tierBadgeHtml(tierLoja['Loja Areal'])} &nbsp; Loja Três Rios ${tierBadgeHtml(tierLoja['Loja Três Rios'])}
-        </div>
+        <div style="font-size:1.4rem;font-weight:700;color:${totalPagar > 0 ? 'var(--accent)' : 'var(--text-muted)'}">Total a pagar: ${fmt(totalPagar)}</div>
+        ${statusHTML}
       </div>
       <button class="btn btn-primary" onclick="fecharComissoes('${monday}','${sunday}')"><i class="ti ti-check"></i> Fechar Semana</button>
     </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Funcionária</th><th>Cargo</th><th>Tier</th><th>Base Cálculo</th><th>%</th><th>Comissão</th><th>Bônus Fixo</th><th>Total</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+      ${progressoHTML('Loja Areal')}
+      ${progressoHTML('Loja Três Rios')}
+    </div>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+      <button id="com-detalhe-btn" onclick="toggleComDetalhe()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:0.8rem;color:var(--accent);cursor:pointer;font-family:inherit"><i class="ti ti-chevron-down"></i> Ver cálculo detalhado</button>
+      <button onclick="toggleComRegra()" style="background:none;border:none;font-size:0.8rem;color:var(--text-muted);cursor:pointer;font-family:inherit"><i class="ti ti-info-circle"></i> Como funciona</button>
+    </div>
+    <div id="com-regra" style="display:none;margin-top:12px;background:color-mix(in srgb, var(--accent) 8%, transparent);border:1px solid color-mix(in srgb, var(--accent) 22%, transparent);border-radius:8px;padding:12px 16px;font-size:0.8rem;color:var(--accent-hover);line-height:1.7">
+      <b>Tabela:</b> Vendedora → Meta 1% + R$35 · Super 1,5% + R$50 · Mega 2% + R$65 (sobre as próprias vendas) &nbsp;|&nbsp; Gerente → Meta 1% + R$80 · Super 1,5% + R$100 · Mega 2% + R$150 (sobre o total da loja)<br>
+      <b>Meta individual</b> = meta da loja ÷ nº de funcionárias que venderam na semana (quem não vendeu não entra na divisão). Cada vendedora ganha batendo a fatia dela, independente da loja.<br>
+      <b>Gerentes:</b> Joana (Areal) ganha se a loja bater a meta cheia. Helen (Três Rios): loja bateu = recebe como gerente; não bateu = vale a meta individual dela como vendedora.
+    </div>
+    <div id="com-detalhe" style="display:none;margin-top:12px">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Funcionária</th><th>Cargo</th><th>Tier</th><th>Base Cálculo</th><th>%</th><th>Comissão</th><th>Bônus Fixo</th><th>Total</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
     </div>`;
+}
+
+function toggleComDetalhe() {
+  const d = document.getElementById('com-detalhe');
+  const btn = document.getElementById('com-detalhe-btn');
+  const aberto = d.style.display !== 'none';
+  d.style.display = aberto ? 'none' : '';
+  btn.innerHTML = aberto ? '<i class="ti ti-chevron-down"></i> Ver cálculo detalhado' : '<i class="ti ti-chevron-up"></i> Esconder cálculo';
+}
+function toggleComRegra() {
+  const r = document.getElementById('com-regra');
+  r.style.display = r.style.display === 'none' ? '' : 'none';
 }
 
 async function fecharComissoes(monday, sunday) {
@@ -1450,12 +1713,33 @@ async function fecharComissoes(monday, sunday) {
     tierLoja[l] = calcTier(totalLoja[l], metas?.find(m=>m.loja===l));
   });
 
-  for (const f of funcionarias.filter(f=>f.ativa)) {
-    const tier = tierLoja[f.loja];
-    const total_vendido = f.cargo === 'Gerente'
-      ? totalLoja[f.loja]||0
-      : (vendas||[]).filter(v=>v.funcionaria_id===f.id).reduce((s,v)=>s+v.valor,0);
-    const tabela = COMISSAO[f.cargo]||COMISSAO.Vendedora;
+  // Mesma regra da tela: vendedoras = meta individual (loja ÷ quem vendeu na semana);
+  // gerente Areal = só se a loja bater; gerente Três Rios = loja bateu como gerente,
+  // não bateu concorre como vendedora pela meta individual dela
+  const ativasF = funcionarias.filter(f=>f.ativa);
+  const vendeuDe = f => (vendas||[]).filter(v=>v.funcionaria_id===f.id).reduce((s,v)=>s+v.valor,0);
+  const metaIndDe = {};
+  ['Loja Areal','Loja Três Rios'].forEach(l => {
+    const m = metas?.find(x => x.loja === l);
+    const daLoja = ativasF.filter(f => f.loja === l);
+    const venderam = daLoja.filter(f => vendeuDe(f) > 0).length;
+    const n = venderam || daLoja.length || 1;
+    metaIndDe[l] = m ? { valor_meta: m.valor_meta / n, valor_super: m.valor_super / n, valor_mega: m.valor_mega / n } : null;
+  });
+
+  for (const f of ativasF) {
+    const proprias = (vendas||[]).filter(v=>v.funcionaria_id===f.id).reduce((s,v)=>s+v.valor,0);
+    let tier, papel, total_vendido;
+    if (f.cargo !== 'Gerente') {
+      tier = calcTier(proprias, metaIndDe[f.loja]); papel = 'Vendedora'; total_vendido = proprias;
+    } else if (tierLoja[f.loja] !== 'Nenhum') {
+      tier = tierLoja[f.loja]; papel = 'Gerente'; total_vendido = totalLoja[f.loja]||0;
+    } else if (f.loja === 'Loja Três Rios') {
+      tier = calcTier(proprias, metaIndDe[f.loja]); papel = 'Vendedora'; total_vendido = proprias;
+    } else {
+      tier = 'Nenhum'; papel = 'Gerente'; total_vendido = totalLoja[f.loja]||0;
+    }
+    const tabela = COMISSAO[papel]||COMISSAO.Vendedora;
     const regra = tabela[tier]||{pct:0,bonus:0};
     const valor_comissao = tier==='Nenhum' ? 0 : total_vendido*(regra.pct/100);
     const bonus_fixo = tier==='Nenhum' ? 0 : regra.bonus;
@@ -1663,11 +1947,12 @@ async function deleteCompra(id) {
 
 // ===== FECHAMENTOS =====
 let fechView = 'semanal';
-let fechOffset = 0;
+let fechOffset = _offs.fech || 0;
 
 function setFechView(v, btn) {
   fechView = v;
   fechOffset = 0;
+  saveOff('fech', 0);
   document.querySelectorAll('#tab-fechamentos .tab-pill').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   ['semanal','mensal','anual','periodo'].forEach(k => {
@@ -1677,7 +1962,7 @@ function setFechView(v, btn) {
   if (v !== 'periodo') loadFechamentos();
 }
 
-function fechNav(d) { fechOffset += d; loadFechamentos(); }
+function fechNav(d) { fechOffset += d; saveOff('fech', fechOffset); loadFechamentos(); }
 
 async function loadFechamentos() {
   const el = document.getElementById('fech-resultado');
@@ -1811,9 +2096,9 @@ async function loadFechamentos() {
 }
 
 // ===== CONFIG =====
-let cfgWeekOffset = 0, cfgMonthOffset = 0;
-function cfgWeek(d) { cfgWeekOffset += d; loadConfigSemanal(); }
-function cfgMonth(d) { cfgMonthOffset += d; loadConfigMensal(); }
+let cfgWeekOffset = _offs.cfgWeek || 0, cfgMonthOffset = _offs.cfgMonth || 0;
+function cfgWeek(d) { cfgWeekOffset += d; saveOff('cfgWeek', cfgWeekOffset); loadConfigSemanal(); }
+function cfgMonth(d) { cfgMonthOffset += d; saveOff('cfgMonth', cfgMonthOffset); loadConfigMensal(); }
 
 async function loadConfig() {
   await loadConfigSemanal();
@@ -1876,7 +2161,7 @@ async function saveMetaMensal(loja) {
 }
 
 // ===== METAS =====
-let metasWeekOffset = 0, metasMonthOffset = 0;
+let metasWeekOffset = _offs.metasWeek || 0, metasMonthOffset = _offs.metasMonth || 0;
 let metasView = 'semanal';
 
 function setMetasView(v, btn) {
@@ -1889,8 +2174,8 @@ function setMetasView(v, btn) {
   else loadMetasMensal();
 }
 
-function metasWeek(d) { metasWeekOffset += d; loadMetasSemanal(); }
-function metasMonth(d) { metasMonthOffset += d; loadMetasMensal(); }
+function metasWeek(d) { metasWeekOffset += d; saveOff('metasWeek', metasWeekOffset); loadMetasSemanal(); }
+function metasMonth(d) { metasMonthOffset += d; saveOff('metasMonth', metasMonthOffset); loadMetasMensal(); }
 
 async function loadMetasSemanal() {
   const monday = currentMonday(metasWeekOffset);
@@ -2241,7 +2526,13 @@ async function init() {
   document.getElementById('hist-per-ini').value = primeiroDia;
   document.getElementById('hist-per-fim').value = hoje;
   await loadFuncionarias();
-  await loadDashboard();
+  // Reabre na aba em que o usuário estava antes de atualizar a página
+  const abaSalva = localStorage.getItem('shai-manager-tab');
+  if (abaSalva && abaSalva !== 'dashboard' && document.getElementById('tab-' + abaSalva)) {
+    showTab(abaSalva);
+  } else {
+    await loadDashboard();
+  }
 }
 // ===== BOOT (com login da equipe) =====
 const EQUIPE_EMAIL = 'equipe@shai.local';
