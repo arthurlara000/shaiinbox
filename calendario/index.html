@@ -1169,7 +1169,11 @@ textarea.form-input { resize: none; height: 76px; }
 }
 .tf-chip.hoje { border-color: var(--accent); color: var(--accent); font-weight: 700; }
 .tf-chip.active { border-color: var(--accent); color: #fff; background: var(--accent); }
-.tf-chip-data { color: var(--accent); font-size: .9rem; padding: 7px 11px; }
+.tf-chip-caixa {
+  width: 132px; font-family: inherit; outline: none;
+  color-scheme: light;
+}
+.tf-chip-caixa.active { color-scheme: dark; }
 .tf-aviso-atraso {
   display: flex; align-items: center; gap: 6px; width: 100%;
   border: 1px solid color-mix(in srgb, var(--red) 40%, transparent);
@@ -2262,29 +2266,27 @@ async function _aplicarDataTarefa(valor) {
 
 // chips da semana (seg→dom): escolhe o dia uma vez e as tarefas digitadas caem nele
 function _tfChipsHTML() {
-  const chips = [{ k: 'todas', l: 'Todas' }, { k: 'semdata', l: 'Sem data' }];
   const hoje = new Date(todayY, todayM - 1, todayD);
   const seg = new Date(todayY, todayM - 1, todayD - ((hoje.getDay() + 6) % 7));
   const diasSemana = [];
+  const chips = [{ k: 'todas', l: 'Todas' }];
   for (let i = 0; i < 7; i++) {
     const dt = new Date(seg.getFullYear(), seg.getMonth(), seg.getDate() + i);
     const ds = iso(dt);
     diasSemana.push(ds);
     chips.push({ k: ds, l: `${DOWS[dt.getDay()]} ${dt.getDate()}`, hoje: ds === today });
   }
-  let html = chips.map(c =>
+  const foraDaSemana = /^\d{4}-/.test(tfDiaFiltro) && !diasSemana.includes(tfDiaFiltro);
+  let html = `<button class="tf-chip${tfDiaFiltro === 'todas' ? ' active' : ''}"
+    onclick="tfDiaFiltro='todas';renderTarefas()">Todas</button>`;
+  // caixa de data no lugar do antigo Sem data: escolheu, vira o dia ativo
+  html += `<input type="date" class="tf-chip tf-chip-caixa${foraDaSemana ? ' active' : ''}"
+    value="${foraDaSemana ? tfDiaFiltro : ''}" title="Escolher uma data"
+    onchange="if(this.value){tfDiaFiltro=this.value;renderTarefas();}">`;
+  html += chips.slice(1).map(c =>
     `<button class="tf-chip${c.hoje ? ' hoje' : ''}${tfDiaFiltro === c.k ? ' active' : ''}"
       onclick="tfDiaFiltro='${c.k}';renderTarefas()">${c.l}</button>`
   ).join('');
-  // data escolhida fora da semana: aparece como chip extra
-  if (/^\d{4}-/.test(tfDiaFiltro) && !diasSemana.includes(tfDiaFiltro)) {
-    const [, m2, d2] = tfDiaFiltro.split('-').map(Number);
-    html += `<button class="tf-chip active">${d2}/${m2}</button>`;
-  }
-  // botão de escolher qualquer data no calendário
-  html += `<button class="tf-chip tf-chip-data" title="Escolher outra data"
-    onclick="const p=document.getElementById('tf-data-pick'); p.showPicker ? p.showPicker() : p.click()">
-    <i class="ti ti-calendar-search"></i></button>`;
   return html;
 }
 
