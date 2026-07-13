@@ -1228,6 +1228,17 @@ textarea.form-input { resize: none; height: 76px; }
 .tf-data { font-size: .68rem; color: var(--text-muted); margin-top: 1px; }
 .tf-data.hoje { color: #c17b3f; font-weight: 600; }
 .tf-data.atrasada { color: var(--red); font-weight: 600; }
+/* tarefas dentro do card da agenda do dia */
+.tf-linhas-agenda { width: 100%; margin-top: 10px; padding-top: 10px; border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent); }
+.tf-linha-agenda {
+  display: flex; align-items: center; gap: 9px; padding: 6px 2px;
+  cursor: pointer; border-radius: 8px;
+}
+.tf-linha-agenda:active { opacity: .7; }
+.tf-linha-agenda .ck-box { pointer-events: none; flex-shrink: 0; }
+.tf-linha-txt { font-size: .85rem; color: var(--text); }
+.tf-linha-txt.done { text-decoration: line-through; color: var(--text-muted); }
+
 .tf-agendar {
   border: none; background: none; cursor: pointer; font-size: .95rem;
   color: #c8c2ba; padding: 4px; flex-shrink: 0;
@@ -2674,17 +2685,24 @@ function renderAgendaDia(ds) {
     const fts = tfsDia.filter(t => t.done).length;
     const corT = fts === tfsDia.length ? 'var(--green)' : COR_TAREFA;
     const [, m3, d3] = ds.split('-').map(Number);
+    // card estendido: as tarefas aparecem dentro, com a bolinha de OK
+    const linhas = tfsDia.map(t => `
+      <div class="tf-linha-agenda" onclick="toggleTarefa('${t.id}')">
+        <span class="ck-box${t.done ? ' done' : ''}"><i class="ti ti-check"></i></span>
+        <div class="tf-linha-txt${t.done ? ' done' : ''}">${_esc(t.titulo)}</div>
+      </div>`).join('');
     lista.insertAdjacentHTML('beforeend', `
-      <div class="event-card" style="border:2px solid ${corT};border-left:6px solid ${corT};background:color-mix(in srgb,${corT} 7%,var(--surface));cursor:pointer" onclick="abrirTarefasDia('${ds}')">
+      <div class="event-card" style="border:2px solid ${corT};border-left:6px solid ${corT};background:color-mix(in srgb,${corT} 7%,var(--surface))">
         <div class="event-date-box" style="background:color-mix(in srgb,${corT} 12%,transparent)">
           <div class="event-date-day" style="color:${corT}">${d3}</div>
           <div class="event-date-mon">${MESES[m3-1].slice(0,3)}</div>
         </div>
         <div class="event-info">
-          <div class="event-title">${tfsDia.length} tarefa${tfsDia.length>1?'s':''} do dia</div>
-          <div class="event-desc">${_esc(tfsDia.map(t => t.titulo).join(' · '))}</div>
-          <span class="event-badge" style="background:color-mix(in srgb,${corT} 18%,transparent);color:${corT}">${fts}/${tfsDia.length} concluídas</span>
+          <div class="event-title">${tfsDia.length} tarefa${tfsDia.length>1?'s':''} do dia
+            <span class="event-badge" style="background:color-mix(in srgb,${corT} 18%,transparent);color:${corT};margin-left:6px">${fts}/${tfsDia.length}</span>
+          </div>
         </div>
+        <div class="tf-linhas-agenda">${linhas}</div>
       </div>`);
   }
   if (!evs.length && !campsDia.length && !posts.length && !tfsDia.length)
