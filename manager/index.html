@@ -1335,7 +1335,7 @@ async function loadFuncionarias() {
       <td><span class="badge badge-${f.loja==='Loja Areal'?'loja1':'loja2'}">${f.loja}</span></td>
       <td><span class="badge ${f.ativa?'badge-green':'badge-red'}">${f.ativa?'Ativa':'Inativa'}</span></td>
       <td style="display:flex;gap:6px">
-        <button class="btn btn-ghost btn-sm" onclick="toggleFunc('${f.id}',${f.ativa})">${f.ativa?'Desativar':'Ativar'}</button>
+        <button class="btn btn-ghost btn-sm" style="min-width:88px" onclick="toggleFunc('${f.id}',${f.ativa})">${f.ativa?'Desativar':'Ativar'}</button>
         <button class="btn btn-danger btn-sm" onclick="deleteFunc('${f.id}')"><i class="ti ti-x"></i></button>
       </td>
     </tr>`;
