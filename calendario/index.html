@@ -363,8 +363,6 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .plan-week-nav i, .camp-print i { color: var(--choco); }
 .plan-copy i, .camp-add-cat i { color: #38a8ff; }
 .plan-reset i, .camp-trash i { color: #ff5757; }
-.btn-campanha i { color: #ff9f2e; }
-.btn-acoes i { color: #14b8a6; }
 .ed-topbar-action i { transition: transform .15s; display: inline-block; }
 .ed-topbar-action:hover i { transform: translateY(-1px) scale(1.15); }
 .ed-save-btn {
@@ -968,7 +966,6 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 #event-detail.modo-camp .camp-print, #event-detail.modo-camp .camp-share { display: flex; }
 #event-detail.modo-camp .camp-share { color: #25D366; }
 #event-detail.modo-camp .camp-share:hover { border-color: #25D366; }
-#event-detail.modo-camp .btn-acoes { display: none; } /* ações por loja não se aplicam ao quadro de campanha */
 #event-detail.modo-plano .plan-copy { display: flex; }
 /* quadro de campanha: sem navegação de semana/copiar; ganha nova categoria e excluir */
 #event-detail.modo-camp .plan-week-nav, #event-detail.modo-camp .plan-copy { display: none !important; }
@@ -1618,8 +1615,6 @@ textarea.form-input { resize: none; height: 76px; }
     <button class="ed-topbar-action camp-print" onclick="imprimirCampanha()" title="Imprimir campanha (ou salvar PDF)"><i class="ti ti-printer"></i></button>
     <button class="ed-topbar-action camp-share" onclick="compartilharCampanha()" title="Enviar apresentação pro WhatsApp"><i class="ti ti-brand-whatsapp"></i></button>
     <div class="ed-topbar-badge" id="ed-badge"></div>
-    <button class="ed-topbar-action btn-campanha" onclick="abrirEdCampanha()" title="Campanhas"><i class="ti ti-speakerphone"></i></button>
-    <button class="ed-topbar-action btn-acoes" onclick="abrirEdAcoes()" title="Ações por loja"><i class="ti ti-checklist"></i></button>
     <button class="ed-save-btn" onclick="salvarESair()"><i class="ti ti-check"></i> Salvar</button>
   </div>
 
@@ -5105,18 +5100,6 @@ function _ensureVisible(el) {
   canvas.style.transition = 'background-position .25s ease';
   _applyPan();
   setTimeout(() => { world.style.transition = ''; canvas.style.transition = ''; }, 300);
-}
-
-// ── CAMPANHAS / AÇÕES (via modal existente) ───────────
-function abrirEdCampanha() {
-  if (!edEvent) return;
-  if (edEvent.campId) abrirCampanha(edEvent.data, edEvent.campId); // edita a própria campanha do quadro
-  else abrirCampanha(edEvent.data, null);
-}
-function abrirEdAcoes() {
-  if (!edEvent) return;
-  // reutiliza modal campanha para ações — TODO: modal dedicado
-  showToast('Em breve: ações por loja');
 }
 
 function setCanalPill(btn) {
