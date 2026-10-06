@@ -286,7 +286,6 @@ tr:hover td { background: var(--surface2); }
   <button class="nav-tab" onclick="showTab('historico',this)"><i class="ti ti-trending-up"></i>Vendas</button>
   <button class="nav-tab" onclick="showTab('comissoes',this)"><i class="ti ti-coin"></i>Comissões</button>
   <button class="nav-tab" onclick="showTab('funcionarios',this)"><i class="ti ti-users"></i>Funcionários</button>
-  <button class="nav-tab" onclick="showTab('lista',this)"><i class="ti ti-shopping-cart"></i>Lista de Compras</button>
   <button class="nav-tab" onclick="showTab('custos',this)"><i class="ti ti-building-bank"></i>Custos Fixos</button>
   <button class="nav-tab" onclick="showTab('compras',this)"><i class="ti ti-shopping-bag"></i>Compras</button>
   <button class="nav-tab" onclick="showTab('fechamentos',this)"><i class="ti ti-report-money"></i>Fechamentos</button>
@@ -300,6 +299,7 @@ tr:hover td { background: var(--surface2); }
     <div class="tab-pills">
       <button class="tab-pill active" onclick="setDashView('semanal',this)">Semanal</button>
       <button class="tab-pill" onclick="setDashView('mensal',this)">Mensal</button>
+      <button class="tab-pill" onclick="setDashView('anual',this)">Anual</button>
     </div>
 
     <div id="dash-semanal">
@@ -400,6 +400,50 @@ tr:hover td { background: var(--surface2); }
           <div class="card-title">Progresso da Meta — Loja Três Rios</div>
           <div id="meta-prog-mensal-l2"><div class="empty" style="padding:12px">Sem meta definida</div></div>
         </div>
+      </div>
+    </div>
+
+    <div id="dash-anual" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Dashboard Anual</div>
+        <div class="week-nav">
+          <button onclick="dashYear(-1)">‹</button>
+          <span class="week-label" id="dash-year-label">—</span>
+          <button onclick="dashYear(1)">›</button>
+        </div>
+      </div>
+
+      <div class="grid-4" style="margin-bottom:16px">
+        <div class="stat-card">
+          <div class="stat-label">Total do Ano</div>
+          <div class="stat-value" id="da-total" style="color:var(--accent)">R$ 0</div>
+          <div class="stat-sub" id="da-media">média de R$ 0/mês</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Loja Areal</div>
+          <div class="stat-value" id="da-l1" style="color:var(--loja1)">R$ 0</div>
+          <div class="stat-sub" id="da-l1-pct"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Loja Três Rios</div>
+          <div class="stat-value" id="da-l2" style="color:var(--loja2)">R$ 0</div>
+          <div class="stat-sub" id="da-l2-pct"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Melhor Mês</div>
+          <div class="stat-value" id="da-melhor" style="color:var(--text)">—</div>
+          <div class="stat-sub" id="da-melhor-valor"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-title">Vendas por Mês</div>
+        <div style="position:relative;height:260px"><canvas id="chart-meses"></canvas></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Ranking do Ano</div>
+        <div id="ranking-anual"><div class="empty">Nenhuma venda registrada</div></div>
       </div>
     </div>
   </div>
@@ -743,43 +787,6 @@ tr:hover td { background: var(--surface2); }
     </div>
   </div>
 
-  <!-- ===== LISTA ===== -->
-  <div class="tab-panel" id="tab-lista">
-    <div class="section-header">
-      <div class="section-title">Lista de Compras</div>
-    </div>
-
-    <div class="tab-pills" style="margin-bottom:20px">
-      <button class="tab-pill active" id="lpill-areal"    onclick="setListaView('areal',this)"><i class="ti ti-map-pin"></i>Loja Areal</button>
-      <button class="tab-pill"        id="lpill-tresrios" onclick="setListaView('tresrios',this)"><i class="ti ti-map-pin"></i>Loja Três Rios</button>
-      <button class="tab-pill"        id="lpill-todas"    onclick="setListaView('todas',this)"><i class="ti ti-clipboard-list"></i>Consolidado</button>
-    </div>
-
-    <!-- Loja Areal -->
-    <div id="lview-areal">
-      <div id="lista-loja-areal"><div class="empty">Nenhum item</div></div>
-    </div>
-
-    <!-- Loja Três Rios -->
-    <div id="lview-tresrios" style="display:none">
-      <div id="lista-loja-tresrios"><div class="empty">Nenhum item</div></div>
-    </div>
-
-    <!-- Consolidado -->
-    <div id="lview-todas" style="display:none">
-      <div class="grid-2">
-        <div>
-          <div class="card-title" style="margin-bottom:12px;padding-left:4px"><i class="ti ti-map-pin"></i>Loja Areal</div>
-          <div id="lista-loja-areal-c"><div class="empty">Nenhum item</div></div>
-        </div>
-        <div>
-          <div class="card-title" style="margin-bottom:12px;padding-left:4px"><i class="ti ti-map-pin"></i>Loja Três Rios</div>
-          <div id="lista-loja-tresrios-c"><div class="empty">Nenhum item</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- ===== CUSTOS FIXOS ===== -->
   <div class="tab-panel" id="tab-custos">
     <div class="section-header">
@@ -789,6 +796,7 @@ tr:hover td { background: var(--surface2); }
     <div class="tab-pills" style="margin-bottom:20px">
       <button class="tab-pill active" id="cpill-areal"    onclick="setCustosLoja('Loja Areal',this)"><i class="ti ti-map-pin"></i>Loja Areal</button>
       <button class="tab-pill"        id="cpill-tresrios" onclick="setCustosLoja('Loja Três Rios',this)"><i class="ti ti-map-pin"></i>Loja Três Rios</button>
+      <button class="tab-pill"        id="cpill-cd"       onclick="setCustosLoja('Centro de Distribuição',this)"><i class="ti ti-building-warehouse"></i>Centro de Distribuição</button>
     </div>
 
     <!-- Formulário inline -->
@@ -946,30 +954,6 @@ tr:hover td { background: var(--surface2); }
   </div>
 </div>
 
-<!-- MODAL ITEM -->
-<div class="modal-overlay" id="modal-item">
-  <div class="modal">
-    <div class="modal-title">Adicionar Item</div>
-    <div class="form-group">
-      <label class="form-label">Item</label>
-      <input type="text" class="form-input" id="i-nome" placeholder="Ex: Calça jeans P">
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Categoria</label>
-        <select class="form-select" id="i-cat"><option>Estoque</option><option>Insumos</option></select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Quantidade</label>
-        <input type="text" class="form-input" id="i-qty" placeholder="Ex: 5 unidades">
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-item')">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveItem()">Adicionar</button>
-    </div>
-  </div>
-</div>
 
 <!-- MODAL COMPRA -->
 <div class="modal-overlay" id="modal-compra">
@@ -1099,7 +1083,6 @@ function showTab(name, btn) {
   if (name === 'historico') { initHistFilters(); loadHistDiario(); }
   if (name === 'comissoes') loadComissoes();
   if (name === 'funcionarios') loadFuncionarias();
-  if (name === 'lista') loadLista();
   if (name === 'custos') loadCustos();
   if (name === 'compras') initCompras();
   if (name === 'fechamentos') { setFechView('semanal', document.getElementById('fpill-semanal')); }
@@ -1113,6 +1096,7 @@ function setDashView(v, btn) {
   btn.classList.add('active');
   document.getElementById('dash-semanal').style.display = v === 'semanal' ? '' : 'none';
   document.getElementById('dash-mensal').style.display  = v === 'mensal'  ? '' : 'none';
+  document.getElementById('dash-anual').style.display   = v === 'anual'   ? '' : 'none';
   loadDashboard();
 }
 
@@ -1149,6 +1133,8 @@ let dashOffset = _offs.dash || 0, dashMonthOffset = _offs.dashMonth || 0, comOff
 function dashWeek(d) { dashOffset += d; saveOff('dash', dashOffset); loadDashboard(); }
 function comWeek(d)  { comOffset  += d; saveOff('com', comOffset); loadComissoes(); }
 function dashMonth(d) { dashMonthOffset += d; saveOff('dashMonth', dashMonthOffset); loadDashboard(); }
+let dashYearOffset = _offs.dashYear || 0;
+function dashYear(d) { dashYearOffset += d; saveOff('dashYear', dashYearOffset); loadDashboard(); }
 
 // ===== TIER PROGRESS BLOCK =====
 function renderTierProgress(realizado, meta, lojaColor) {
@@ -1188,9 +1174,10 @@ function renderTierProgress(realizado, meta, lojaColor) {
 }
 
 // ===== DASHBOARD =====
-let chartDias = null;
+let chartDias = null, chartMeses = null;
 async function loadDashboard() {
   if (dashView === 'semanal') await loadDashSemanal();
+  else if (dashView === 'anual') await loadDashAnual();
   else await loadDashMensal();
 }
 
@@ -1317,6 +1304,97 @@ async function loadDashMensal() {
   document.getElementById('dm-l2-tier').innerHTML = tierBadgeHtml(calcTier(l2,ml2));
   document.getElementById('meta-prog-mensal-l1').innerHTML = renderTierProgress(l1, ml1, 'var(--loja1)');
   document.getElementById('meta-prog-mensal-l2').innerHTML = renderTierProgress(l2, ml2, 'var(--loja2)');
+}
+
+async function loadDashAnual() {
+  const ano = new Date().getFullYear() + dashYearOffset;
+  document.getElementById('dash-year-label').textContent = ano;
+
+  // O Supabase devolve no máximo 1000 linhas por consulta
+  const vendas = [];
+  for (let de = 0; ; de += 1000) {
+    const { data } = await sb.from('vendas')
+      .select('data_venda, loja, valor, funcionaria_id, funcionarias(nome)')
+      .gte('data_venda', `${ano}-01-01`).lte('data_venda', `${ano}-12-31`)
+      .order('data_venda').range(de, de + 999);
+    vendas.push(...(data || []));
+    if (!data || data.length < 1000) break;
+  }
+
+  const total = vendas.reduce((s,v)=>s+Number(v.valor),0);
+  const l1 = vendas.filter(v=>v.loja==='Loja Areal').reduce((s,v)=>s+Number(v.valor),0);
+  const l2 = vendas.filter(v=>v.loja==='Loja Três Rios').reduce((s,v)=>s+Number(v.valor),0);
+
+  const somaMes = (m, loja) => vendas.filter(v => Number(v.data_venda.slice(5,7)) === m && v.loja === loja).reduce((s,v)=>s+Number(v.valor),0);
+  const valsAreal = Array.from({length:12}, (_,i) => somaMes(i+1, 'Loja Areal'));
+  const valsTres  = Array.from({length:12}, (_,i) => somaMes(i+1, 'Loja Três Rios'));
+  const totaisMes = valsAreal.map((v,i) => v + valsTres[i]);
+  const mesesComVenda = totaisMes.filter(v => v > 0).length;
+  const iMelhor = totaisMes.reduce((best,v,i) => v > totaisMes[best] ? i : best, 0);
+  const nomeMes = i => new Date(ano, i, 1).toLocaleDateString('pt-BR', { month: 'long' });
+  const pct = v => total ? (v/total*100).toFixed(1).replace('.', ',') + '% do total' : '';
+
+  document.getElementById('da-total').textContent = fmt(total);
+  document.getElementById('da-media').textContent = mesesComVenda ? `média de ${fmt(total/mesesComVenda)}/mês` : 'sem vendas no ano';
+  document.getElementById('da-l1').textContent = fmt(l1);
+  document.getElementById('da-l2').textContent = fmt(l2);
+  document.getElementById('da-l1-pct').textContent = pct(l1);
+  document.getElementById('da-l2-pct').textContent = pct(l2);
+  document.getElementById('da-melhor').textContent = total ? nomeMes(iMelhor).replace(/^./, c => c.toUpperCase()) : '—';
+  document.getElementById('da-melhor-valor').textContent = total ? fmt(totaisMes[iMelhor]) : '';
+
+  // Ranking do ano
+  const rankMap = {};
+  vendas.forEach(v => {
+    const key = v.funcionaria_id || `__sem__${v.loja}`;
+    if (!rankMap[key]) rankMap[key] = { nome: v.funcionarias?.nome || 'Sem atribuição', loja: v.loja, total: 0 };
+    rankMap[key].total += Number(v.valor);
+  });
+  const rank = Object.values(rankMap).sort((a,b)=>b.total-a.total);
+  const rankEl = document.getElementById('ranking-anual');
+  const medals = ['gold','silver','bronze'];
+  rankEl.innerHTML = !rank.length ? '<div class="empty">Nenhuma venda registrada</div>' : rank.map((r,i) => `
+    <div class="ranking-item">
+      <div class="ranking-pos ${medals[i]||''}">${i+1}</div>
+      <div style="flex:1">
+        <div style="font-weight:500">${r.nome}</div>
+        <span class="badge badge-${r.loja==='Loja Areal'?'loja1':'loja2'}" style="margin-top:2px">${r.loja}</span>
+      </div>
+      <div style="font-weight:600;color:var(--accent)">${fmt(r.total)}</div>
+    </div>`).join('');
+
+  // Gráfico mês a mês, mesmo estilo do semanal
+  const labels = Array.from({length:12}, (_,i) => new Date(ano, i, 1).toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''));
+  if (chartMeses) chartMeses.destroy();
+  chartMeses = new Chart(document.getElementById('chart-meses').getContext('2d'), {
+    type: 'bar',
+    data: { labels, datasets:[
+      { label:'Loja Areal',     data:valsAreal, backgroundColor:'#3d7ab8', borderRadius:5, barPercentage:1.5, categoryPercentage:0.5, borderColor:'#fbf8f3', borderWidth:2 },
+      { label:'Loja Três Rios', data:valsTres,  backgroundColor:'#c65b3f', borderRadius:5, barPercentage:1.5, categoryPercentage:0.5, borderColor:'#fbf8f3', borderWidth:2 },
+    ] },
+    options: {
+      maintainAspectRatio:false,
+      layout:{padding:{top:6}},
+      plugins:{
+        legend:{display:true,position:'top',align:'end',labels:{color:'#8a7359',font:{size:11.5,weight:'500'},boxWidth:8,boxHeight:8,usePointStyle:true,pointStyle:'circle',padding:16}},
+        tooltip:{
+          backgroundColor:'#fbf8f3', titleColor:'#2b2118', bodyColor:'#5c4a38', footerColor:'#2b2118',
+          borderColor:'#ddd2c2', borderWidth:1, cornerRadius:8, padding:11, boxPadding:5, usePointStyle:true,
+          titleFont:{size:12,weight:'500'}, bodyFont:{size:12}, footerFont:{size:12,weight:'500'},
+          callbacks:{
+            title:items=>nomeMes(items[0].dataIndex).replace(/^./, c => c.toUpperCase()) + ' ' + ano,
+            label:c=>'  '+c.dataset.label+': '+fmt(c.parsed.y),
+            footer:items=>'Total do mês: '+fmt(items.reduce((s,i)=>s+i.parsed.y,0))
+          }
+        }
+      },
+      scales: {
+        x:{border:{display:false}, ticks:{color:'#a08b76',font:{size:11}}, grid:{display:false}},
+        y:{border:{display:false}, ticks:{color:'#b3a48f',font:{size:10.5},maxTicksLimit:5,callback:v=>'R$'+(v>=1000?(v/1000)+'k':v)}, grid:{color:'#ebe3d6',drawTicks:false}, grace:'8%'}
+      },
+      animation:{duration:600,easing:'easeOutQuart'}
+    }
+  });
 }
 
 // ===== VENDAS =====
@@ -1752,71 +1830,6 @@ async function fecharComissoes(monday, sunday) {
   showToast('Semana fechada e registrada!');
 }
 
-// ===== LISTA =====
-async function loadLista() {
-  loadListaLojas();
-}
-async function loadListaLojas() {
-  const { data } = await sb.from('lista_loja').select('*').eq('status','pendente').order('criado_em',{ascending:false});
-  const areal    = (data||[]).filter(i=>i.loja==='Loja Areal');
-  const tresrios = (data||[]).filter(i=>i.loja==='Loja Três Rios');
-  renderListaLoja('lista-loja-areal',      areal);
-  renderListaLoja('lista-loja-tresrios',   tresrios);
-  renderListaLoja('lista-loja-areal-c',    areal);
-  renderListaLoja('lista-loja-tresrios-c', tresrios);
-}
-function renderListaLoja(elId, items) {
-  const el = document.getElementById(elId);
-  if (!el) return;
-  if (!items.length) { el.innerHTML='<div class="empty">Nenhum item</div>'; return; }
-  el.innerHTML = items.map(i => {
-    const sub = [i.categoria, i.tamanho, i.cor].filter(Boolean).join(' · ');
-    return `<div class="check-item">
-      <div class="check-text" style="flex:1">
-        <div>${i.nome}</div>
-        ${sub ? `<div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px">${sub}</div>` : ''}
-      </div>
-      <button class="btn btn-primary" style="padding:4px 10px;font-size:0.75rem" onclick="okListaLoja('${i.id}')"><i class="ti ti-check"></i> OK</button>
-    </div>`;
-  }).join('');
-}
-async function okListaLoja(id) {
-  await sb.from('lista_loja').update({status:'ok'}).eq('id',id);
-  loadListaLojas();
-}
-function setListaView(view, btn) {
-  ['areal','tresrios','todas'].forEach(v => {
-    document.getElementById('lview-' + v).style.display = v === view ? '' : 'none';
-    document.getElementById('lpill-' + v).classList.toggle('active', v === view);
-  });
-}
-function renderChecklist(elId, items) {
-  const el = document.getElementById(elId);
-  if (!items.length) { el.innerHTML='<div class="empty">Nenhum item</div>'; return; }
-  el.innerHTML = items.map(i=>`
-    <div class="check-item ${i.feito?'done':''}">
-      <div class="check-box ${i.feito?'checked':''}" onclick="toggleItem('${i.id}',${i.feito})"></div>
-      <div class="check-text">${i.item}</div>
-      ${i.quantidade?`<div class="check-qty">${i.quantidade}</div>`:''}
-      <button class="check-del" onclick="deleteItem('${i.id}')"><i class="ti ti-x"></i></button>
-    </div>`).join('');
-}
-async function toggleItem(id, feito) { await sb.from('lista_compras').update({feito:!feito}).eq('id',id); loadLista(); }
-async function saveItem() {
-  const item = document.getElementById('i-nome').value.trim();
-  const categoria = document.getElementById('i-cat').value;
-  const quantidade = document.getElementById('i-qty').value.trim();
-  if (!item) { showToast('Digite o item','error'); return; }
-  const { error } = await sb.from('lista_compras').insert({ item, categoria, quantidade: quantidade||null });
-  if (error) { showToast(error.message || 'Erro ao salvar','error'); console.error(error); return; }
-  showToast('Item adicionado!');
-  closeModal('modal-item');
-  document.getElementById('i-nome').value='';
-  document.getElementById('i-qty').value='';
-  loadLista();
-}
-async function deleteItem(id) { await sb.from('lista_compras').delete().eq('id',id); loadLista(); }
-
 // ===== CUSTOS FIXOS =====
 let custosLoja = 'Loja Areal';
 
@@ -2076,7 +2089,10 @@ async function loadFechamentos() {
     comissao:  dre.reduce((s,d) => s+d.comissao,   0),
     custoProp: dre.reduce((s,d) => s+d.custoProp,  0),
   };
-  tot.liquido = tot.receita - tot.cmv - tot.desp - tot.comissao - tot.custoProp;
+  // Centro de Distribuição: só custo fixo, sem receita — entra apenas no consolidado
+  const cdMensal = custos.filter(x => x.loja === 'Centro de Distribuição').reduce((s,x) => s + Number(x.valor||0), 0);
+  const cdProp   = (cdMensal / 30) * diasPeriodo;
+  tot.liquido = tot.receita - tot.cmv - tot.desp - tot.comissao - tot.custoProp - cdProp;
 
   el.innerHTML = `
     <div class="grid-2">${dre.map(dreCard).join('')}</div>
@@ -2086,7 +2102,8 @@ async function loadFechamentos() {
       ${tot.cmv ? `<div class="dre-row"><span><i class="ti ti-shopping-bag"></i>Compras (CMV)</span><span style="color:var(--red)">- ${fmt(tot.cmv)}</span></div>` : ''}
       <div class="dre-row"><span><i class="ti ti-receipt"></i>Despesas variáveis</span><span style="color:var(--red)">- ${fmt(tot.desp)}</span></div>
       <div class="dre-row"><span><i class="ti ti-users"></i>Comissões</span><span style="color:var(--red)">- ${fmt(tot.comissao)}</span></div>
-      <div class="dre-row"><span><i class="ti ti-building-bank"></i>Custos fixos</span><span style="color:var(--red)">- ${fmt(tot.custoProp)}</span></div>
+      <div class="dre-row"><span><i class="ti ti-building-bank"></i>Custos fixos das lojas</span><span style="color:var(--red)">- ${fmt(tot.custoProp)}</span></div>
+      ${cdMensal ? `<div class="dre-row"><span><i class="ti ti-building-warehouse"></i>Centro de Distribuição <small style="color:var(--text-muted)">(${diasPeriodo}d × ${fmt(cdMensal)}/mês)</small></span><span style="color:var(--red)">- ${fmt(cdProp)}</span></div>` : ''}
       <div class="dre-divider"></div>
       <div class="dre-row dre-total">
         <span>Resultado líquido</span>
