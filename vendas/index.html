@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="assets/icon-vendas.svg">
 <link rel="apple-touch-icon" href="assets/icon-vendas.svg">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#0a0a0a">
+<meta name="theme-color" content="#f5f1ea">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Shai Vendas">
@@ -17,18 +17,19 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
-  --bg: #0d0f11;
-  --surface: #16191c;
-  --surface2: #1b1f23;
-  --border: #262b2f;
-  --text: #eceff2;
-  --text-muted: #7d858c;
-  --accent: #7c93a6;
-  --accent-hover: #93a7b8;
-  --green: #6fa88a;
-  --red: #cf8080;
-  --loja1: #7c93a6;
-  --loja2: #a2958a;
+  /* Paleta Shai — café com leite (igual ao Manager e ao Calendário) */
+  --bg: #f5f1ea;
+  --surface: #fbf8f3;
+  --surface2: #efe8dd;
+  --border: #ddd2c2;
+  --text: #2b2118;
+  --text-muted: #a08b76;
+  --accent: #a5713d;
+  --accent-hover: #8a5a36;
+  --green: #3a9a6a;
+  --red: #c44848;
+  --loja1: #3d7ab8;
+  --loja2: #c65b3f;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; padding-bottom: env(safe-area-inset-bottom, 24px); }
@@ -131,7 +132,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
   transition: all 0.15s; -webkit-tap-highlight-color: transparent; text-align: center;
 }
-.cat-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(124,147,166,0.1); }
+.cat-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(165,113,61,0.1); }
 
 /* PHOTO UPLOAD */
 .foto-label {
@@ -150,15 +151,15 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   font-weight: 700; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif;
   transition: all 0.2s; -webkit-tap-highlight-color: transparent;
 }
-.btn-primary { background: var(--accent); color: #0f0f0f; }
+.btn-primary { background: var(--accent); color: #fff; }
 .btn-primary:active { background: var(--accent-hover); transform: scale(0.98); }
 .btn-ghost { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
 .btn-ghost:active { background: var(--border); }
 .btn-sm { padding: 10px 16px; font-size: 0.875rem; width: auto; border-radius: 8px; }
-.btn-danger-sm { padding: 8px 14px; font-size: 0.8rem; width: auto; border-radius: 8px; background: rgba(207,128,128,0.12); color: var(--red); border: 1px solid rgba(207,128,128,0.22); }
+.btn-danger-sm { padding: 8px 14px; font-size: 0.8rem; width: auto; border-radius: 8px; background: rgba(196,72,72,0.12); color: var(--red); border: 1px solid rgba(196,72,72,0.22); }
 
 /* MODAL */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(43,33,24,0.45); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
 .modal-overlay.open { display: flex; }
 .modal { background: var(--surface); border-radius: 24px 24px 0 0; padding: 24px 20px; width: 100%; max-width: 480px; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
 .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 99px; margin: 0 auto 20px; }
@@ -172,7 +173,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 
 /* BADGE */
 .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 0.7rem; font-weight: 600; }
-.badge-cat { background: rgba(124,147,166,0.14); color: var(--accent); }
+.badge-cat { background: rgba(165,113,61,0.14); color: var(--accent); }
 
 
 /* BOTTOM NAV */
