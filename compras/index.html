@@ -8,7 +8,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#f5f1ea">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Shai Compras">
+<meta name="apple-mobile-web-app-title" content="Compras">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css">
@@ -292,7 +295,10 @@ table.dist td.est.og { color: var(--text); font-weight: 600; }
 
 <div class="header">
   <div class="logo">Shai <span>Compras · Centro de Distribuição</span></div>
-  <div class="header-info" id="header-info"></div>
+  <div class="btn-row">
+    <div class="header-info" id="header-info"></div>
+    <button class="btn btn-primary btn-sm" id="bt-instalar" style="display:none" onclick="instalarApp()"><i class="ti ti-download"></i>Instalar app</button>
+  </div>
 </div>
 
 <nav class="nav-tabs">
@@ -1692,6 +1698,40 @@ function etiquetasProduto(pid) {
 
 // avisa antes de fechar a aba com distribuição não salva
 window.addEventListener('beforeunload', e => { if (dist?.dirty) { e.preventDefault(); e.returnValue = ''; } });
+
+// ================= APP INSTALÁVEL (PWA) =================
+let pedidoInstalacao = null;
+const rodandoComoApp = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const ehIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); pedidoInstalacao = e;
+  $('bt-instalar').style.display = '';
+});
+window.addEventListener('appinstalled', () => { pedidoInstalacao = null; $('bt-instalar').style.display = 'none'; toast('App instalado'); });
+// iPhone/iPad não tem o aviso automático: mostra o botão com o passo a passo
+if (ehIOS() && !rodandoComoApp()) $('bt-instalar').style.display = '';
+async function instalarApp() {
+  if (pedidoInstalacao) {
+    pedidoInstalacao.prompt();
+    const { outcome } = await pedidoInstalacao.userChoice;
+    if (outcome === 'accepted') $('bt-instalar').style.display = 'none';
+    pedidoInstalacao = null;
+    return;
+  }
+  abrirModal('Instalar o Shai Compras', ehIOS() ? `
+    <ol style="margin-left:18px;line-height:1.9">
+      <li>Abra este endereço no <b>Safari</b>.</li>
+      <li>Toque em <b>Compartilhar</b> <i class="ti ti-share"></i> na barra de baixo.</li>
+      <li>Escolha <b>Adicionar à Tela de Início</b> e toque em <b>Adicionar</b>.</li>
+    </ol>` : `
+    <ol style="margin-left:18px;line-height:1.9">
+      <li>No <b>Chrome</b> ou <b>Edge</b>, abra o menu <b>⋮</b> no canto de cima.</li>
+      <li>Escolha <b>Instalar Shai Compras</b> (ou <b>Transmitir, salvar e compartilhar → Instalar página como app</b>).</li>
+    </ol>`, `<button class="btn btn-primary" onclick="fecharModal()">Entendi</button>`);
+}
 
 // ================= BOOT (com login da equipe) =================
 const EQUIPE_EMAIL = 'equipe@shai.local';

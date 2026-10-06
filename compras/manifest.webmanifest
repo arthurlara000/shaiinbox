@@ -2,12 +2,18 @@
   "id": "shai-compras",
   "name": "Shai Compras",
   "short_name": "Compras",
-  "start_url": "/index.html",
+  "description": "Recebimento, estoque, distribuição e etiquetas do CD da Shai",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "orientation": "any",
+  "lang": "pt-BR",
   "background_color": "#f5f1ea",
   "theme_color": "#f5f1ea",
   "icons": [
+    { "src": "assets/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any" },
+    { "src": "assets/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any" },
+    { "src": "assets/icon-maskable-512.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" },
     { "src": "assets/icon-compras.svg", "type": "image/svg+xml", "sizes": "any" }
   ]
 }
