@@ -347,13 +347,6 @@ table.dist td.est.og { color: var(--text); font-weight: 600; }
     <div class="btn-row" style="margin-bottom:6px">
       <button class="btn btn-ghost btn-sm" onclick="addLinhas(5)"><i class="ti ti-plus"></i>5 linhas</button>
     </div>
-    <div class="sheet-help">
-      <b>Qtd:</b> um número = a mesma quantidade em <i>cada</i> cor × tamanho (ex.: 2 cores × <code>P M G</code> × 2 = 12 peças).
-      Veio diferente (5 de um, 2 de outro)? <b>Clique na célula Qtd</b> e preencha a grade.
-      Clique em <b>Categoria</b>, <b>Cores</b> ou <b>Tamanhos</b> para marcar nas caixas de seleção, ou digite direto: <code>Preto, Bege</code> · <code>P-GG</code> · <code>36-44</code>.
-      Uma cor com tamanhos diferentes das outras? Use outra linha com o <b>mesmo nome</b> (ou deixe o nome em branco para continuar o de cima).
-      Nome igual a um produto já cadastrado vira <b>reposição</b>. Dá para <b>colar do Excel</b> (Ctrl+V) na mesma ordem das colunas. Enter desce uma linha.
-    </div>
 
     <div class="sticky-foot" id="rc-foot">
       <div class="foot-stats">
@@ -380,6 +373,7 @@ table.dist td.est.og { color: var(--text); font-weight: 600; }
         <option value="">Todos</option>
         <option value="cd">Com estoque no CD</option>
         <option value="zero">Sem estoque</option>
+        <option value="inativos">Inativos</option>
       </select>
     </div>
     <div id="es-lista"></div>
@@ -446,10 +440,11 @@ table.dist td.est.og { color: var(--text); font-weight: 600; }
   <!-- ================= HISTÓRICO ================= -->
   <section class="tab-panel" id="tab-historico">
     <h1 class="page-title">Histórico</h1>
-    <p class="page-sub">Recebimentos e distribuições já confirmados.</p>
-    <div class="row row-2">
+    <p class="page-sub">Recebimentos, distribuições e ajustes já confirmados. Abra um recebimento para corrigir ou estornar.</p>
+    <div class="row row-3">
       <div><div class="card-title">Recebimentos</div><div id="hs-rec"></div></div>
       <div><div class="card-title">Distribuições enviadas</div><div id="hs-dist"></div></div>
+      <div><div class="card-title">Ajustes e correções</div><div id="hs-aj"></div></div>
     </div>
   </section>
 </main>
@@ -1116,6 +1111,7 @@ function renderEstoque() {
   const cat = $('es-cat').value, f = $('es-filtro').value;
   const lista = filtraProdutos($('es-busca').value).filter(p => {
     if (cat && p.categoria !== cat) return false;
+    if ((f === 'inativos') !== (p.ativo === false)) return false;
     const s = somaVars(p);
     if (f === 'cd' && !s.cd) return false;
     if (f === 'zero' && (s.cd + s.ar + s.tr)) return false;
@@ -1128,7 +1124,7 @@ function renderEstoque() {
     return `<div class="prod-row" id="pr-${p.id}">
       <div class="prod-main" onclick="this.parentElement.classList.toggle('open')">
         <div class="prod-cod">${cod(p.codigo)}</div>
-        <div class="prod-name"><b>${esc(p.nome)}</b><span>${esc(p.categoria || 'sem categoria')} · ${brl(p.preco)}${p.fornecedor ? ' · ' + esc(p.fornecedor) : ''}</span></div>
+        <div class="prod-name"><b>${esc(p.nome)}${p.ativo === false ? ' <span class="badge b-muted">inativo</span>' : ''}</b><span>${esc(p.categoria || 'sem categoria')} · ${brl(p.preco)}${p.fornecedor ? ' · ' + esc(p.fornecedor) : ''}</span></div>
         <div class="prod-locs">${locHtml(s.cd, 'cd', 'CD')}${locHtml(s.ar, 'ar', 'Areal')}${locHtml(s.tr, 'tr', 'T. Rios')}</div>
       </div>
       <div class="prod-detail">
@@ -1137,7 +1133,11 @@ function renderEstoque() {
           ${p.vars.map(v => `<tr><td>${esc(v.cor)}</td><td>${esc(v.tamanho)}</td><td class="mono">${esc(v.sku)}</td><td class="mono">${esc(v.ean || '')}</td>
             <td class="num"><b>${v.cd}</b></td><td class="num">${v.areal}</td><td class="num">${v.tres_rios}</td></tr>`).join('')}
         </table></div>
-        <div class="btn-row" style="margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="etiquetasProduto('${p.id}')"><i class="ti ti-tags"></i>Imprimir etiquetas</button></div>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn btn-ghost btn-sm" onclick="editarProduto('${p.id}')"><i class="ti ti-pencil"></i>Editar produto</button>
+          <button class="btn btn-ghost btn-sm" onclick="ajustarEstoque('${p.id}')"><i class="ti ti-adjustments"></i>Ajustar estoque</button>
+          <button class="btn btn-ghost btn-sm" onclick="etiquetasProduto('${p.id}')"><i class="ti ti-tags"></i>Imprimir etiquetas</button>
+        </div>
         <p class="small muted" style="margin-top:8px">Custo ${brl(p.custo)} · Preço ${brl(p.preco)}${p.ref_fornecedor ? ' · Ref. fornecedor ' + esc(p.ref_fornecedor) : ''} · Cadastrado em ${fmtData(p.criado_em)}</p>
       </div>
     </div>`;
@@ -1557,34 +1557,201 @@ async function salvarFornecedor() {
 }
 
 // =====================================================================
+// CORREÇÕES — editar produto, ajustar estoque, corrigir/estornar recebimento
+// Nada é apagado: cada correção vira um movimento com motivo (aba Histórico → Ajustes)
+// =====================================================================
+const MOTIVOS = {
+  inventario: 'Contagem / inventário', defeito: 'Peça com defeito', perda: 'Perda / extravio',
+  devolucao_fornecedor: 'Devolução ao fornecedor', outro: 'Outro',
+  correcao_recebimento: 'Correção de recebimento', estorno_recebimento: 'Estorno de recebimento',
+};
+
+// ---------- editar produto ----------
+function editarProduto(pid) {
+  const p = prodById[pid];
+  const forns = fornecedores.filter(f => f.ativo || f.id === p.fornecedor_id);
+  abrirModal(`Editar produto ${cod(p.codigo)}`, `
+    <div class="fg"><label class="form-label">Nome</label><input class="form-input" id="ep-nome" value="${esc(p.nome)}"></div>
+    <div class="row row-2">
+      <div class="fg"><label class="form-label">Categoria</label><input class="form-input" id="ep-cat" list="dl-cat-ep" value="${esc(p.categoria || '')}">
+        <datalist id="dl-cat-ep">${categoriasLista.map(c => `<option value="${esc(c)}">`).join('')}</datalist></div>
+      <div class="fg"><label class="form-label">Fornecedor</label><select class="form-select" id="ep-forn"><option value="">—</option>${forns.map(f => `<option value="${f.id}" ${f.id === p.fornecedor_id ? 'selected' : ''}>${esc(f.nome)}</option>`).join('')}</select></div>
+      <div class="fg"><label class="form-label">Custo (un.)</label><input class="form-input" id="ep-custo" inputmode="decimal" value="${fmtNum(Number(p.custo).toFixed(2))}"></div>
+      <div class="fg"><label class="form-label">Preço de venda</label><input class="form-input" id="ep-preco" inputmode="decimal" value="${fmtNum(Number(p.preco).toFixed(2))}"></div>
+      <div class="fg"><label class="form-label">Ref. do fornecedor</label><input class="form-input" id="ep-ref" value="${esc(p.ref_fornecedor || '')}"></div>
+      <div class="fg"><label class="form-label">Situação</label><select class="form-select" id="ep-ativo"><option value="1" ${p.ativo !== false ? 'selected' : ''}>Ativo</option><option value="0" ${p.ativo === false ? 'selected' : ''}>Inativo (some da lista do estoque)</option></select></div>
+    </div>
+    <p class="small muted">Mudar o custo aqui vale daqui para frente. Para corrigir o custo de uma compra já lançada, use <b>Corrigir</b> no recebimento (aba Histórico).</p>`,
+    `<button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-primary" id="bt-ep" onclick="salvarProduto('${pid}')"><i class="ti ti-device-floppy"></i>Salvar</button>`);
+}
+async function salvarProduto(pid) {
+  const nome = $('ep-nome').value.trim();
+  if (!nome) return toast('Informe o nome.', 'error');
+  const dup = produtos.find(x => x.id !== pid && x.nome.trim().toLowerCase() === nome.toLowerCase());
+  if (dup) return toast(`Já existe outro produto com esse nome (${cod(dup.codigo)}).`, 'error');
+  const fId = $('ep-forn').value || null, f = fornecedores.find(x => x.id === fId);
+  const reg = {
+    nome, categoria: $('ep-cat').value.trim() || null, ref_fornecedor: $('ep-ref').value.trim() || null,
+    custo: num($('ep-custo').value), preco: num($('ep-preco').value), ativo: $('ep-ativo').value === '1',
+    fornecedor_id: fId, fornecedor: f ? f.nome : null,
+  };
+  if (reg.preco && reg.preco < reg.custo && !confirm('O preço está menor que o custo. Salvar mesmo assim?')) return;
+  $('bt-ep').disabled = true;
+  const { error } = await sb.from('produtos').update(reg).eq('id', pid);
+  if (error) { $('bt-ep').disabled = false; return toast(error.message, 'error'); }
+  fecharModal(); toast('Produto salvo');
+  await carregarCatalogo(); renderEstoque();
+  $('pr-' + pid)?.classList.add('open');
+}
+
+// ---------- ajuste de estoque (informa a quantidade correta) ----------
+let ajPid = null;
+function ajustarEstoque(pid) {
+  ajPid = pid;
+  const p = prodById[pid];
+  abrirModal(`Ajustar estoque · ${p.nome}`, `
+    <div class="row row-2">
+      <div class="fg"><label class="form-label">Motivo</label><select class="form-select" id="aj-motivo">
+        ${['inventario', 'defeito', 'perda', 'devolucao_fornecedor', 'outro'].map(m => `<option value="${m}">${MOTIVOS[m]}</option>`).join('')}</select></div>
+      <div class="fg"><label class="form-label">Observação</label><input class="form-input" id="aj-obs" placeholder="Ex.: contagem de 06/11, 1 peça manchada"></div>
+    </div>
+    <p class="small muted" style="margin-bottom:8px">Digite a quantidade <b>correta</b> que existe em cada lugar. Só o que mudar é ajustado.</p>
+    <div style="overflow-x:auto"><table class="dist">
+      <tr><th>Cor / Tam.</th>${LOCAIS.map(l => `<th class="${l.cls}">${l.curto}</th>`).join('')}</tr>
+      ${p.vars.map(v => `<tr><td>${esc(v.cor)} · <b>${esc(v.tamanho)}</b></td>${LOCAIS.map(l => `<td><input class="qty" type="number" min="0" inputmode="numeric" value="${saldo(v, l.k)}" data-v="${v.id}" data-l="${l.k}" data-orig="${saldo(v, l.k)}" oninput="ajMarca(this)" onfocus="this.select()"></td>`).join('')}</tr>`).join('')}
+    </table></div>
+    <div class="small" id="aj-resumo" style="margin-top:10px"></div>`,
+    `<button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-choco" id="bt-aj" onclick="confirmarAjuste()"><i class="ti ti-adjustments"></i>Ajustar</button>`);
+  ajMarca();
+}
+function ajMarca(el) {
+  if (el) el.classList.toggle('has', String(parseInt(el.value) || 0) !== el.dataset.orig);
+  const difs = [...$('modal-b').querySelectorAll('input[data-orig]')].map(i => (parseInt(i.value) || 0) - parseInt(i.dataset.orig)).filter(d => d);
+  const mais = difs.filter(d => d > 0).reduce((s, d) => s + d, 0), menos = -difs.filter(d => d < 0).reduce((s, d) => s + d, 0);
+  $('aj-resumo').innerHTML = difs.length ? `${difs.length} ajuste(s): <b style="color:var(--green)">+${mais}</b> · <b style="color:var(--red)">−${menos}</b> peças` : '<span class="muted">Nenhuma mudança ainda.</span>';
+}
+async function confirmarAjuste() {
+  const itens = [...$('modal-b').querySelectorAll('input[data-orig]')]
+    .map(i => ({ variacao_id: i.dataset.v, local: i.dataset.l, novo: Math.max(0, parseInt(i.value) || 0), orig: parseInt(i.dataset.orig) }))
+    .filter(i => i.novo !== i.orig).map(({ orig, ...i }) => i);
+  if (!itens.length) return toast('Nenhuma quantidade mudou.', 'error');
+  $('bt-aj').disabled = true;
+  const { error } = await sb.rpc('compras_ajustar_estoque', { p: { motivo: $('aj-motivo').value, obs: $('aj-obs').value, itens } });
+  if (error) { $('bt-aj').disabled = false; return toast(error.message, 'error'); }
+  fecharModal(); toast('Estoque ajustado');
+  await carregarCatalogo(); renderEstoque();
+  $('pr-' + ajPid)?.classList.add('open');
+}
+
+// ---------- recebimento: ver, corrigir, estornar ----------
+async function itensRecebimento(id) {
+  const { data, error } = await sb.from('estoque_movimentos').select('variacao_id,qtd,custo_unit').eq('recebimento_id', id);
+  if (error) { toast(error.message, 'error'); return null; }
+  const porVar = {};
+  data.forEach(m => { const x = (porVar[m.variacao_id] ||= { variacao_id: m.variacao_id, qtd: 0, custo: m.custo_unit }); x.qtd += m.qtd; if (m.custo_unit != null) x.custo = m.custo_unit; });
+  return Object.values(porVar).filter(x => varById[x.variacao_id]);
+}
+async function verRecebimento(id, numero) {
+  const [itens, { data: rec }] = await Promise.all([itensRecebimento(id), sb.from('recebimentos').select('estornado_em,total_pecas,total_custo,fornecedor,data').eq('id', id).single()]);
+  if (!itens) return;
+  const porProd = {};
+  itens.forEach(x => { const v = varById[x.variacao_id]; (porProd[v.produto_id] ||= []).push({ ...x, v }); });
+  const estornado = !!rec?.estornado_em;
+  abrirModal(`Recebimento nº ${numero}`, `
+    ${estornado ? `<div class="errbox"><i class="ti ti-arrow-back-up"></i> Estornado em ${fmtData(rec.estornado_em)}.</div>` : ''}
+    <p class="small muted" style="margin-bottom:10px">${fmtData(rec?.data)} · ${esc(rec?.fornecedor || 'sem fornecedor')} · ${rec?.total_pecas ?? 0} peças · ${brl(rec?.total_custo)}</p>
+    ${Object.entries(porProd).map(([pid, ms]) => {
+      const p = prodById[pid];
+      return `<div style="margin-bottom:14px"><b>${esc(p.nome)}</b> <span class="muted small">${cod(p.codigo)}</span>
+        <table class="list" style="margin-top:4px">${ms.sort((a, b) => a.v.cor.localeCompare(b.v.cor) || ordTam(a.v.tamanho, b.v.tamanho)).map(m => `<tr><td>${esc(m.v.cor)}</td><td>${esc(m.v.tamanho)}</td><td class="mono">${esc(m.v.sku)}</td><td class="num"><b>${m.qtd}</b></td><td class="num muted">${brl(m.custo)}</td></tr>`).join('')}</table></div>`;
+    }).join('') || '<div class="empty">Sem itens.</div>'}`,
+    `<button class="btn btn-ghost" onclick="fecharModal()">Fechar</button>
+     ${estornado ? '' : `<button class="btn btn-danger" onclick="estornarRecebimento('${id}',${numero})"><i class="ti ti-arrow-back-up"></i>Estornar</button>
+     <button class="btn btn-ghost" onclick="corrigirRecebimento('${id}',${numero})"><i class="ti ti-pencil"></i>Corrigir</button>
+     <button class="btn btn-primary" onclick="etiquetasRecebimento('${id}',${numero})"><i class="ti ti-tags"></i>Imprimir etiquetas</button>`}`);
+}
+async function corrigirRecebimento(id, numero) {
+  const itens = await itensRecebimento(id); if (!itens) return;
+  const porProd = {};
+  itens.forEach(x => { const v = varById[x.variacao_id]; (porProd[v.produto_id] ||= []).push({ ...x, v }); });
+  abrirModal(`Corrigir recebimento nº ${numero}`, `
+    <p class="small muted" style="margin-bottom:10px">Ajuste a quantidade que <b>realmente chegou</b> e o custo correto. A diferença entra ou sai do CD. Se a peça já foi distribuída, o app avisa.</p>
+    ${Object.entries(porProd).map(([pid, ms]) => {
+      const p = prodById[pid], custo = ms.find(m => m.custo != null)?.custo ?? p.custo;
+      return `<div class="card" style="padding:12px 14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+          <b>${esc(p.nome)} <span class="muted small">${cod(p.codigo)}</span></b>
+          <label class="small muted">Custo un. <input class="form-input" style="width:100px;display:inline-block;padding:6px 8px" inputmode="decimal" data-cp="${pid}" data-orig="${Number(custo).toFixed(2)}" value="${fmtNum(Number(custo).toFixed(2))}"></label>
+        </div>
+        <table class="dist">${ms.sort((a, b) => a.v.cor.localeCompare(b.v.cor) || ordTam(a.v.tamanho, b.v.tamanho)).map(m => `
+          <tr><td>${esc(m.v.cor)} · <b>${esc(m.v.tamanho)}</b></td><td class="small muted">CD tem ${m.v.cd}</td>
+            <td><input class="qty" type="number" min="0" inputmode="numeric" value="${m.qtd}" data-cv="${m.variacao_id}" data-orig="${m.qtd}" oninput="this.classList.toggle('has', String(parseInt(this.value)||0)!==this.dataset.orig)" onfocus="this.select()"></td></tr>`).join('')}
+        </table></div>`;
+    }).join('')}
+    <div class="fg"><label class="form-label">Observação</label><input class="form-input" id="cr-obs" placeholder="Ex.: digitei 20 no lugar de 2"></div>`,
+    `<button class="btn btn-ghost" onclick="verRecebimento('${id}',${numero})">Voltar</button><button class="btn btn-choco" id="bt-cr" onclick="salvarCorrecao('${id}',${numero})"><i class="ti ti-check"></i>Salvar correção</button>`);
+}
+async function salvarCorrecao(id, numero) {
+  const b = $('modal-b');
+  const itens = [...b.querySelectorAll('input[data-cv]')].filter(i => String(Math.max(0, parseInt(i.value) || 0)) !== i.dataset.orig)
+    .map(i => ({ variacao_id: i.dataset.cv, qtd: Math.max(0, parseInt(i.value) || 0) }));
+  const custos = [...b.querySelectorAll('input[data-cp]')].filter(i => num(i.value).toFixed(2) !== i.dataset.orig)
+    .map(i => ({ produto_id: i.dataset.cp, custo: num(i.value) }));
+  if (!itens.length && !custos.length) return toast('Nada mudou.', 'error');
+  $('bt-cr').disabled = true;
+  const { error } = await sb.rpc('compras_corrigir_recebimento', { p: { recebimento_id: id, obs: $('cr-obs').value, itens, custos } });
+  if (error) { $('bt-cr').disabled = false; return toast(error.message, 'error'); }
+  toast('Recebimento corrigido');
+  await carregarCatalogo();
+  if ($('tab-historico').classList.contains('active')) carregarHistorico();
+  verRecebimento(id, numero);
+}
+async function estornarRecebimento(id, numero) {
+  if (!confirm(`Estornar o recebimento nº ${numero}? Todas as peças dele saem do estoque do CD. Os produtos continuam cadastrados.`)) return;
+  const obs = prompt('Motivo do estorno (opcional):', '') ?? '';
+  const { error } = await sb.rpc('compras_corrigir_recebimento', { p: { recebimento_id: id, estornar: true, obs } });
+  if (error) return toast(error.message, 'error');
+  toast(`Recebimento nº ${numero} estornado`);
+  await carregarCatalogo();
+  if ($('tab-historico').classList.contains('active')) carregarHistorico();
+  verRecebimento(id, numero);
+}
+
+// ---------- histórico de ajustes ----------
+async function verAjuste(id, numero) {
+  const { data, error } = await sb.from('estoque_movimentos').select('variacao_id,local,qtd').eq('ajuste_id', id);
+  if (error) return toast(error.message, 'error');
+  abrirModal(`Ajuste nº ${numero}`, data.length ? `<table class="list"><tr><th>Produto</th><th>Cor / Tam.</th><th>Local</th><th class="num">Diferença</th></tr>
+    ${data.map(m => { const v = varById[m.variacao_id], p = v && prodById[v.produto_id]; return `<tr><td>${p ? esc(p.nome) : '—'}</td><td>${v ? esc(v.cor) + ' · ' + esc(v.tamanho) : ''}</td><td>${esc(lojaNome(m.local))}</td><td class="num" style="color:${m.qtd > 0 ? 'var(--green)' : 'var(--red)'}"><b>${m.qtd > 0 ? '+' : ''}${m.qtd}</b></td></tr>`; }).join('')}
+  </table>` : '<div class="empty">Só o custo foi corrigido.</div>', `<button class="btn btn-ghost" onclick="fecharModal()">Fechar</button>`);
+}
+
+// =====================================================================
 // HISTÓRICO
 // =====================================================================
 async function carregarHistorico() {
-  const [rc, ds] = await Promise.all([
+  const [rc, ds, aj] = await Promise.all([
     sb.from('recebimentos').select('*').order('criado_em', { ascending: false }).limit(60),
     sb.from('distribuicoes').select('id,numero,origem,obs,enviada_em,distribuicao_itens(loja,qtd)').eq('status', 'enviada').order('enviada_em', { ascending: false }).limit(60),
+    sb.from('ajustes').select('id,numero,motivo,obs,criado_em,recebimento_id,recebimentos!ajustes_recebimento_id_fkey(numero),estoque_movimentos(qtd)').order('criado_em', { ascending: false }).limit(60),
   ]);
-  if (rc.error || ds.error) return toast((rc.error || ds.error).message, 'error');
+  if (rc.error || ds.error || aj.error) return toast((rc.error || ds.error || aj.error).message, 'error');
+  $('hs-aj').innerHTML = aj.data.length ? aj.data.map(a => {
+    const mais = a.estoque_movimentos.filter(m => m.qtd > 0).reduce((s, m) => s + m.qtd, 0), menos = -a.estoque_movimentos.filter(m => m.qtd < 0).reduce((s, m) => s + m.qtd, 0);
+    return `<div class="list-item"><div class="li-main" onclick="verAjuste('${a.id}',${a.numero})">
+      <b>nº ${a.numero} · ${esc(MOTIVOS[a.motivo] || a.motivo)}</b>${a.recebimentos ? ` <span class="muted small">(receb. nº ${a.recebimentos.numero})</span>` : ''}
+      <div class="small muted" style="margin-top:2px">${fmtData(a.criado_em)}${a.obs ? ' · ' + esc(a.obs) : ''}</div>
+      <div class="small" style="margin-top:3px">${mais ? `<b style="color:var(--green)">+${mais}</b> ` : ''}${menos ? `<b style="color:var(--red)">−${menos}</b>` : ''}${!mais && !menos ? '<span class="muted">só custo</span>' : ''} peças</div></div><i class="ti ti-chevron-right muted"></i></div>`;
+  }).join('') : '<div class="empty">Nenhum ajuste.</div>';
   $('hs-rec').innerHTML = rc.data.length ? rc.data.map(r => `
     <div class="list-item"><div class="li-main" onclick="verRecebimento('${r.id}',${r.numero})">
-      <b>nº ${r.numero}</b> <span class="muted small">· ${fmtData(r.data)} · ${esc(r.fornecedor || 'sem fornecedor')}</span>
+      <b${r.estornado_em ? ' style="text-decoration:line-through"' : ''}>nº ${r.numero}</b>${r.estornado_em ? ' <span class="badge b-muted">estornado</span>' : ''} <span class="muted small">· ${fmtData(r.data)} · ${esc(r.fornecedor || 'sem fornecedor')}</span>
       <div class="small" style="margin-top:3px">${r.total_pecas} peças · ${brl(r.total_custo)}</div></div><i class="ti ti-chevron-right muted"></i></div>`).join('')
     : '<div class="empty">Nenhum recebimento ainda.</div>';
   $('hs-dist').innerHTML = ds.data.length ? ds.data.map(d => `<div class="list-item"><div class="li-main" onclick="reimprimirDist('${d.id}',${d.numero},'${d.origem || 'CD'}')">
       <b>nº ${d.numero} · ${esc(d.origem === 'CD' || !d.origem ? 'do CD' : 'de ' + localDe(d.origem).nome)}</b> <span class="muted small">· ${fmtData(d.enviada_em)}${d.obs ? ' · ' + esc(d.obs) : ''}</span>
       <div style="margin-top:4px">${badgesDestino(d.distribuicao_itens)}</div></div>
       <i class="ti ti-printer muted"></i></div>`).join('') : '<div class="empty">Nenhuma movimentação enviada ainda.</div>';
-}
-async function verRecebimento(id, numero) {
-  const { data, error } = await sb.from('estoque_movimentos').select('variacao_id,qtd,custo_unit').eq('recebimento_id', id);
-  if (error) return toast(error.message, 'error');
-  const porProd = {};
-  data.forEach(m => { const v = varById[m.variacao_id]; if (!v) return; (porProd[v.produto_id] ||= []).push({ v, qtd: m.qtd, custo: m.custo_unit }); });
-  abrirModal(`Recebimento nº ${numero}`, Object.entries(porProd).map(([pid, ms]) => {
-    const p = prodById[pid];
-    return `<div style="margin-bottom:14px"><b>${esc(p.nome)}</b> <span class="muted small">${cod(p.codigo)}</span>
-      <table class="list" style="margin-top:4px">${ms.sort((a, b) => a.v.cor.localeCompare(b.v.cor) || ordTam(a.v.tamanho, b.v.tamanho)).map(m => `<tr><td>${esc(m.v.cor)}</td><td>${esc(m.v.tamanho)}</td><td class="mono">${esc(m.v.sku)}</td><td class="num"><b>${m.qtd}</b></td><td class="num muted">${brl(m.custo)}</td></tr>`).join('')}</table></div>`;
-  }).join('') || '<div class="empty">Sem itens.</div>', `<button class="btn btn-ghost" onclick="fecharModal()">Fechar</button><button class="btn btn-primary" onclick="etiquetasRecebimento('${id}',${numero})"><i class="ti ti-tags"></i>Imprimir etiquetas</button>`);
 }
 async function reimprimirDist(id, numero, origem) {
   const { data, error } = await sb.from('distribuicao_itens').select('variacao_id,loja,qtd').eq('distribuicao_id', id);
@@ -1686,9 +1853,8 @@ function imprimirEtiquetas() {
 }
 
 async function etiquetasRecebimento(id, numero) {
-  const { data, error } = await sb.from('estoque_movimentos').select('variacao_id,qtd').eq('recebimento_id', id);
-  if (error) return toast(error.message, 'error');
-  abrirEtiquetas(data.map(m => ({ variacao_id: m.variacao_id, qtd: m.qtd })), `Etiquetas · recebimento nº ${numero}`);
+  const itens = await itensRecebimento(id); if (!itens) return;
+  abrirEtiquetas(itens.filter(x => x.qtd > 0).map(x => ({ variacao_id: x.variacao_id, qtd: x.qtd })), `Etiquetas · recebimento nº ${numero}`);
 }
 function etiquetasProduto(pid) {
   const p = prodById[pid];
