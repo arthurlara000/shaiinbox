@@ -190,13 +190,23 @@ Deno.serve(async (req: Request) => {
 
   // ----- devoluções em dinheiro/pix/cartão feitas no PDV: saem do fechamento do dia em que aconteceram -----
   const devolucoesSemDia: unknown[] = [];
-  const { data: devs } = await sb.from('pdv_trocas').select('loja, data, valor, forma_reembolso').eq('destino', 'dinheiro').gte('data', de).lte('data', ate);
+  // com comprovante, a venda foi desfeita: o valor também sai da vendedora que vendeu (no dia da devolução)
+  const { data: devs } = await sb.from('pdv_trocas').select('loja, data, valor, forma_reembolso, venda_origem').eq('destino', 'dinheiro').gte('data', de).lte('data', ate);
+  const origens = [...new Set((devs || []).map(t => t.venda_origem).filter(Boolean))];
+  const vendedoraDaVenda: Record<string, string> = {};
+  if (origens.length) {
+    const { data: vo } = await sb.from('pdv_vendas').select('id, funcionaria_id').in('id', origens);
+    for (const v of vo || []) if (v.funcionaria_id) vendedoraDaVenda[v.id] = v.funcionaria_id;
+  }
   for (const t of devs || []) {
     const dia = dias[`${t.loja}|${t.data}`];
     if (!dia) { devolucoesSemDia.push(t); continue; }
+    const valor = Number(t.valor) || 0;
     const forma = t.forma_reembolso === 'pix' ? 'pix' : t.forma_reembolso === 'cartao' ? 'cartao' : 'dinheiro';
-    dia.formas[forma] = (dia.formas[forma] || 0) - (Number(t.valor) || 0);
-    dia.devolucoes += Number(t.valor) || 0;
+    dia.formas[forma] = (dia.formas[forma] || 0) - valor;
+    dia.devolucoes += valor;
+    const fid = t.venda_origem ? vendedoraDaVenda[t.venda_origem] : null;
+    if (fid) dia.vendedoras[fid] = (dia.vendedoras[fid] || 0) - valor;
   }
 
   // ----- grava no banco (mesmo formato do app de vendas) -----

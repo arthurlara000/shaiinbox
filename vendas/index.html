@@ -372,6 +372,16 @@ h1.titulo { font-family: 'Playfair Display', serif; font-size: 1.45rem; margin-b
           </div>
           <div id="tr-venda" style="margin-top:12px"></div>
         </div>
+        <div class="card">
+          <div class="card-t">Vales-troca</div>
+          <div class="row" style="gap:8px">
+            <input class="inp" id="vl-busca" inputmode="numeric" placeholder="Digite o número do vale para ver o saldo" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();consultarVale(this.value)}">
+            <button class="btn" style="flex:0 0 auto" onclick="consultarVale($('vl-busca').value)">Ver</button>
+            <button class="btn btn-cam" style="flex:0 0 56px" onclick="abrirCamera('consulta-vale')" title="Ler com a câmera"><i class="ti ti-camera"></i></button>
+          </div>
+          <div class="card-t" style="margin-top:14px">Vales com saldo</div>
+          <div id="vl-lista"><div class="empty">Carregando…</div></div>
+        </div>
       </div>
       <div class="card">
         <div class="card-t">Peças que estão voltando</div>
@@ -407,6 +417,7 @@ h1.titulo { font-family: 'Playfair Display', serif; font-size: 1.45rem; margin-b
     </div>
     <div class="grid-4" id="vd-stats"></div>
     <div class="card" style="margin-top:14px"><div id="vd-lista"></div></div>
+    <div class="card" id="vd-trocas-card" style="margin-top:14px;display:none"><div class="card-t">Trocas e devoluções</div><div id="vd-trocas"></div></div>
   </section>
 </main>
 
@@ -697,6 +708,8 @@ function camLido(txt) {
   if (txt === camUltimo && agora - camUltimoT < 2200) return; // mesma peça ainda na frente da câmera
   camUltimo = txt; camUltimoT = agora;
   $('cam-msg').textContent = 'Lido: ' + txt;
+  if (camDestino === 'vale') { fecharCamera(); addVale(txt); return; }
+  if (camDestino === 'consulta-vale') { fecharCamera(); consultarVale(txt); return; }
   if (camDestino === 'trocas' || /^PDV-/i.test(txt)) { fecharCamera(); lerCodigo(txt, camDestino === 'trocas' ? 'trocas' : 'vender'); return; }
   lerCodigo(txt, 'vender');
 }
@@ -942,8 +955,13 @@ function renderPagamento() {
 function abrirPagamentoDeNovo() { if (pag) renderPagamento(); }
 function addForma(k) {
   if (k === 'vale') {
-    abrirModal('Vale-troca', `<div class="lbl" style="margin-top:0">Bipe ou digite o número do vale</div>
-      <input class="inp big" id="vale-cod" inputmode="numeric" autofocus onkeydown="if(event.key==='Enter')addVale(this.value)">`,
+    abrirModal('Usar vale-troca', `
+      <div class="lbl" style="margin-top:0">Digite o número do vale</div>
+      <div class="row" style="gap:8px">
+        <input class="inp big" id="vale-cod" inputmode="numeric" placeholder="Ex.: 1000016" autofocus autocomplete="off" onkeydown="if(event.key==='Enter')addVale(this.value)">
+        <button class="btn btn-cam" style="flex:0 0 56px" onclick="abrirCamera('vale')" title="Ler com a câmera"><i class="ti ti-camera"></i></button>
+      </div>
+      <p class="muted" style="font-size:.8rem;margin-top:8px">É o número que fica embaixo do código de barras no vale. Também dá para bipar com o leitor ou ler com a câmera.</p>`,
       `<button class="btn" onclick="renderPagamento()">Voltar</button><button class="btn btn-primary" onclick="addVale($('vale-cod').value)">Usar vale</button>`, { preso: true });
     return;
   }
@@ -1063,9 +1081,12 @@ setInterval(() => { enviarFila(); atualizarPills(); }, 30000);
 async function atualizarPills() {
   const naFila = ler(K.fila, []).length;
   let comErro = 0, pendServ = 0;
-  if (navigator.onLine && S.loja) {
-    const { data } = await db.from('pdv_vendas').select('status').eq('loja', S.loja).in('status', ['pendente', 'enviando', 'erro']).gte('data', ontem());
-    for (const v of data || []) v.status === 'erro' ? comErro++ : pendServ++;
+  if (navigator.onLine && S.loja && !S.treino) {
+    const [{ data }, { data: trocas }] = await Promise.all([
+      db.from('pdv_vendas').select('status').eq('loja', S.loja).in('status', ['pendente', 'enviando', 'erro']).gte('data', ontem()),
+      db.from('pdv_trocas').select('status').eq('loja', S.loja).in('status', ['pendente', 'enviando', 'erro']).gte('data', ontem()),
+    ]);
+    for (const v of [...(data || []), ...(trocas || [])]) v.status === 'erro' ? comErro++ : pendServ++;
   }
   const p = $('pill-rede');
   if (S.treino) { p.className = 'pill warn'; $('pill-rede-t').textContent = 'Modo treino'; $('nav-fila').style.display = 'none'; return; }
@@ -1133,8 +1154,45 @@ function imprimirVale(v) {
     <div class="c" style="font-size:22px;font-weight:700;margin:6px 0">${brl(v.valor)}</div>
     <div class="c peq">${esc(v.loja || S.loja)} · ${new Date().toLocaleDateString('pt-BR')}</div>
     ${v.cliente ? `<div class="c">${esc(v.cliente)}</div>` : ''}
-    <hr><div class="c peq">Vale nas duas lojas Shai. Apresente no caixa.</div>
+    <hr><div class="c peq">Número do vale</div>
+    <div class="c" style="font-size:24px;font-weight:700;letter-spacing:2px">Nº ${esc(v.codigo)}</div>
+    <div class="c peq">Vale nas duas lojas Shai. Apresente no caixa.</div>
     <svg data-cod="${esc(v.codigo)}"></svg>`);
+}
+
+// ---------------- consulta e lista de vales ----------------
+async function consultarVale(codigo) {
+  codigo = String(codigo || '').replace(/\D/g, '');
+  if (!codigo) return toast('Digite o número do vale', 'error');
+  if (!navigator.onLine && !S.treino) return toast('Sem internet para consultar o vale', 'error');
+  const { data: v } = await db.from('pdv_vales').select('*').eq('codigo', codigo).maybeSingle();
+  if (!v) { bip(false); return toast('Vale não encontrado', 'error'); }
+  $('vl-busca').value = '';
+  verVale(v);
+}
+function verVale(v) {
+  const usos = (v.usos || []).map(u => `<div class="tot-linha"><span>Usado ${u.em ? new Date(u.em).toLocaleDateString('pt-BR') : ''}</span><b class="mono">− ${brl(u.valor)}</b></div>`).join('');
+  abrirModal(`Vale nº ${v.codigo}`, `
+    <div class="pag-total"><div class="muted">Saldo</div><div class="v mono" style="color:${v.saldo > 0 ? 'var(--choco)' : 'var(--text-muted)'}">${brl(v.saldo)}</div>
+      <div class="f muted">${v.saldo > 0 ? 'Pode ser usado nas duas lojas' : 'Vale já usado'}</div></div>
+    <div class="tot-linha"><span>Valor original</span><b class="mono">${brl(v.valor)}</b></div>
+    ${usos}
+    <div style="font-size:.85rem;margin-top:10px;line-height:1.6">
+      <div><span class="muted">Criado:</span> ${new Date(v.criado_em).toLocaleDateString('pt-BR')} na ${esc(v.loja)}</div>
+      ${v.cliente ? `<div><span class="muted">Cliente:</span> ${esc(v.cliente)}</div>` : ''}
+    </div>`,
+    `<button class="btn" onclick="fecharModal()">Fechar</button>${v.saldo > 0 ? `<button class="btn btn-primary" onclick="fecharModal();imprimirVale({codigo:_vale.codigo,valor:Number(_vale.saldo),loja:_vale.loja,cliente:_vale.cliente})"><i class="ti ti-printer"></i>Imprimir com o saldo</button>` : ''}`);
+  window._vale = v;
+}
+async function carregarVales() {
+  const box = $('vl-lista');
+  if (!navigator.onLine && !S.treino) { box.innerHTML = '<div class="empty">Sem internet</div>'; return; }
+  const { data } = await db.from('pdv_vales').select('*').gt('saldo', 0).order('criado_em', { ascending: false }).limit(200);
+  S.vales = (data || []).filter(v => Number(v.saldo) > 0);
+  const total = r2(S.vales.reduce((s, v) => s + Number(v.saldo), 0));
+  box.innerHTML = S.vales.length ? `<div class="muted" style="font-size:.8rem;margin-bottom:4px">${S.vales.length} vale(s) · ${brl(total)} em crédito das clientes</div>` + S.vales.map((v, i) =>
+    `<div class="lista-l venda-l" onclick="verVale(S.vales[${i}])"><div class="sp"><b>Nº ${esc(v.codigo)}</b><small>${new Date(v.criado_em).toLocaleDateString('pt-BR')} · ${esc(lojaCurta(v.loja))}${v.cliente ? ' · ' + esc(v.cliente) : ''}</small></div><b class="mono">${brl(v.saldo)}</b></div>`).join('')
+    : '<div class="empty">Nenhum vale com saldo</div>';
 }
 
 // =====================================================================
@@ -1478,10 +1536,12 @@ async function carregarVendas() {
   const locais = ler(K.fila, []).filter(v => v.data === S.diaVendas && !servidor.some(s => s.id === v.id)).map(v => ({ ...v, _local: true }));
   S.vendasDia = [...locais, ...servidor];
   const vs = S.vendasDia.filter(v => v.status !== 'cancelada');
-  const total = r2(vs.reduce((s, v) => s + Number(v.total), 0));
+  // pago com vale-troca não é dinheiro novo (já entrou na venda original) — igual ao Manager
+  const comVale = r2(vs.reduce((s, v) => s + v.pagamentos.filter(p => p.forma === 'vale').reduce((a, p) => a + Number(p.valor), 0), 0));
+  const total = r2(vs.reduce((s, v) => s + Number(v.total), 0) - comVale);
   const pecas = vs.reduce((s, v) => s + v.itens.reduce((a, i) => a + Number(i.qtd), 0), 0);
   $('vd-stats').innerHTML = `
-    <div class="stat"><div class="l">Vendido</div><div class="v mono">${brl(total)}</div></div>
+    <div class="stat"><div class="l">Vendido</div><div class="v mono">${brl(total)}</div>${comVale ? `<div class="muted" style="font-size:.72rem;margin-top:2px">+ ${brl(comVale)} pago com vale</div>` : ''}</div>
     <div class="stat"><div class="l">Vendas</div><div class="v mono">${vs.length}</div></div>
     <div class="stat"><div class="l">Peças</div><div class="v mono">${pecas}</div></div>
     <div class="stat"><div class="l">Ticket médio</div><div class="v mono">${brl(vs.length ? total / vs.length : 0)}</div></div>`;
@@ -1501,6 +1561,31 @@ async function carregarVendas() {
       ${v.status === 'erro' ? `<button class="btn-icon" title="Tentar de novo" onclick="event.stopPropagation();reenviar('${v.id}')"><i class="ti ti-refresh"></i></button>` : ''}
     </div>`;
   }).join('') : '<div class="empty">Nenhuma venda neste dia</div>';
+  carregarTrocasDia();
+}
+// trocas do dia com o lançamento no Bling (devolução ao estoque) — erro aparece aqui para não passar batido
+async function carregarTrocasDia() {
+  if (!navigator.onLine && !S.treino) { $('vd-trocas-card').style.display = 'none'; return; }
+  const { data } = await db.from('pdv_trocas').select('*').eq('loja', S.loja).eq('data', S.diaVendas).order('criado_em', { ascending: false });
+  const ts = data || [];
+  $('vd-trocas-card').style.display = ts.length ? '' : 'none';
+  $('vd-trocas').innerHTML = ts.map(t => {
+    const st = S.treino ? '<span class="st fila">Treino</span>'
+      : t.status === 'enviada' ? '<span class="st ok">No Bling</span>'
+      : t.status === 'erro' ? '<span class="st err">Erro no Bling</span>' : '<span class="st fila">Enviando</span>';
+    const tipo = { troca: 'Troca na hora', vale: 'Vale-troca', dinheiro: 'Devolução de dinheiro' }[t.destino];
+    return `<div class="lista-l"><div class="sp"><b>${horaSP(t.criado_em)} · ${tipo} · ${brl(t.valor)}</b>
+      <small>${t.itens.map(i => esc(partesNome(i.nome).nome) + (i.volta_estoque ? '' : ' (não volta ao estoque)')).join(', ')}${t.vale_codigo ? ' · vale nº ' + esc(t.vale_codigo) : ''}${t.motivo ? ' · ' + esc(t.motivo) : ''}</small>
+      ${t.status === 'erro' ? `<small style="color:var(--red)">${esc(t.erro || '')}</small>` : ''}</div>${st}
+      ${t.status === 'erro' ? `<button class="btn-icon" title="Tentar de novo" onclick="reenviarTroca('${t.id}')"><i class="ti ti-refresh"></i></button>` : ''}</div>`;
+  }).join('');
+}
+async function reenviarTroca(id) {
+  toast('Enviando ao Bling…');
+  const { data, error } = await db.functions.invoke('pdv', { body: { acao: 'enviar', troca: id } });
+  if (error || data?.ok === false) toast('Ainda com erro: ' + (data?.erro || error?.message || ''), 'error');
+  else toast('Troca lançada no Bling', 'ok');
+  carregarTrocasDia(); atualizarPills();
 }
 async function verVenda(idx) {
   const v = S.vendasDia[idx]; if (!v) return;
@@ -1625,7 +1710,7 @@ function bancoTreino(loja) {
         const n = String(base.seq++); let s = 0;
         for (let i = 0; i < n.length; i++) s += +n[i] * ((i + 1) % 2 === 0 ? 3 : 1);
         const codigo = n + ((10 - s % 10) % 10);
-        base.pdv_vales.push({ codigo, loja: a.p_loja, valor: a.p_valor, saldo: a.p_valor, cliente: a.p_cliente, troca_id: a.p_troca, usos: [] }); salvar();
+        base.pdv_vales.push({ codigo, loja: a.p_loja, valor: a.p_valor, saldo: a.p_valor, cliente: a.p_cliente, troca_id: a.p_troca, usos: [], criado_em: new Date().toISOString() }); salvar();
         return { data: codigo, error: null };
       }
       if (fn === 'pdv_usar_vale') {
@@ -1633,7 +1718,7 @@ function bancoTreino(loja) {
         if (!vl) return erro('vale não encontrado');
         if (vl.usos.some(u => u.venda_id === a.p_venda)) return { data: vl.saldo, error: null };
         if (a.p_valor > vl.saldo + 0.001) return erro('saldo do vale é ' + vl.saldo);
-        vl.saldo = r2(vl.saldo - a.p_valor); vl.usos.push({ venda_id: a.p_venda, valor: a.p_valor }); salvar();
+        vl.saldo = r2(vl.saldo - a.p_valor); vl.usos.push({ venda_id: a.p_venda, valor: a.p_valor, em: new Date().toISOString() }); salvar();
         return { data: vl.saldo, error: null };
       }
       return { data: null, error: null };
@@ -1710,7 +1795,7 @@ function irPara(tab) {
   document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   if (tab === 'vendas') carregarVendas();
   if (tab === 'caixa') renderCaixa();
-  if (tab === 'trocas') { renderTroca(); setTimeout(() => innerWidth >= 900 && $('tr-busca').focus(), 50); }
+  if (tab === 'trocas') { renderTroca(); carregarVales(); setTimeout(() => innerWidth >= 900 && $('tr-busca').focus(), 50); }
   if (tab === 'vender') setTimeout(focarBusca, 50);
   window.scrollTo(0, 0);
 }

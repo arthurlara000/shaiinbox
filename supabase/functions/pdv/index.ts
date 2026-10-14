@@ -155,6 +155,20 @@ async function configurar(sb: SupabaseClient, bl: Bling, cfgPdv: any, criarConsu
     rel.consumidorFinal = c ? { ok: true, id: c.id, criado: !!c.criado } : { ok: false, erro: 'não existe — rode configurar com criar=true' };
   } else rel.consumidorFinal = { ok: false, erro: erroBling(rc), falta: semPermissao(rc) ? 'escopo Contatos' : undefined };
 
+  // contas financeiras: o caixa de cada loja recebe a saída da devolução em dinheiro
+  const rcc = await bl.get('/contas-contabeis?limite=100');
+  if (rcc.ok) {
+    const contas = { ...(cfgPdv.contas_caixa || {}) };
+    for (const c of rcc.json.data || []) {
+      const n = norm(c.descricao);
+      if (!/caixa/.test(n)) continue;
+      if (/areal/.test(n)) contas['Loja Areal'] = c.id;
+      else if (/tres rios/.test(n)) contas['Loja Três Rios'] = c.id;
+    }
+    novo.contas_caixa = contas;
+    rel.contasCaixa = { ok: true, usadas: contas, todas: (rcc.json.data || []).map((c: any) => `${c.id} ${c.descricao}`) };
+  } else rel.contasCaixa = { ok: false, erro: erroBling(rcc), falta: semPermissao(rcc) ? 'escopo Caixas e Bancos / Contas financeiras' : undefined };
+
   // vendedoras: liga funcionarias ao vendedor do Bling e traz o limite de desconto
   rel.vendedoras = await sincronizarVendedoras(sb, bl);
 
@@ -279,9 +293,13 @@ async function buscarProduto(sb: SupabaseClient, bl: Bling, codigo: string) {
 }
 
 // ---------------- envio de vendas ----------------
-function montarParcelas(venda: any, formas: Record<string, number>) {
+// vale-troca não é dinheiro novo: por padrão vira abatimento no pedido (desconto), assim o Bling não
+// fica com conta a receber que nunca será paga nem conta o faturamento duas vezes. valeComoPagamento
+// = jeito antigo (forma VALE-TROCA), usado só se o Bling recusar o pedido com o abatimento.
+function montarParcelas(venda: any, formas: Record<string, number>, valeComoPagamento = false) {
   const parcelas: any[] = [];
   for (const pg of venda.pagamentos || []) {
+    if (pg.forma === 'vale' && !valeComoPagamento) continue;
     const forma = formas[pg.forma];
     if (!forma) throw new Error(`forma de pagamento "${pg.forma}" não configurada no PDV`);
     const valor = r2(pg.valor);
@@ -360,16 +378,29 @@ async function enviarVenda(sb: SupabaseClient, bl: Bling, cfgPdv: any, cfgBling:
           produto: { id: it.bling_id }, codigo: it.codigo || undefined, descricao: it.nome, unidade: 'UN',
           quantidade: Number(it.qtd) || 1, valor: r2(it.preco),
         }));
-        const pedido: Record<string, unknown> = {
-          numeroLoja, data: v.data, dataSaida: v.data, dataPrevista: v.data,
-          contato: { id: contato }, loja: { id: Number(lojaId) },
-          itens, parcelas: montarParcelas(v, cfgPdv.formas || {}),
-          observacoes: `Venda PDV Shai ${numeroLoja.slice(4, 10)}`,
-          observacoesInternas: `PDV Shai — ${v.vendedora || 'sem vendedora'} — venda ${v.id}${clienteObs}`,
+        const vales = (v.pagamentos || []).filter((p: any) => p.forma === 'vale');
+        const totalVale = r2(vales.reduce((s: number, p: any) => s + Number(p.valor), 0));
+        const textoVale = vales.length ? ` — vale-troca ${vales.map((p: any) => `nº ${p.vale} ${r2(p.valor).toFixed(2)}`).join(', ')}` : '';
+        const montar = (valeComoPagamento: boolean) => {
+          const descontoBling = r2(Number(v.desconto || 0) + (valeComoPagamento ? 0 : totalVale));
+          const p: Record<string, unknown> = {
+            numeroLoja, data: v.data, dataSaida: v.data, dataPrevista: v.data,
+            contato: { id: contato }, loja: { id: Number(lojaId) },
+            itens, parcelas: montarParcelas(v, cfgPdv.formas || {}, valeComoPagamento),
+            observacoes: `Venda PDV Shai ${numeroLoja.slice(4, 10)}${textoVale}`,
+            observacoesInternas: `PDV Shai — ${v.vendedora || 'sem vendedora'} — venda ${v.id}${clienteObs}${textoVale}`,
+          };
+          if (descontoBling > 0) p.desconto = { valor: descontoBling, unidade: 'REAL' };
+          if (func?.bling_vendedor_id) p.vendedor = { id: func.bling_vendedor_id };
+          return p;
         };
-        if (Number(v.desconto) > 0) pedido.desconto = { valor: r2(v.desconto), unidade: 'REAL' };
-        if (func?.bling_vendedor_id) pedido.vendedor = { id: func.bling_vendedor_id };
-        const rp = await bl.req('POST', '/pedidos/vendas', pedido);
+        let rp = await bl.req('POST', '/pedidos/vendas', montar(false));
+        etapas.vale = totalVale ? 'abatimento' : undefined;
+        if (!rp.ok && totalVale > 0 && rp.status === 400) {
+          // o Bling recusou o abatimento (ex.: pedido zerado ou limite de desconto): manda o vale como forma de pagamento
+          rp = await bl.req('POST', '/pedidos/vendas', montar(true));
+          etapas.vale = 'pagamento';
+        }
         if (!rp.ok) throw new Error('criar pedido: ' + erroBling(rp));
         pedidoId = rp.json.data?.id;
         if (!pedidoId) throw new Error('o Bling não devolveu o ID do pedido');
@@ -389,6 +420,8 @@ async function enviarVenda(sb: SupabaseClient, bl: Bling, cfgPdv: any, cfgBling:
       await salvar();
     }
     // 3) contas a receber (pagamentos)
+    const semParcelas = montarParcelas(v, cfgPdv.formas || {}, etapas.vale === 'pagamento').length === 0;
+    if (!etapas.contas && semParcelas) { etapas.contas = 'sem parcelas (pago todo com vale-troca)'; await salvar(); }
     if (!etapas.contas) {
       const rc = await bl.req('POST', `/pedidos/vendas/${pid}/lancar-contas`);
       if (!rc.ok && !jaFeito(rc)) throw new Error('lançar contas: ' + erroBling(rc));
@@ -434,6 +467,17 @@ async function enviarTroca(sb: SupabaseClient, bl: Bling, cfgPdv: any, id: strin
       });
       if (!r.ok) throw new Error(`devolver ao estoque "${it.nome}": ` + erroBling(r));
       etapas[`item${i}`] = r.json.data?.id || true;
+      await sb.from('pdv_trocas').update({ etapas }).eq('id', id);
+    }
+    // devolução em dinheiro do caixa: saída na conta financeira (caixa) da loja no Bling, se configurada
+    const contaCaixa = (cfgPdv.contas_caixa || {})[t.loja];
+    if (t.destino === 'dinheiro' && t.forma_reembolso === 'dinheiro' && contaCaixa && !etapas.caixa) {
+      const rc = await bl.req('POST', '/caixas', {
+        data: t.data, valor: r2(t.valor), debCred: 'D', contaFinanceira: { id: contaCaixa },
+        observacoes: `Devolução em dinheiro PDV Shai — troca ${String(t.id).slice(0, 8)}${t.motivo ? ' — ' + t.motivo : ''}`,
+      });
+      if (!rc.ok) throw new Error('lançar saída no caixa do Bling: ' + erroBling(rc));
+      etapas.caixa = rc.json.data?.id || true;
       await sb.from('pdv_trocas').update({ etapas }).eq('id', id);
     }
     await sb.from('pdv_trocas').update({ status: 'enviada', etapas, erro: null, enviando_ate: null, enviada_em: new Date().toISOString(), tentativas: (t.tentativas || 0) + 1 }).eq('id', id);
