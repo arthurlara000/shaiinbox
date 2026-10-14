@@ -1181,6 +1181,40 @@ async function loadDashboard() {
   else await loadDashMensal();
 }
 
+// ===== VENDAS REAIS =====
+// Número de vendas e ticket vêm das peças vendidas (v_vendas_dia). A tabela vendas tem uma linha
+// por vendedora por dia, então contar as linhas dela não dá o número de vendas.
+async function buscarVendasReais(de, ate, loja) {
+  let q = sb.from('v_vendas_dia').select('loja,data,num_vendas,valor_itens').gte('data', de).lte('data', ate);
+  if (loja) q = q.eq('loja', loja);
+  const { data } = await q;
+  return data || [];
+}
+// Soma as vendas reais dos dias que passam no filtro. "parcial" indica que algum dia com
+// faturamento (na tabela vendas) não tem peças registradas, então a contagem fica incompleta.
+function somaVendasReais(reais, vendas, filtro = () => true) {
+  const ls = reais.filter(filtro);
+  const n = ls.reduce((s, l) => s + Number(l.num_vendas), 0);
+  const valor = ls.reduce((s, l) => s + Number(l.valor_itens), 0);
+  const comPecas = new Set(ls.map(l => `${l.loja}|${l.data}`));
+  const parcial = (vendas || []).some(v => filtro({ loja: v.loja, data: v.data_venda }) && !comPecas.has(`${v.loja}|${v.data_venda}`));
+  return { n, ticket: n ? valor / n : null, parcial };
+}
+// Linhas da tabela vendas no período, em páginas (o Supabase devolve no máximo 1000 por consulta)
+async function buscarVendasPeriodo(de, ate, loja, colunas = '*') {
+  const linhas = [];
+  for (let ini = 0; ; ini += 1000) {
+    let q = sb.from('vendas').select(colunas).gte('data_venda', de).lte('data_venda', ate).order('data_venda').range(ini, ini + 999);
+    if (loja) q = q.eq('loja', loja);
+    const { data } = await q;
+    linhas.push(...(data || []));
+    if (!data || data.length < 1000) break;
+  }
+  return linhas;
+}
+const txtNumVendas = r => !r.n ? '—' : (r.parcial ? '≈ ' : '') + r.n;
+const txtTicket = r => r.ticket == null ? '—' : fmt(r.ticket);
+
 async function loadDashSemanal() {
   const monday = currentMonday(dashOffset);
   const sunday = getSunday(monday);
@@ -1194,13 +1228,13 @@ async function loadDashSemanal() {
   const total = (vendas||[]).reduce((s,v)=>s+v.valor,0);
   const l1 = (vendas||[]).filter(v=>v.loja==='Loja Areal').reduce((s,v)=>s+v.valor,0);
   const l2 = (vendas||[]).filter(v=>v.loja==='Loja Três Rios').reduce((s,v)=>s+v.valor,0);
-  const n = vendas?.length||0;
+  const reais = somaVendasReais(await buscarVendasReais(monday, sunday), vendas);
 
   document.getElementById('d-total').textContent = fmt(total);
-  document.getElementById('d-count').textContent = n + ' venda' + (n!==1?'s':'');
+  document.getElementById('d-count').textContent = reais.n ? `${txtNumVendas(reais)} venda${reais.n !== 1 ? 's' : ''}` : 'vendas: sem dado';
   document.getElementById('d-l1').textContent = fmt(l1);
   document.getElementById('d-l2').textContent = fmt(l2);
-  document.getElementById('d-ticket').textContent = fmt(n ? total/n : 0);
+  document.getElementById('d-ticket').textContent = txtTicket(reais);
 
   const { data: metas } = await sb.from('metas_semanais').select('*').eq('semana_inicio', monday);
   const ml1 = metas?.find(m=>m.loja==='Loja Areal');
@@ -1288,13 +1322,13 @@ async function loadDashMensal() {
   const total = (vendas||[]).reduce((s,v)=>s+v.valor,0);
   const l1 = (vendas||[]).filter(v=>v.loja==='Loja Areal').reduce((s,v)=>s+v.valor,0);
   const l2 = (vendas||[]).filter(v=>v.loja==='Loja Três Rios').reduce((s,v)=>s+v.valor,0);
-  const n = vendas?.length||0;
+  const reais = somaVendasReais(await buscarVendasReais(start, end), vendas);
 
   document.getElementById('dm-total').textContent = fmt(total);
-  document.getElementById('dm-count').textContent = n + ' venda'+(n!==1?'s':'');
+  document.getElementById('dm-count').textContent = reais.n ? `${txtNumVendas(reais)} venda${reais.n !== 1 ? 's' : ''}` : 'vendas: sem dado';
   document.getElementById('dm-l1').textContent = fmt(l1);
   document.getElementById('dm-l2').textContent = fmt(l2);
-  document.getElementById('dm-ticket').textContent = fmt(n?total/n:0);
+  document.getElementById('dm-ticket').textContent = txtTicket(reais);
 
   const { data: metas } = await sb.from('metas_mensais').select('*').eq('mes',mes).eq('ano',ano);
   const ml1 = metas?.find(m=>m.loja==='Loja Areal');
@@ -2350,7 +2384,7 @@ async function loadHistDiario() {
 
   let q = sb.from('vendas').select('*').gte('data_venda', start).lte('data_venda', end);
   if (loja) q = q.eq('loja', loja);
-  const { data: vendas } = await q;
+  const [{ data: vendas }, reais] = await Promise.all([q, buscarVendasReais(start, end, loja)]);
 
   histFiltraCards('hist-dia', loja);
 
@@ -2358,11 +2392,10 @@ async function loadHistDiario() {
     const tbody = document.getElementById(`hist-dia-tbody-${suf}`);
     if (loja && loja !== nome) return;
 
-    // Agrupa por data
+    // Agrupa o faturamento por data
     const map = {};
     (vendas || []).filter(v => v.loja === nome).forEach(v => {
-      if (!map[v.data_venda]) map[v.data_venda] = { data: v.data_venda, count: 0, total: 0 };
-      map[v.data_venda].count++;
+      if (!map[v.data_venda]) map[v.data_venda] = { data: v.data_venda, total: 0 };
       map[v.data_venda].total += v.valor;
     });
 
@@ -2370,20 +2403,22 @@ async function loadHistDiario() {
     if (!rows.length) { tbody.innerHTML = '<tr><td colspan="4" class="empty">Nenhum dado no período</td></tr>'; return; }
 
     const totalGeral = rows.reduce((s,r) => s + r.total, 0);
-    const countGeral = rows.reduce((s,r) => s + r.count, 0);
+    const geral = somaVendasReais(reais, vendas, x => x.loja === nome);
 
-    tbody.innerHTML = rows.map(r => `
+    tbody.innerHTML = rows.map(r => {
+      const dia = somaVendasReais(reais, vendas, x => x.loja === nome && x.data === r.data);
+      return `
       <tr>
         <td style="white-space:nowrap">${new Date(r.data+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'})}</td>
-        <td>${r.count}</td>
+        <td>${txtNumVendas(dia)}</td>
         <td style="font-weight:600;color:var(--accent)">${fmt(r.total)}</td>
-        <td style="color:var(--text-muted)">${fmt(r.count ? r.total/r.count : 0)}</td>
-      </tr>`).join('') +
+        <td style="color:var(--text-muted)">${txtTicket(dia)}</td>
+      </tr>`; }).join('') +
       `<tr style="border-top:2px solid var(--border)">
         <td style="font-weight:600;color:var(--text-muted)">Total do período</td>
-        <td style="font-weight:600">${countGeral}</td>
+        <td style="font-weight:600">${txtNumVendas(geral)}</td>
         <td style="font-weight:700;color:var(--accent)">${fmt(totalGeral)}</td>
-        <td style="color:var(--text-muted)">${fmt(countGeral ? totalGeral/countGeral : 0)}</td>
+        <td style="color:var(--text-muted)">${txtTicket(geral)}</td>
       </tr>`;
   });
 }
@@ -2394,27 +2429,24 @@ async function loadHistSemanal() {
   const start = `${ano}-01-01`;
   const end   = `${ano}-12-31`;
 
-  // Busca vendas e metas do período
-  let qv = sb.from('vendas').select('*').gte('data_venda', start).lte('data_venda', end);
-  if (loja) qv = qv.eq('loja', loja);
+  // Busca vendas, vendas reais e metas do período
   let qm = sb.from('metas_semanais').select('*').gte('semana_inicio', start).lte('semana_inicio', end);
   if (loja) qm = qm.eq('loja', loja);
 
-  const [{ data: vendas }, { data: metas }] = await Promise.all([qv, qm]);
+  const [vendas, reais, { data: metas }] = await Promise.all([buscarVendasPeriodo(start, end, loja), buscarVendasReais(start, end, loja), qm]);
 
-  // Agrupa vendas por semana+loja
+  // Agrupa o faturamento por semana+loja
   const map = {};
   (vendas || []).forEach(v => {
     const monday = getMonday(v.data_venda);
     const key = `${monday}__${v.loja}`;
-    if (!map[key]) map[key] = { monday, loja: v.loja, count: 0, total: 0 };
-    map[key].count++;
+    if (!map[key]) map[key] = { monday, loja: v.loja, total: 0 };
     map[key].total += v.valor;
   });
   // Garante que semanas com meta mas sem venda apareçam
   (metas || []).forEach(m => {
     const key = `${m.semana_inicio}__${m.loja}`;
-    if (!map[key]) map[key] = { monday: m.semana_inicio, loja: m.loja, count: 0, total: 0 };
+    if (!map[key]) map[key] = { monday: m.semana_inicio, loja: m.loja, total: 0 };
   });
 
   histFiltraCards('hist-sem', loja);
@@ -2429,12 +2461,13 @@ async function loadHistSemanal() {
     tbody.innerHTML = rows.map(r => {
       const meta = metas?.find(m => m.semana_inicio === r.monday && m.loja === r.loja);
       const tier = calcTier(r.total, meta);
-      const ticket = r.count ? r.total / r.count : 0;
+      const domingo = getSunday(r.monday);
+      const sem = somaVendasReais(reais, vendas, x => x.loja === r.loja && x.data >= r.monday && x.data <= domingo);
       return `<tr>
-        <td style="white-space:nowrap;font-size:0.8rem">${fmtDate(r.monday)} – ${fmtDate(getSunday(r.monday))}</td>
-        <td>${r.count}</td>
+        <td style="white-space:nowrap;font-size:0.8rem">${fmtDate(r.monday)} – ${fmtDate(domingo)}</td>
+        <td>${txtNumVendas(sem)}</td>
         <td style="font-weight:600;color:var(--accent)">${fmt(r.total)}</td>
-        <td style="color:var(--text-muted)">${fmt(ticket)}</td>
+        <td style="color:var(--text-muted)">${txtTicket(sem)}</td>
         <td>${tierBadgeHtml(tier)}</td>
         <td style="color:var(--meta-color)">${meta ? fmt(meta.valor_meta) : '—'}</td>
         <td style="color:var(--super-color)">${meta ? fmt(meta.valor_super) : '—'}</td>
@@ -2450,27 +2483,22 @@ async function loadHistMensal() {
   const start = `${ano}-01-01`;
   const end   = `${ano}-12-31`;
 
-  let qv = sb.from('vendas').select('*').gte('data_venda', start).lte('data_venda', end);
-  if (loja) qv = qv.eq('loja', loja);
   let qm = sb.from('metas_mensais').select('*').eq('ano', ano);
   if (loja) qm = qm.eq('loja', loja);
 
-  const [{ data: vendas }, { data: metas }] = await Promise.all([qv, qm]);
+  const [vendas, reais, { data: metas }] = await Promise.all([buscarVendasPeriodo(start, end, loja), buscarVendasReais(start, end, loja), qm]);
 
-  // Agrupa por mês+loja
+  // Agrupa o faturamento por mês+loja
   const map = {};
   (vendas || []).forEach(v => {
-    const d = new Date(v.data_venda + 'T00:00:00');
-    const mes = d.getMonth() + 1;
-    const lojaKey = v.loja;
-    const key = `${mes}__${lojaKey}`;
-    if (!map[key]) map[key] = { mes, loja: lojaKey, count: 0, total: 0 };
-    map[key].count++;
+    const mes = Number(v.data_venda.slice(5, 7));
+    const key = `${mes}__${v.loja}`;
+    if (!map[key]) map[key] = { mes, loja: v.loja, total: 0 };
     map[key].total += v.valor;
   });
   (metas || []).forEach(m => {
     const key = `${m.mes}__${m.loja}`;
-    if (!map[key]) map[key] = { mes: m.mes, loja: m.loja, count: 0, total: 0 };
+    if (!map[key]) map[key] = { mes: m.mes, loja: m.loja, total: 0 };
   });
 
   histFiltraCards('hist-men', loja);
@@ -2485,12 +2513,13 @@ async function loadHistMensal() {
     tbody.innerHTML = rows.map(r => {
       const meta = metas?.find(m => m.mes === r.mes && m.loja === r.loja);
       const tier = calcTier(r.total, meta);
-      const ticket = r.count ? r.total / r.count : 0;
+      const mm = String(r.mes).padStart(2, '0');
+      const doMes = somaVendasReais(reais, vendas, x => x.loja === r.loja && x.data.slice(5, 7) === mm);
       return `<tr>
         <td>${monthLabel(ano, r.mes)}</td>
-        <td>${r.count}</td>
+        <td>${txtNumVendas(doMes)}</td>
         <td style="font-weight:600;color:var(--accent)">${fmt(r.total)}</td>
-        <td style="color:var(--text-muted)">${fmt(ticket)}</td>
+        <td style="color:var(--text-muted)">${txtTicket(doMes)}</td>
         <td>${tierBadgeHtml(tier)}</td>
         <td style="color:var(--meta-color)">${meta ? fmt(meta.valor_meta) : '—'}</td>
         <td style="color:var(--super-color)">${meta ? fmt(meta.valor_super) : '—'}</td>
@@ -2507,21 +2536,19 @@ async function loadHistPeriodo() {
   if (!ini || !fim) { showToast('Selecione data início e fim', 'error'); return; }
   if (ini > fim)    { showToast('Data início maior que data fim', 'error'); return; }
 
-  let q = sb.from('vendas').select('*, funcionarias(nome)').gte('data_venda', ini).lte('data_venda', fim).order('data_venda', { ascending: false });
-  if (loja) q = q.eq('loja', loja);
-  const { data: vendas } = await q;
+  const [linhas, reaisLinhas] = await Promise.all([buscarVendasPeriodo(ini, fim, loja, '*, funcionarias(nome)'), buscarVendasReais(ini, fim, loja)]);
+  const vendas = linhas.reverse();
 
-  const total  = (vendas||[]).reduce((s,v) => s + v.valor, 0);
-  const count  = vendas?.length || 0;
-  const ticket = count ? total / count : 0;
+  const total  = vendas.reduce((s,v) => s + v.valor, 0);
+  const reais  = somaVendasReais(reaisLinhas, vendas);
 
   document.getElementById('per-total').textContent  = fmt(total);
-  document.getElementById('per-count').textContent  = count + ' venda' + (count !== 1 ? 's' : '');
-  document.getElementById('per-ticket').textContent = fmt(ticket);
+  document.getElementById('per-count').textContent  = reais.n ? `${txtNumVendas(reais)} venda${reais.n !== 1 ? 's' : ''}` : '—';
+  document.getElementById('per-ticket').textContent = txtTicket(reais);
 
   const tbody = document.getElementById('hist-per-tbody');
-  if (!count) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Nenhuma venda no período</td></tr>'; return; }
-  tbody.innerHTML = (vendas||[]).map(v => `
+  if (!vendas.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Nenhuma venda no período</td></tr>'; return; }
+  tbody.innerHTML = vendas.map(v => `
     <tr>
       <td style="white-space:nowrap">${new Date(v.data_venda+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'})}</td>
       <td>${v.funcionarias?.nome || '—'}</td>
