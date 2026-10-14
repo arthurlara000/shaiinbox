@@ -1,13 +1,19 @@
 {
   "id": "shai-vendas",
-  "name": "Shai Vendas",
-  "short_name": "Shai Vendas",
-  "start_url": "/index.html",
+  "name": "Shai Caixa",
+  "short_name": "Caixa",
+  "description": "Caixa das lojas Shai — vendas, trocas e fechamento",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "orientation": "any",
+  "lang": "pt-BR",
   "background_color": "#f5f1ea",
   "theme_color": "#f5f1ea",
   "icons": [
+    { "src": "assets/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any" },
+    { "src": "assets/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any" },
+    { "src": "assets/icon-maskable-512.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" },
     { "src": "assets/icon-vendas.svg", "type": "image/svg+xml", "sizes": "any" }
   ]
 }

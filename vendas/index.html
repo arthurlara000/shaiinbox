@@ -2,938 +2,1561 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Shai Vendas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Shai Caixa</title>
 <link rel="icon" type="image/svg+xml" href="assets/icon-vendas.svg">
-<link rel="apple-touch-icon" href="assets/icon-vendas.svg">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#f5f1ea">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Shai Vendas">
+<meta name="apple-mobile-web-app-title" content="Shai Caixa">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <style>
 :root {
-  /* Paleta Shai — café com leite (igual ao Manager e ao Calendário) */
+  /* Paleta Shai — café com leite (igual ao Manager e ao Compras) */
   --bg: #f5f1ea;
   --surface: #fbf8f3;
   --surface2: #efe8dd;
+  --surface3: #e7dccb;
   --border: #ddd2c2;
   --text: #2b2118;
   --text-muted: #a08b76;
   --accent: #a5713d;
   --accent-hover: #8a5a36;
-  --green: #3a9a6a;
+  --choco: #5c3d28;
   --red: #c44848;
+  --green: #3a9a6a;
+  --yellow: #b87830;
   --loja1: #3d7ab8;
   --loja2: #c65b3f;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; padding-bottom: env(safe-area-inset-bottom, 24px); }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; }
+.ti { vertical-align: -0.125em; font-size: 1.05em; }
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; }
+.mono { font-variant-numeric: tabular-nums; }
+.muted { color: var(--text-muted); }
 
-/* AUTH SCREEN */
-#auth-screen {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  min-height: 100vh; padding: 32px 24px; text-align: center; gap: 8px;
-}
-.auth-logo { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--accent); margin-bottom: 8px; }
-.auth-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 24px; }
-.auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 360px; text-align: left; }
-.auth-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; }
-.auth-link { font-size: 0.82rem; color: var(--text-muted); margin-top: 16px; text-align: center; }
-.auth-link button { background: none; border: none; color: var(--accent); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; text-decoration: underline; }
-.auth-error { font-size: 0.8rem; color: var(--red); margin-top: 10px; text-align: center; min-height: 18px; }
+/* ---------- topo ---------- */
+.header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 20px; padding-top: env(safe-area-inset-top); display: flex; align-items: center; gap: 14px; min-height: 58px; position: sticky; top: 0; z-index: 50; }
+.logo { font-family: 'Playfair Display', serif; font-size: 1.35rem; color: var(--accent); white-space: nowrap; }
+.logo small { font-family: 'DM Sans', sans-serif; font-size: .8rem; color: var(--text-muted); margin-left: 8px; font-weight: 500; }
+.header-sp { flex: 1; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 99px; font-size: .76rem; font-weight: 600; background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); white-space: nowrap; }
+.pill.ok { color: var(--green); background: rgba(58,154,106,.1); border-color: rgba(58,154,106,.25); }
+.pill.warn { color: var(--yellow); background: rgba(184,120,48,.12); border-color: rgba(184,120,48,.3); }
+.pill.err { color: var(--red); background: rgba(196,72,72,.1); border-color: rgba(196,72,72,.25); }
+.pill .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.btn-sair { background: none; border: none; color: var(--text-muted); font-size: .8rem; text-decoration: underline; }
 
-/* MAIN APP */
-#app { display: none; }
+.nav { display: flex; gap: 4px; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 20px; position: sticky; top: 58px; z-index: 49; }
+.nav button { background: none; border: none; border-bottom: 2px solid transparent; padding: 13px 16px; font-size: .9rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 7px; }
+.nav button .ti { font-size: 1.2em; }
+.nav button.active { color: var(--accent); border-bottom-color: var(--accent); }
+.nav .badge { background: var(--accent); color: #fff; border-radius: 99px; font-size: .68rem; padding: 1px 7px; }
 
-/* HEADER */
-.header {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 16px 20px;
-  display: flex; align-items: center; justify-content: space-between;
-  position: sticky; top: 0; z-index: 50;
-}
-.header-left { display: flex; flex-direction: column; gap: 2px; }
-.header-logo { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--accent); }
-.header-loja { font-size: 0.75rem; color: var(--text-muted); }
-.header-date { font-size: 0.8rem; color: var(--text-muted); text-align: right; }
-.change-loja-btn { font-size: 0.7rem; color: var(--text-muted); background: none; border: none; cursor: pointer; text-decoration: underline; }
+main { max-width: 1240px; margin: 0 auto; padding: 18px 20px 40px; }
+.tab { display: none; }
+.tab.active { display: block; }
+h1.titulo { font-family: 'Playfair Display', serif; font-size: 1.45rem; margin-bottom: 4px; }
+.sub { font-size: .85rem; color: var(--text-muted); margin-bottom: 16px; }
 
-/* CONTENT */
-.content { padding: 20px 16px; max-width: 480px; margin: 0 auto; }
+/* ---------- cartões e botões ---------- */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
+.card + .card { margin-top: 14px; }
+.card-t { font-size: .72rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); padding: 11px 16px; border-radius: 12px; font-size: .92rem; font-weight: 600; transition: background .15s, transform .08s; }
+.btn:active { transform: scale(.98); }
+.btn:disabled { opacity: .45; pointer-events: none; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-ghost { background: transparent; }
+.btn-red { background: rgba(196,72,72,.1); color: var(--red); border-color: rgba(196,72,72,.25); }
+.btn-green { background: var(--green); border-color: var(--green); color: #fff; }
+.btn-lg { padding: 16px 20px; font-size: 1.05rem; border-radius: 14px; }
+.btn-block { width: 100%; }
+.btn-icon { background: none; border: none; color: var(--text-muted); font-size: 1.25rem; padding: 6px; border-radius: 8px; line-height: 1; }
+.btn-icon:hover { background: var(--surface2); color: var(--text); }
+.inp { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 11px; padding: 12px 14px; font-size: 1rem; color: var(--text); outline: none; }
+.inp:focus { border-color: var(--accent); background: #fff; }
+.inp.big { font-size: 1.35rem; font-weight: 700; text-align: right; }
+.lbl { display: block; font-size: .78rem; color: var(--text-muted); font-weight: 600; margin: 12px 0 6px; }
+.row { display: flex; gap: 10px; align-items: center; }
+.row > * { flex: 1; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1.5px solid var(--border); background: var(--surface2); color: var(--text); padding: 10px 14px; border-radius: 12px; font-size: .92rem; font-weight: 600; }
+.chip.on { border-color: var(--accent); background: rgba(165,113,61,.12); color: var(--accent); }
+.chip small { display: block; font-size: .68rem; font-weight: 500; color: var(--text-muted); }
+.empty { text-align: center; color: var(--text-muted); padding: 30px 10px; font-size: .9rem; }
+.aviso { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; font-size: .86rem; background: rgba(184,120,48,.12); color: #7a4f1d; border: 1px solid rgba(184,120,48,.3); }
+.aviso.red { background: rgba(196,72,72,.08); color: var(--red); border-color: rgba(196,72,72,.25); }
+.aviso.green { background: rgba(58,154,106,.1); color: #23704b; border-color: rgba(58,154,106,.28); }
+.aviso .ti { font-size: 1.2rem; flex: 0 0 auto; }
 
-/* SECTION */
-.section { margin-bottom: 28px; }
-.section-title {
-  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px;
-}
+/* ---------- vender ---------- */
+.pdv { display: grid; grid-template-columns: 1fr 380px; gap: 18px; align-items: start; }
+.busca { position: relative; }
+.busca-box { display: flex; gap: 8px; }
+.busca-box .inp { font-size: 1.1rem; padding: 15px 16px 15px 46px; background: #fff; }
+.busca-box .ti-scan, .busca-box .ti-search { position: absolute; left: 16px; top: 17px; font-size: 1.3rem; color: var(--text-muted); pointer-events: none; }
+.btn-cam { flex: 0 0 56px !important; font-size: 1.4rem; }
+.resultados { position: absolute; left: 0; right: 64px; top: 58px; background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 14px 40px rgba(43,33,24,.16); z-index: 30; max-height: 380px; overflow: auto; display: none; }
+.resultados.show { display: block; }
+.res { display: flex; gap: 12px; align-items: center; padding: 11px 14px; border-bottom: 1px solid var(--surface2); cursor: pointer; }
+.res:last-child { border-bottom: none; }
+.res:hover, .res.sel { background: var(--surface2); }
+.res-n { flex: 1; font-size: .92rem; font-weight: 600; }
+.res-n small { display: block; font-weight: 500; font-size: .75rem; color: var(--text-muted); margin-top: 2px; }
+.res-p { font-weight: 700; color: var(--accent); }
 
-/* CARD */
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; }
+.carrinho { margin-top: 14px; }
+.item { display: grid; grid-template-columns: 1fr auto auto auto; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 12px 12px 16px; margin-bottom: 8px; }
+.item.novo { animation: pisca .6s; }
+@keyframes pisca { from { background: rgba(165,113,61,.18); } to { background: var(--surface); } }
+.item-n { font-weight: 600; font-size: .95rem; line-height: 1.25; cursor: pointer; }
+.item-n small { display: block; font-size: .74rem; color: var(--text-muted); font-weight: 500; margin-top: 3px; }
+.item-n .desc { color: var(--green); font-weight: 600; }
+.qtd { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--surface2); }
+.qtd button { background: none; border: none; width: 34px; height: 36px; font-size: 1.1rem; color: var(--text); }
+.qtd span { min-width: 26px; text-align: center; font-weight: 700; }
+.item-v { text-align: right; font-weight: 700; min-width: 92px; }
+.item-v small { display: block; font-size: .72rem; color: var(--text-muted); text-decoration: line-through; font-weight: 500; }
+.cart-vazio { border: 2px dashed var(--border); border-radius: 16px; padding: 46px 20px; text-align: center; color: var(--text-muted); }
+.cart-vazio .ti { font-size: 2.6rem; display: block; margin-bottom: 10px; color: var(--surface3); }
 
-/* FORM */
-.form-group { margin-bottom: 14px; }
-.form-label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
-.form-input, .form-select {
-  width: 100%; background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 10px; padding: 12px 14px; color: var(--text);
-  font-size: 1rem; font-family: 'DM Sans', sans-serif; outline: none;
-  transition: border-color 0.2s; -webkit-appearance: none;
-}
-.form-input:focus, .form-select:focus { border-color: var(--accent); }
-.form-select option { background: var(--surface2); }
-.form-input.big { font-size: 1.4rem; font-weight: 600; text-align: center; letter-spacing: 0.02em; }
+.resumo { position: sticky; top: 128px; }
+.tot-linha { display: flex; justify-content: space-between; font-size: .9rem; padding: 4px 0; }
+.tot-linha.desc { color: var(--green); }
+.tot-final { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--border); margin-top: 8px; padding-top: 10px; }
+.tot-final b { font-size: 2rem; font-weight: 700; color: var(--choco); }
+.acoes-mini { display: flex; gap: 8px; margin: 12px 0; }
+.acoes-mini .btn { flex: 1; padding: 10px 8px; font-size: .84rem; }
+.credito-troca { margin-bottom: 12px; }
 
-/* VENDEDORA ROW */
-.vend-row {
-  display: flex; align-items: center; gap: 10px;
-  background: var(--surface2); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
-}
-.vend-name { flex: 1; font-size: 0.9rem; font-weight: 500; }
-.vend-input {
-  width: 120px; background: var(--bg); border: 1px solid var(--border);
-  border-radius: 8px; padding: 8px 10px; color: var(--accent); font-size: 1rem;
-  font-weight: 600; text-align: right; font-family: 'DM Sans', sans-serif;
-  outline: none;
-}
-.vend-input:focus { border-color: var(--accent); }
+/* ---------- modal / folhas ---------- */
+.modal-bg { position: fixed; inset: 0; background: rgba(43,33,24,.45); z-index: 200; display: none; align-items: center; justify-content: center; padding: 18px; }
+.modal-bg.show { display: flex; }
+.modal { background: var(--surface); border-radius: 20px; width: 100%; max-width: 520px; max-height: calc(100vh - 36px); display: flex; flex-direction: column; box-shadow: 0 24px 60px rgba(43,33,24,.3); }
+.modal.wide { max-width: 760px; }
+.modal-h { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 10px; }
+.modal-h h2 { font-size: 1.1rem; font-weight: 700; }
+.modal-b { padding: 4px 18px 16px; overflow: auto; }
+.modal-f { padding: 12px 18px 18px; border-top: 1px solid var(--surface2); display: flex; gap: 10px; }
+.modal-f .btn { flex: 1; }
 
-/* DESPESA ITEM */
-.despesa-item {
-  background: var(--surface2); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
-  display: flex; align-items: center; gap: 10px;
-}
-.despesa-info { flex: 1; }
-.despesa-desc { font-size: 0.9rem; font-weight: 500; }
-.despesa-cat { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
-.despesa-valor { font-weight: 700; color: var(--red); white-space: nowrap; }
-.despesa-foto { font-size: 1.2rem; cursor: pointer; }
-.del-btn { background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; padding: 4px; }
+/* pagamento */
+.pag-total { text-align: center; padding: 6px 0 12px; }
+.pag-total .v { font-size: 2.3rem; font-weight: 700; color: var(--choco); }
+.pag-total .f { font-size: .95rem; font-weight: 600; margin-top: 2px; }
+.formas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.forma { border: 1.5px solid var(--border); background: var(--surface2); border-radius: 14px; padding: 14px 6px; font-size: .9rem; font-weight: 700; color: var(--text); display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.forma .ti { font-size: 1.6rem; color: var(--accent); }
+.forma:disabled { opacity: .4; }
+.pag-linha { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; margin-top: 10px; }
+.pag-linha-h { display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 8px; }
+.pag-linha-h .ti { color: var(--accent); font-size: 1.25rem; }
+.pag-linha-h .sp { flex: 1; }
+.troco { margin-top: 8px; font-size: 1rem; font-weight: 700; color: var(--green); }
+.parc { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.parc button { border: 1.5px solid var(--border); background: #fff; border-radius: 10px; padding: 7px 11px; font-weight: 700; font-size: .85rem; }
+.parc button.on { border-color: var(--accent); color: var(--accent); background: rgba(165,113,61,.1); }
 
-/* LISTA ITEM */
-.lista-item {
-  background: var(--surface2); border-radius: 10px; padding: 12px 14px;
-  margin-bottom: 8px; display: flex; align-items: center; gap: 10px;
-}
-.lista-info { flex: 1; }
-.lista-nome { font-size: 0.9rem; font-weight: 600; }
-.lista-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+/* listas */
+.lista-l { display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--surface2); }
+.lista-l:last-child { border-bottom: none; }
+.lista-l .sp { flex: 1; min-width: 0; }
+.lista-l b { font-weight: 700; }
+.lista-l small { display: block; color: var(--text-muted); font-size: .76rem; margin-top: 2px; }
+.st { font-size: .7rem; font-weight: 700; padding: 3px 9px; border-radius: 99px; white-space: nowrap; }
+.st.ok { background: rgba(58,154,106,.12); color: var(--green); }
+.st.fila { background: rgba(184,120,48,.14); color: var(--yellow); }
+.st.err { background: rgba(196,72,72,.12); color: var(--red); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; }
+.stat .l { font-size: .72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.stat .v { font-size: 1.25rem; font-weight: 700; margin-top: 4px; }
+.data-nav { display: flex; align-items: center; gap: 8px; }
+.data-nav span { font-weight: 700; min-width: 140px; text-align: center; }
 
-/* CATEGORY CHIPS */
-.cat-chip {
-  padding: 12px 8px; border-radius: 12px; border: 1.5px solid var(--border);
-  background: var(--surface2); color: var(--text-muted); font-size: 0.85rem;
-  font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
-  transition: all 0.15s; -webkit-tap-highlight-color: transparent; text-align: center;
-}
-.cat-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(165,113,61,0.1); }
+/* troca */
+.troca-item { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 10px 4px; border-bottom: 1px solid var(--surface2); }
+.troca-item input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--accent); }
+.destinos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+.destino { border: 1.5px solid var(--border); background: var(--surface2); border-radius: 14px; padding: 16px 10px; text-align: center; font-weight: 700; font-size: .92rem; }
+.destino .ti { display: block; font-size: 1.7rem; color: var(--accent); margin-bottom: 6px; }
+.destino small { display: block; font-weight: 500; font-size: .72rem; color: var(--text-muted); margin-top: 4px; }
+.destino.on { border-color: var(--accent); background: rgba(165,113,61,.1); }
 
-/* PHOTO UPLOAD */
-.foto-label {
-  display: flex; align-items: center; gap: 8px; padding: 12px 14px;
-  background: var(--surface2); border: 1.5px dashed var(--border); border-radius: 10px;
-  cursor: pointer; color: var(--text-muted); font-size: 0.875rem; transition: all 0.2s;
-}
-.foto-label:active { border-color: var(--accent); color: var(--accent); }
-.foto-preview { width: 100%; border-radius: 10px; max-height: 200px; object-fit: cover; display: none; margin-top: 8px; }
-#foto-input { display: none; }
+/* câmera */
+#camera { position: fixed; inset: 0; background: #000; z-index: 300; display: none; flex-direction: column; }
+#camera.show { display: flex; }
+#camera video { flex: 1; width: 100%; object-fit: cover; }
+#camera .mira { position: absolute; left: 10%; right: 10%; top: 38%; height: 22%; border: 3px solid rgba(255,255,255,.85); border-radius: 16px; box-shadow: 0 0 0 9999px rgba(0,0,0,.35); pointer-events: none; }
+#camera .cam-bar { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 18px calc(18px + env(safe-area-inset-bottom)); display: flex; gap: 10px; align-items: center; color: #fff; }
+#camera .cam-msg { flex: 1; font-weight: 600; text-shadow: 0 1px 4px #000; }
 
-/* BTN */
-.btn {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  width: 100%; padding: 16px; border-radius: 12px; font-size: 1rem;
-  font-weight: 700; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif;
-  transition: all 0.2s; -webkit-tap-highlight-color: transparent;
-}
-.btn-primary { background: var(--accent); color: #fff; }
-.btn-primary:active { background: var(--accent-hover); transform: scale(0.98); }
-.btn-ghost { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
-.btn-ghost:active { background: var(--border); }
-.btn-sm { padding: 10px 16px; font-size: 0.875rem; width: auto; border-radius: 8px; }
-.btn-danger-sm { padding: 8px 14px; font-size: 0.8rem; width: auto; border-radius: 8px; background: rgba(196,72,72,0.12); color: var(--red); border: 1px solid rgba(196,72,72,0.22); }
+/* login */
+#gate { position: fixed; inset: 0; z-index: 400; background: var(--bg); display: none; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+#gate.show { display: flex; }
+.gate-logo { font-family: 'Playfair Display', serif; font-size: 2.3rem; color: var(--accent); }
+.gate-sub { font-size: .9rem; color: var(--text-muted); margin-bottom: 22px; }
+.gate-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 22px; width: 100%; max-width: 380px; }
+.gate-lojas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
+.gate-lojas .chip { padding: 16px 8px; text-align: center; }
+.gate-err { color: var(--red); font-size: .84rem; min-height: 20px; margin-top: 10px; text-align: center; }
 
-/* MODAL */
-.modal-overlay { position: fixed; inset: 0; background: rgba(43,33,24,0.45); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
-.modal-overlay.open { display: flex; }
-.modal { background: var(--surface); border-radius: 24px 24px 0 0; padding: 24px 20px; width: 100%; max-width: 480px; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
-.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 99px; margin: 0 auto 20px; }
-.modal-title { font-size: 1rem; font-weight: 700; margin-bottom: 18px; }
-
-/* RESUMO */
-.resumo-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
-.resumo-row:last-child { border-bottom: none; }
-.resumo-label { font-size: 0.85rem; color: var(--text-muted); }
-.resumo-valor { font-size: 0.95rem; font-weight: 600; }
-
-/* BADGE */
-.badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 0.7rem; font-weight: 600; }
-.badge-cat { background: rgba(165,113,61,0.14); color: var(--accent); }
-
-
-/* BOTTOM NAV */
-.bottom-nav {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  background: var(--surface); border-top: 1px solid var(--border);
-  display: flex; z-index: 100;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-.nav-item {
-  flex: 1; display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 4px; padding: 10px 4px;
-  background: none; border: none; cursor: pointer;
-  color: var(--text-muted); font-family: 'DM Sans', sans-serif;
-  font-size: 0.68rem; font-weight: 500; transition: color 0.2s;
-  -webkit-tap-highlight-color: transparent;
-}
-.nav-item .nav-icon { font-size: 1.3rem; line-height: 1; }
-.nav-item.active { color: var(--accent); }
-
-/* SAVE BTN flutuante na aba Vendas */
-.save-bar {
-  padding: 12px 16px; background: var(--bg);
-  max-width: 480px; margin: 0 auto;
-}
-
-/* HISTORICO */
-.hist-row {
-  background: var(--surface2); border-radius: 10px; padding: 14px;
-  margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
-}
-.hist-data { font-size: 0.75rem; color: var(--text-muted); }
-.hist-total { font-weight: 700; color: var(--accent); font-size: 1rem; }
-
-/* TOAST */
-#toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 18px; font-size: 0.875rem; z-index: 9999; opacity: 0; transition: all 0.3s; white-space: nowrap; }
+#toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); background: var(--choco); color: #fff; padding: 12px 20px; border-radius: 12px; font-size: .9rem; font-weight: 600; z-index: 500; opacity: 0; transition: all .25s; pointer-events: none; max-width: calc(100vw - 32px); text-align: center; }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-#toast.success { border-color: var(--green); color: var(--green); }
-#toast.error { border-color: var(--red); color: var(--red); }
+#toast.error { background: var(--red); }
+#toast.ok { background: var(--green); }
 
-.dot-ok { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--green); margin-right: 6px; }
-.dot-pend { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-right: 6px; }
+#print-area { display: none; }
 
-.empty { text-align: center; padding: 24px 0; color: var(--text-muted); font-size: 0.875rem; }
+/* ---------- celular ---------- */
+@media (max-width: 899px) {
+  .header { padding: 0 14px; padding-top: env(safe-area-inset-top); min-height: 54px; gap: 8px; }
+  .logo { font-size: 1.2rem; }
+  .logo small { display: none; }
+  .nav { position: fixed; top: auto; bottom: 0; left: 0; right: 0; border-top: 1px solid var(--border); border-bottom: none; padding: 0 0 env(safe-area-inset-bottom); justify-content: space-around; }
+  .nav button { flex-direction: column; gap: 3px; font-size: .7rem; border-bottom: none; border-top: 2px solid transparent; padding: 9px 4px 8px; flex: 1; }
+  .nav button.active { border-top-color: var(--accent); }
+  .nav .badge { position: absolute; margin: -4px 0 0 22px; }
+  main { padding: 14px 14px 150px; }
+  .pdv { grid-template-columns: 1fr; }
+  .resumo { position: fixed; left: 0; right: 0; bottom: calc(58px + env(safe-area-inset-bottom)); top: auto; border-radius: 18px 18px 0 0; border-bottom: none; z-index: 40; padding: 12px 14px; box-shadow: 0 -8px 24px rgba(43,33,24,.1); }
+  .resumo .so-desk { display: none; }
+  .resumo.aberto .so-desk { display: block; }
+  .tot-final b { font-size: 1.5rem; }
+  .grid-4 { grid-template-columns: 1fr 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .item { grid-template-columns: 1fr auto; }
+  .item .qtd { grid-column: 1; justify-self: start; }
+  .item .item-v { grid-row: 1; grid-column: 2; }
+  .item .btn-icon { grid-row: 2; grid-column: 2; justify-self: end; }
+  .resultados { right: 0; }
+  .modal-bg { padding: 0; align-items: flex-end; }
+  .modal { border-radius: 20px 20px 0 0; max-height: 94vh; padding-bottom: env(safe-area-inset-bottom); }
+  #toast { top: calc(64px + env(safe-area-inset-top)); bottom: auto; transform: translateX(-50%) translateY(-20px); }
+}
+@media (min-width: 900px) { .so-cel { display: none !important; } }
+
+/* ---------- impressão 80mm ---------- */
+@media print {
+  body > *:not(#print-area) { display: none !important; }
+  #print-area { display: block !important; width: 72mm; margin: 0 auto; color: #000; font-family: 'DM Sans', Arial, sans-serif; font-size: 11.5px; line-height: 1.35; }
+  #print-area .c { text-align: center; }
+  #print-area .t { font-family: 'Playfair Display', Georgia, serif; font-size: 22px; }
+  #print-area .b { font-weight: 700; }
+  #print-area .g { font-size: 15px; font-weight: 700; }
+  #print-area hr { border: none; border-top: 1px dashed #000; margin: 6px 0; }
+  #print-area .l { display: flex; justify-content: space-between; gap: 6px; }
+  #print-area .l span:first-child { flex: 1; }
+  #print-area svg { display: block; margin: 4px auto 0; max-width: 100%; }
+  #print-area .peq { font-size: 10px; }
+}
 </style>
+<style id="page-style">@page { size: 80mm auto; margin: 3mm 0; }</style>
 </head>
 <body>
 
-<!-- TELA DE AUTH -->
-<div id="auth-screen" style="display:none">
-  <div class="auth-logo">Shai Vendas</div>
-  <div class="auth-subtitle">Painel da loja</div>
-
-  <!-- LOGIN -->
-  <div class="auth-card" id="form-login">
-    <div class="auth-title">Entrar</div>
-    <div class="form-group">
-      <label class="form-label">E-mail</label>
-      <input type="email" class="form-input" id="login-email" placeholder="seu@email.com" autocomplete="email">
+<!-- ================= LOGIN ================= -->
+<div id="gate">
+  <div class="gate-logo">Shai</div>
+  <div class="gate-sub">Caixa da loja</div>
+  <div class="gate-card">
+    <div id="gate-loja-box">
+      <div class="lbl" style="margin-top:0">Loja</div>
+      <div class="gate-lojas">
+        <button class="chip" data-loja="Loja Areal" onclick="gateLoja(this)">Areal</button>
+        <button class="chip" data-loja="Loja Três Rios" onclick="gateLoja(this)">Três Rios</button>
+      </div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Senha</label>
-      <input type="password" class="form-input" id="login-senha" placeholder="••••••••" autocomplete="current-password">
-    </div>
-    <div class="auth-error" id="login-erro"></div>
-    <button class="btn btn-primary" style="margin-top:4px" onclick="fazerLogin()">Entrar</button>
-    <div class="auth-link">Não tem conta? <button onclick="mostrarCadastro()">Cadastrar</button></div>
-  </div>
-
-  <!-- CADASTRO -->
-  <div class="auth-card" id="form-cadastro" style="display:none">
-    <div class="auth-title">Criar conta</div>
-    <div class="form-group">
-      <label class="form-label">Loja</label>
-      <select class="form-select" id="cad-loja">
-        <option value="Loja Areal"><i class="ti ti-map-pin"></i>Loja Areal</option>
-        <option value="Loja Três Rios"><i class="ti ti-map-pin"></i>Loja Três Rios</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">E-mail</label>
-      <input type="email" class="form-input" id="cad-email" placeholder="seu@email.com" autocomplete="email">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Senha</label>
-      <input type="password" class="form-input" id="cad-senha" placeholder="mínimo 6 caracteres" autocomplete="new-password">
-    </div>
-    <div class="auth-error" id="cad-erro"></div>
-    <button class="btn btn-primary" style="margin-top:4px" onclick="fazerCadastro()">Criar conta</button>
-    <div class="auth-link">Já tem conta? <button onclick="mostrarLogin()">Entrar</button></div>
+    <div class="lbl">Senha</div>
+    <input type="password" class="inp" id="gate-senha" placeholder="Senha da loja" autocomplete="current-password" onkeydown="if(event.key==='Enter')gateEntrar()">
+    <button class="btn btn-primary btn-lg btn-block" style="margin-top:14px" onclick="gateEntrar()">Entrar</button>
+    <div class="gate-err" id="gate-erro"></div>
+    <div style="text-align:center;margin-top:6px"><button class="btn-sair" id="gate-modo" onclick="gateModoEquipe()">Entrar como equipe</button></div>
   </div>
 </div>
 
-<!-- APP PRINCIPAL -->
-<div id="app" style="display:none">
-  <div class="header">
-    <div class="header-left">
-      <div class="header-logo">Shai</div>
-      <div class="header-loja" id="h-loja">—</div>
-    </div>
-    <div style="text-align:right">
-      <div class="header-date" id="h-date">—</div>
-      <button class="change-loja-btn" onclick="fazerLogout()">sair</button>
-    </div>
-  </div>
+<!-- ================= TOPO ================= -->
+<header class="header">
+  <div class="logo">Shai<small id="h-loja"></small></div>
+  <div class="header-sp"></div>
+  <span class="pill" id="pill-rede" onclick="irPara('vendas')" style="cursor:pointer"><span class="dot"></span><span id="pill-rede-t">—</span></span>
+  <span class="pill" id="pill-caixa" onclick="irPara('caixa')" style="cursor:pointer"><i class="ti ti-cash-register"></i><span id="pill-caixa-t">—</span></span>
+  <button class="btn-sair" onclick="sair()">sair</button>
+</header>
+<nav class="nav">
+  <button data-tab="vender" onclick="irPara('vender')"><i class="ti ti-shopping-bag"></i>Vender</button>
+  <button data-tab="trocas" onclick="irPara('trocas')"><i class="ti ti-arrows-exchange"></i>Trocas</button>
+  <button data-tab="caixa" onclick="irPara('caixa')"><i class="ti ti-cash-register"></i>Caixa</button>
+  <button data-tab="vendas" onclick="irPara('vendas')"><i class="ti ti-receipt"></i>Vendas<span class="badge" id="nav-fila" style="display:none"></span></button>
+</nav>
 
-  <!-- ABA: VENDAS -->
-  <div id="tab-vendas" class="content" style="padding-bottom:100px">
-    <div class="section">
-      <div class="section-title"><i class="ti ti-report-money"></i> Fechamento do Dia</div>
+<main>
+  <!-- ================= VENDER ================= -->
+  <section class="tab" id="tab-vender">
+    <div class="pdv">
+      <div>
+        <div class="busca">
+          <div class="busca-box">
+            <i class="ti ti-scan"></i>
+            <input class="inp" id="busca" placeholder="Bipe a etiqueta ou digite código / nome da peça" autocomplete="off" autocorrect="off" spellcheck="false"
+              oninput="buscaDigitando()" onkeydown="buscaTecla(event)">
+            <button class="btn btn-cam" onclick="abrirCamera('vender')" title="Ler com a câmera"><i class="ti ti-camera"></i></button>
+          </div>
+          <div class="resultados" id="resultados"></div>
+        </div>
+        <div id="aviso-caixa" style="margin-top:12px"></div>
+        <div class="carrinho" id="carrinho"></div>
+      </div>
+
+      <aside class="card resumo" id="resumo">
+        <div class="so-desk">
+          <div class="card-t">Vendedora</div>
+          <div class="chips" id="vendedoras"></div>
+          <div id="credito-troca" class="credito-troca" style="margin-top:12px"></div>
+          <div class="acoes-mini">
+            <button class="btn" onclick="abrirDescontoVenda()"><i class="ti ti-discount-2"></i>Desconto</button>
+            <button class="btn" onclick="abrirCliente()"><i class="ti ti-user"></i><span id="bt-cliente">Cliente</span></button>
+            <button class="btn btn-ghost" onclick="limparVenda(true)"><i class="ti ti-trash"></i>Limpar</button>
+          </div>
+          <div class="tot-linha"><span>Subtotal (<span id="r-pecas">0</span> peças)</span><span class="mono" id="r-sub">R$ 0,00</span></div>
+          <div class="tot-linha desc" id="r-desc-l" style="display:none"><span>Descontos</span><span class="mono" id="r-desc">— R$ 0,00</span></div>
+        </div>
+        <div class="tot-final" onclick="if(innerWidth<900)$('resumo').classList.toggle('aberto')">
+          <span class="muted">Total <i class="ti ti-chevron-up so-cel"></i></span><b class="mono" id="r-total">R$ 0,00</b>
+        </div>
+        <button class="btn btn-primary btn-lg btn-block" style="margin-top:10px" id="bt-pagar" onclick="abrirPagamento()" disabled><i class="ti ti-cash"></i>Pagar</button>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ================= TROCAS ================= -->
+  <section class="tab" id="tab-trocas">
+    <h1 class="titulo">Trocas e devoluções</h1>
+    <p class="sub">Bipe o comprovante da venda ou as etiquetas das peças que a cliente trouxe.</p>
+    <div class="grid-2">
+      <div>
+        <div class="card">
+          <div class="busca-box" style="position:relative">
+            <i class="ti ti-scan"></i>
+            <input class="inp" id="tr-busca" placeholder="Bipe o comprovante ou a etiqueta" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter'){event.preventDefault();trocaLer(this.value)}">
+            <button class="btn btn-cam" onclick="abrirCamera('trocas')"><i class="ti ti-camera"></i></button>
+          </div>
+          <div id="tr-venda" style="margin-top:12px"></div>
+        </div>
+      </div>
       <div class="card">
-        <div class="form-label" style="margin-bottom:12px">Forma de pagamento</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-          <div>
-            <label class="form-label"><i class="ti ti-cash"></i> Dinheiro</label>
-            <input type="text" class="form-input" id="total-dinheiro" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this);calcTotal()">
-          </div>
-          <div>
-            <label class="form-label"><i class="ti ti-credit-card"></i> Cartão</label>
-            <input type="text" class="form-input" id="total-cartao" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this);calcTotal()">
-          </div>
-          <div>
-            <label class="form-label"><i class="ti ti-qrcode"></i> Pix</label>
-            <input type="text" class="form-input" id="total-pix" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this);calcTotal()">
-          </div>
-          <div>
-            <label class="form-label"><i class="ti ti-notebook"></i> Crediário</label>
-            <input type="text" class="form-input" id="total-crediario" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this);calcTotal()">
-          </div>
+        <div class="card-t">Peças que estão voltando</div>
+        <div id="tr-itens"><div class="empty">Nenhuma peça ainda</div></div>
+        <div class="tot-final"><span class="muted">Crédito da cliente</span><b class="mono" id="tr-total">R$ 0,00</b></div>
+        <div class="destinos" id="tr-destinos">
+          <button class="destino" data-d="troca" onclick="trocaDestino('troca')"><i class="ti ti-arrows-exchange"></i>Trocar agora<small>leva outra peça</small></button>
+          <button class="destino" data-d="vale" onclick="trocaDestino('vale')"><i class="ti ti-ticket"></i>Vale-troca<small>usa depois</small></button>
+          <button class="destino" data-d="dinheiro" onclick="trocaDestino('dinheiro')"><i class="ti ti-cash-off"></i>Devolver $<small>só defeito</small></button>
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface2);border-radius:10px;padding:12px 14px;margin-bottom:16px">
-          <span style="font-size:0.8rem;color:var(--text-muted)">Total do dia</span>
-          <span id="total-loja-display" style="font-size:1.3rem;font-weight:700;color:var(--accent)">R$ 0,00</span>
-        </div>
-        <div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <div class="form-label" style="margin:0">Por vendedora</div>
-            <div id="diff-badge" style="font-size:0.75rem;color:var(--text-muted)"></div>
-          </div>
-          <div id="vendedoras-list"><div class="empty">Carregando...</div></div>
-        </div>
+        <div id="tr-extra"></div>
+        <button class="btn btn-primary btn-lg btn-block" style="margin-top:14px" id="tr-confirmar" onclick="confirmarTroca()" disabled>Confirmar</button>
       </div>
     </div>
-    <div class="save-bar">
-      <button class="btn btn-primary" onclick="salvarDia()"><i class="ti ti-check"></i> Salvar Fechamento</button>
+  </section>
+
+  <!-- ================= CAIXA ================= -->
+  <section class="tab" id="tab-caixa">
+    <h1 class="titulo">Caixa</h1>
+    <p class="sub" id="cx-sub">Abertura, saídas de dinheiro e fechamento do dia.</p>
+    <div id="cx-corpo"></div>
+  </section>
+
+  <!-- ================= VENDAS DO DIA ================= -->
+  <section class="tab" id="tab-vendas">
+    <div class="row" style="align-items:flex-end;margin-bottom:14px">
+      <div><h1 class="titulo">Vendas</h1><p class="sub" style="margin:0">Tudo que passou pelo caixa e o envio de cada venda ao Bling.</p></div>
+      <div class="data-nav" style="flex:0 0 auto">
+        <button class="btn" onclick="mudarDia(-1)"><i class="ti ti-chevron-left"></i></button>
+        <span id="vd-data"></span>
+        <button class="btn" onclick="mudarDia(1)"><i class="ti ti-chevron-right"></i></button>
+      </div>
     </div>
-  </div>
+    <div class="grid-4" id="vd-stats"></div>
+    <div class="card" style="margin-top:14px"><div id="vd-lista"></div></div>
+  </section>
+</main>
 
-  <!-- ABA: DESPESAS -->
-  <div id="tab-despesas" class="content" style="display:none;padding-bottom:100px">
-
-    <!-- Formulário inline -->
-    <div class="card" style="margin-bottom:20px">
-      <div class="section-title" style="margin-bottom:14px"><i class="ti ti-receipt"></i> Adicionar Despesa</div>
-
-      <div class="form-label" style="margin-bottom:10px">Categoria</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-        <button class="cat-chip active" onclick="selectCat('Alimentação',this)"><i class="ti ti-tools-kitchen-2"></i> Alimentação</button>
-        <button class="cat-chip" onclick="selectCat('Limpeza',this)"><i class="ti ti-spray"></i> Limpeza</button>
-        <button class="cat-chip" onclick="selectCat('Manutenção',this)"><i class="ti ti-tool"></i> Manutenção</button>
-        <button class="cat-chip" onclick="selectCat('Outros',this)"><i class="ti ti-package"></i> Outros</button>
-      </div>
-      <input type="hidden" id="d-cat" value="Alimentação">
-
-      <div class="form-group" id="d-outros-group" style="display:none">
-        <label class="form-label">Descreva o que foi <span style="color:var(--red)">*</span></label>
-        <input type="text" class="form-input" id="d-outros-desc" placeholder="Ex: Presente cliente, Taxa bancária...">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Valor (R$)</label>
-        <input type="text" class="form-input" id="d-valor" placeholder="R$ 0,00" inputmode="decimal" oninput="maskBRL(this)">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Foto da nota <span style="color:var(--red)">*</span></label>
-        <label class="foto-label" for="foto-input">
-          <i class="ti ti-camera"></i> <span id="foto-label-text">Tirar foto ou escolher da galeria</span>
-        </label>
-        <input type="file" id="foto-input" accept="image/*" capture="environment" onchange="previewFoto(this)">
-        <img id="foto-preview" class="foto-preview" alt="preview">
-      </div>
-
-      <button class="btn btn-primary" onclick="addDespesa()">+ Adicionar Despesa</button>
-    </div>
-
-    <!-- Lista de despesas do dia -->
-    <div class="section-title" style="margin-bottom:12px">Despesas de hoje</div>
-    <div id="despesas-list"><div class="empty">Nenhuma despesa hoje</div></div>
-  </div>
-
-  <!-- ABA: HISTÓRICO -->
-  <div id="tab-historico" class="content" style="display:none;padding-bottom:100px">
-    <div class="section">
-      <div class="section-title"><i class="ti ti-history"></i> Histórico de Vendas</div>
-      <div id="historico-list"><div class="empty">Carregando...</div></div>
-    </div>
-  </div>
-
-  <!-- ABA: LISTA DE COMPRAS -->
-  <div id="tab-lista" class="content" style="display:none;padding-bottom:100px">
-
-    <!-- Formulário inline -->
-    <div class="card" style="margin-bottom:20px">
-      <div class="section-title" style="margin-bottom:14px"><i class="ti ti-shopping-bag"></i> Anotar Falta</div>
-
-      <div class="form-group">
-        <label class="form-label">Produto <span style="color:var(--red)">*</span></label>
-        <input type="text" class="form-input" id="l-nome" placeholder="Ex: Vestido, Calça, Blusa...">
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="form-group">
-          <label class="form-label">Tamanho</label>
-          <input type="text" class="form-input" id="l-tamanho" placeholder="P, M, G, 38...">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Cor</label>
-          <input type="text" class="form-input" id="l-cor" placeholder="Azul, Preto...">
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Categoria <span style="color:var(--red)">*</span></label>
-        <select class="form-select" id="l-cat">
-          <option>Vestido</option>
-          <option>Calça</option>
-          <option>Blusa</option>
-          <option>Blazer</option>
-          <option>Saia</option>
-          <option>Acessório</option>
-          <option>Calçado</option>
-          <option>Outros</option>
-        </select>
-      </div>
-
-      <button class="btn btn-primary" onclick="addLista()">+ Adicionar à Lista</button>
-    </div>
-
-    <!-- Lista de itens -->
-    <div class="section-title" style="margin-bottom:12px">Itens pendentes</div>
-    <div id="lista-itens"><div class="empty">Nenhum item na lista</div></div>
-  </div>
-
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav">
-    <button class="nav-item active" id="nav-vendas" onclick="showNav('vendas')">
-      <span class="nav-icon"><i class="ti ti-cash"></i></span>Vendas
-    </button>
-    <button class="nav-item" id="nav-despesas" onclick="showNav('despesas')">
-      <span class="nav-icon"><i class="ti ti-receipt"></i></span>Despesas
-    </button>
-    <button class="nav-item" id="nav-historico" onclick="showNav('historico')">
-      <span class="nav-icon"><i class="ti ti-history"></i></span>Histórico
-    </button>
-    <button class="nav-item" id="nav-lista" onclick="showNav('lista')">
-      <span class="nav-icon"><i class="ti ti-shopping-bag"></i></span>Lista
-    </button>
-  </nav>
-</div>
-
-
-<!-- MODAL RESUMO -->
-<div class="modal-overlay" id="modal-resumo">
-  <div class="modal" style="max-height:80vh;overflow-y:auto">
-    <div class="modal-handle"></div>
-    <div class="modal-title"><i class="ti ti-clipboard-list"></i> Resumo do Dia</div>
-    <div id="resumo-content"></div>
-    <div style="margin-top:16px">
-      <button class="btn btn-ghost" onclick="closeModal('modal-resumo')">Fechar</button>
-    </div>
+<div class="modal-bg" id="modal" onclick="if(event.target===this && !modalPreso)fecharModal()">
+  <div class="modal" id="modal-box">
+    <div class="modal-h"><h2 id="modal-t"></h2><button class="btn-icon" onclick="fecharModal()"><i class="ti ti-x"></i></button></div>
+    <div class="modal-b" id="modal-b"></div>
+    <div class="modal-f" id="modal-f"></div>
   </div>
 </div>
 
+<div id="camera">
+  <video id="cam-video" playsinline muted></video>
+  <div class="mira"></div>
+  <div class="cam-bar"><span class="cam-msg" id="cam-msg">Aponte para o código de barras</span><button class="btn btn-primary" onclick="fecharCamera()">Concluir</button></div>
+</div>
+
+<div id="print-area"></div>
 <div id="toast"></div>
 
 <script>
+// =====================================================================
+// SHAI CAIXA — PDV das lojas. O Bling é a base (produto, preço, venda,
+// pagamento, estoque); este app é a tela da vendedora. Cada venda é gravada
+// primeiro no aparelho, depois no Supabase (pdv_vendas) e a Edge Function
+// `pdv` lança no Bling. Sem internet a venda fica na fila e sai depois.
+// =====================================================================
 const SB_URL = 'https://ofoljmhfnohxwswskplx.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mb2xqbWhmbm9oeHdzd3NrcGx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTQzMjIsImV4cCI6MjA5NTM5MDMyMn0.IRfqUSxOLuYBlE79gdCdHaMrtuoYwNrprw6FaXj_7K8';
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
-const fmt = v => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0);
-const today = new Date().toISOString().split('T')[0];
-const todayLabel = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+const LOJA_EMAIL = { 'Loja Areal': 'lojaareal@shai.local', 'Loja Três Rios': 'lojatresrios@shai.local' };
+const EQUIPE_EMAIL = 'equipe@shai.local';
+const K = { cat: 'shai-pdv-catalogo-v1', fila: 'shai-pdv-fila-v1', cart: 'shai-pdv-carrinho-v1', funcs: 'shai-pdv-vendedoras-v1', loja: 'shai-pdv-loja', caixa: 'shai-pdv-caixa-v1', trocasFila: 'shai-pdv-trocas-fila-v1' };
+const FORMAS = {
+  dinheiro: { nome: 'Dinheiro', icon: 'ti-cash' },
+  pix: { nome: 'Pix', icon: 'ti-qrcode' },
+  debito: { nome: 'Débito', icon: 'ti-credit-card' },
+  credito: { nome: 'Crédito', icon: 'ti-credit-card-pay' },
+  crediario: { nome: 'Crediário', icon: 'ti-notebook' },
+  vale: { nome: 'Vale-troca', icon: 'ti-ticket' },
+};
+const CATS_DESPESA = ['Alimentação', 'Limpeza', 'Manutenção', 'Outros'];
 
-let lojaAtual = null;
-let funcionarias = [];
-let despesasTemp = [];
-let fotoFile = null;
-
-// ===== BRL MASK =====
-function maskBRL(el) {
-  let v = el.value.replace(/\D/g,'');
-  if (!v) { el.value = ''; return; }
-  v = (parseInt(v,10)/100).toFixed(2);
-  el.value = 'R$ ' + v.replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
-}
-function parseBRL(str) {
-  if (!str) return 0;
-  return parseFloat(str.replace('R$ ','').replace(/\./g,'').replace(',','.')) || 0;
-}
-function setBRL(id, val) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  if (!val && val !== 0) { el.value = ''; return; }
-  const n = parseFloat(val).toFixed(2);
-  el.value = 'R$ ' + n.replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
-}
-
-// ===== AUTH =====
-function traduzirErro(msg) {
-  if (!msg) return 'Erro desconhecido.';
-  const m = msg.toLowerCase();
-  if (m.includes('rate limit')) return 'Muitas tentativas. Aguarde alguns minutos e tente novamente.';
-  if (m.includes('invalid login') || m.includes('invalid credentials')) return 'E-mail ou senha incorretos.';
-  if (m.includes('email not confirmed')) return 'E-mail ainda não confirmado.';
-  if (m.includes('user already registered') || m.includes('already registered')) return 'Este e-mail já está cadastrado.';
-  if (m.includes('password') && m.includes('short')) return 'Senha muito curta. Use no mínimo 6 caracteres.';
-  if (m.includes('invalid email')) return 'E-mail inválido.';
-  if (m.includes('network') || m.includes('fetch')) return 'Erro de conexão. Verifique sua internet.';
-  return msg;
+// ---------------- utilidades ----------------
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const r2 = n => Math.round((Number(n) || 0) * 100) / 100;
+const brl = v => 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const num = s => { if (typeof s === 'number') return s; const t = String(s ?? '').trim().replace(/\s|R\$/g, ''); if (!t) return 0; const n = parseFloat(t.includes(',') ? t.replace(/\./g, '').replace(',', '.') : t); return isNaN(n) ? 0 : n; };
+const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+const hojeSP = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+const horaSP = d => new Date(d).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+const dataBR = d => d.split('-').reverse().join('/');
+const uuid = () => crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); });
+const codigoVenda = id => 'PDV-' + id.replace(/-/g, '').slice(0, 12).toUpperCase();
+const ler = (k, padrao) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : padrao; } catch (e) { return padrao; } };
+const gravar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+const lojaCurta = l => (l || '').replace('Loja ', '');
+// nome da peça mais limpo: "VESTIDO X - VERÃO 2027 TAMANHO:M" -> nome + tamanho separado
+function partesNome(nome) {
+  const m = String(nome || '').match(/^(.*?)\s*(?:TAMANHO|TAM)\s*:\s*(.+)$/i);
+  return m ? { nome: m[1].replace(/[\s-]+$/, ''), tam: m[2].trim() } : { nome: String(nome || ''), tam: '' };
 }
 
-function mostrarLogin() {
-  document.getElementById('form-login').style.display = '';
-  document.getElementById('form-cadastro').style.display = 'none';
-  document.getElementById('login-erro').textContent = '';
+let toastT;
+function toast(msg, tipo = '') {
+  const t = $('toast'); t.textContent = msg; t.className = 'show ' + tipo;
+  clearTimeout(toastT); toastT = setTimeout(() => t.className = '', tipo === 'error' ? 4500 : 2400);
 }
-function mostrarCadastro() {
-  document.getElementById('form-login').style.display = 'none';
-  document.getElementById('form-cadastro').style.display = '';
-  document.getElementById('cad-erro').textContent = '';
+let modalPreso = false;
+function abrirModal(titulo, corpo, rodape, opts = {}) {
+  $('modal-t').textContent = titulo; $('modal-b').innerHTML = corpo; $('modal-f').innerHTML = rodape || '';
+  $('modal-f').style.display = rodape ? '' : 'none';
+  $('modal-box').classList.toggle('wide', !!opts.wide);
+  modalPreso = !!opts.preso;
+  $('modal').classList.add('show');
+  setTimeout(() => { const f = $('modal-b').querySelector('[autofocus]'); if (f) { f.focus(); f.select?.(); } }, 60);
 }
+function fecharModal() { $('modal').classList.remove('show'); modalPreso = false; focarBusca(); }
+const modalAberto = () => $('modal').classList.contains('show');
 
-async function fazerLogin() {
-  const email = document.getElementById('login-email').value.trim();
-  const senha = document.getElementById('login-senha').value;
-  document.getElementById('login-erro').textContent = '';
-  if (!email || !senha) { document.getElementById('login-erro').textContent = 'Preencha e-mail e senha.'; return; }
-  const { data, error } = await sb.auth.signInWithPassword({ email, password: senha });
-  if (error) { document.getElementById('login-erro').textContent = traduzirErro(error.message); return; }
-  iniciarApp(data.user.user_metadata?.loja || 'Loja Areal');
-}
-
-async function fazerCadastro() {
-  const loja  = document.getElementById('cad-loja').value;
-  const email = document.getElementById('cad-email').value.trim();
-  const senha = document.getElementById('cad-senha').value;
-  document.getElementById('cad-erro').textContent = '';
-  if (!email || !senha) { document.getElementById('cad-erro').textContent = 'Preencha todos os campos.'; return; }
-  if (senha.length < 6) { document.getElementById('cad-erro').textContent = 'Senha mínima de 6 caracteres.'; return; }
-  const { data, error } = await sb.auth.signUp({ email, password: senha, options: { data: { loja } } });
-  if (error) { document.getElementById('cad-erro').textContent = traduzirErro(error.message); return; }
-  showToast('Conta criada! Faça login.', 'success');
-  mostrarLogin();
-}
-
-async function fazerLogout() {
-  if (!confirm('Sair do app?')) return;
-  await sb.auth.signOut();
-  lojaAtual = null;
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('auth-screen').style.display = 'flex';
-  mostrarLogin();
-}
-
-// ===== INIT APP =====
-async function iniciarApp(loja) {
-  lojaAtual = loja;
-  document.getElementById('auth-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('h-loja').textContent = loja;
-  document.getElementById('h-date').textContent = todayLabel;
-  await loadFuncionarias();
-  await loadDespesasHoje();
-  await loadVendasHoje();
-}
-
-async function loadFuncionarias() {
-  const { data } = await sb.from('funcionarias').select('*').eq('loja', lojaAtual).eq('ativa', true).order('nome');
-  funcionarias = data || [];
-  renderVendedoras();
-}
-
-function renderVendedoras() {
-  const el = document.getElementById('vendedoras-list');
-  if (!funcionarias.length) {
-    el.innerHTML = '<div class="empty">Nenhuma vendedora cadastrada nesta loja</div>';
-    return;
-  }
-  el.innerHTML = funcionarias.map(f => `
-    <div class="vend-row">
-      <div class="vend-name">${f.nome}</div>
-      <input class="vend-input" type="text" inputmode="decimal"
-        id="vend-${f.id}" placeholder="R$ 0" onchange="calcDiff()">
-    </div>`).join('');
-}
-
-function calcTotal() {
-  const dinheiro   = parseBRL(document.getElementById('total-dinheiro').value);
-  const cartao     = parseBRL(document.getElementById('total-cartao').value);
-  const pix        = parseBRL(document.getElementById('total-pix').value);
-  const crediario  = parseBRL(document.getElementById('total-crediario').value);
-  const total      = dinheiro + cartao + pix + crediario;
-  document.getElementById('total-loja-display').textContent = fmt(total);
-  calcDiff();
-}
-
-function calcDiff() {
-  const dinheiro   = parseBRL(document.getElementById('total-dinheiro').value);
-  const cartao     = parseBRL(document.getElementById('total-cartao').value);
-  const pix        = parseBRL(document.getElementById('total-pix').value);
-  const crediario  = parseBRL(document.getElementById('total-crediario').value);
-  const total      = dinheiro + cartao + pix + crediario;
-  const somaVend = funcionarias.reduce((s, f) => {
-    return s + parseBRL(document.getElementById(`vend-${f.id}`)?.value || "");
-  }, 0);
-  const diff = total - somaVend;
-  const badge = document.getElementById('diff-badge');
-  if (total === 0) { badge.textContent = ''; return; }
-  if (Math.abs(diff) < 0.01) {
-    badge.innerHTML = '<span style="color:var(--green)"><i class="ti ti-check"></i> Valores conferem</span>';
-  } else {
-    badge.innerHTML = `<span style="color:var(--accent)">${diff > 0 ? '+' : ''}${fmt(diff)} de diferença</span>`;
-  }
-}
-
-// ===== DESPESAS =====
-async function loadDespesasHoje() {
-  const { data } = await sb.from('despesas')
-    .select('*').eq('loja', lojaAtual).eq('data_despesa', today).order('criado_em', { ascending: false });
-  // Junta com temporárias
-  renderDespesas([...(data || []), ...despesasTemp]);
-}
-
-function renderDespesas(lista) {
-  const el = document.getElementById('despesas-list');
-  if (!lista.length) { el.innerHTML = '<div class="empty">Nenhuma despesa hoje</div>'; return; }
-  const total = lista.reduce((s, d) => s + d.valor, 0);
-  el.innerHTML = lista.map((d, i) => `
-    <div class="despesa-item">
-      <div class="despesa-info">
-        <div class="despesa-desc">${d.descricao}</div>
-        <div class="despesa-cat"><span class="badge badge-cat">${d.categoria}</span></div>
-      </div>
-      ${d.foto_url ? `<span class="despesa-foto" onclick="verFoto('${d.foto_url}')"><i class="ti ti-photo"></i></span>` : ''}
-      <div class="despesa-valor">${fmt(d.valor)}</div>
-      ${!d.id || d._temp ? `<button class="del-btn" onclick="removeDespesaTemp(${i})"><i class="ti ti-x"></i></button>` : ''}
-    </div>`).join('') +
-    `<div style="padding:10px 0;text-align:right;font-size:0.85rem;color:var(--text-muted)">
-      Total despesas: <strong style="color:var(--red)">${fmt(total)}</strong>
-    </div>`;
-}
-
-function previewFoto(input) {
-  fotoFile = input.files[0];
-  if (!fotoFile) return;
-  const preview = document.getElementById('foto-preview');
-  preview.src = URL.createObjectURL(fotoFile);
-  preview.style.display = 'block';
-  document.getElementById('foto-label-text').textContent = fotoFile.name;
-}
-
-function selectCat(cat, btn) {
-  document.querySelectorAll('.cat-chip').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('d-cat').value = cat;
-  document.getElementById('d-outros-group').style.display = cat === 'Outros' ? '' : 'none';
-  if (cat !== 'Outros') document.getElementById('d-outros-desc').value = '';
-}
-
-function addDespesa() {
-  const cat   = document.getElementById('d-cat').value;
-  const valor = parseBRL(document.getElementById('d-valor').value);
-  let desc = cat;
-  if (cat === 'Outros') {
-    desc = document.getElementById('d-outros-desc').value.trim();
-    if (!desc) { showToast('Descreva o que foi comprado', 'error'); return; }
-  }
-  if (!valor) { showToast('Informe o valor', 'error'); return; }
-  if (!fotoFile) { showToast('Anexe a foto da nota', 'error'); return; }
-
-  despesasTemp.push({ descricao: desc, categoria: cat, valor, _foto: fotoFile, _temp: true });
-
-  // reset form
-  document.querySelectorAll('.cat-chip').forEach((b,i) => b.classList.toggle('active', i===0));
-  document.getElementById('d-cat').value = 'Alimentação';
-  document.getElementById('d-outros-group').style.display = 'none';
-  document.getElementById('d-outros-desc').value = '';
-  document.getElementById('d-valor').value = '';
-  document.getElementById('foto-preview').style.display = 'none';
-  document.getElementById('foto-label-text').textContent = 'Tirar foto ou escolher da galeria';
-  fotoFile = null;
-  document.getElementById('foto-input').value = '';
-
-  loadDespesasHoje();
-  showToast('Despesa adicionada!');
-}
-
-function removeDespesaTemp(idx) {
-  // idx é relativo à lista combinada (salvas + temp)
-  // mas só removemos as temp, então precisamos ajustar
-  despesasTemp = [];
-  loadDespesasHoje();
-}
-
-function verFoto(url) {
-  window.open(url, '_blank');
-}
-
-// ===== CARREGAR DADOS JÁ SALVOS HOJE =====
-async function loadVendasHoje() {
-  // Carrega fechamento do dia se já existir
-  const { data: fech } = await sb.from('fechamento_dia')
-    .select('*, fechamento_vendedoras(*, funcionarias(nome))')
-    .eq('loja', lojaAtual).eq('data_fechamento', today).single();
-
-  if (fech) {
-    setBRL('total-dinheiro', fech.total_dinheiro);
-    setBRL('total-cartao',    fech.total_cartao);
-    setBRL('total-pix',       fech.total_pix);
-    setBRL('total-crediario', fech.total_crediario);
-    calcTotal();
-    (fech.fechamento_vendedoras || []).forEach(fv => {
-      const el = document.getElementById(`vend-${fv.funcionaria_id}`);
-      if (el) el.value = fv.valor;
-    });
-    calcDiff();
-  }
-}
-
-// ===== SALVAR DIA =====
-async function salvarDia() {
-  const total_dinheiro  = parseBRL(document.getElementById('total-dinheiro').value);
-  const total_cartao    = parseBRL(document.getElementById('total-cartao').value);
-  const total_pix       = parseBRL(document.getElementById('total-pix').value);
-  const total_crediario = parseBRL(document.getElementById('total-crediario').value);
-  const total           = total_dinheiro + total_cartao + total_pix + total_crediario;
-  if (!total) { showToast('Informe pelo menos uma forma de pagamento', 'error'); return; }
-
-  const btn = document.querySelector('.save-bar .btn-primary');
-  btn.textContent = 'Salvando...';
-  btn.disabled = true;
-
+// bip de confirmação / erro (o leitor USB não faz som próprio em todo aparelho)
+let audioCtx;
+function bip(ok = true) {
   try {
-    // 1. Salva fechamento do dia
-    const { data: fech, error: fechErr } = await sb.from('fechamento_dia').upsert(
-      { loja: lojaAtual, data_fechamento: today, total_loja: total, total_dinheiro, total_cartao, total_pix, total_crediario },
-      { onConflict: 'loja,data_fechamento' }
-    ).select().single();
-    if (fechErr) throw fechErr;
+    audioCtx ??= new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.frequency.value = ok ? 1250 : 220; o.type = ok ? 'sine' : 'square';
+    g.gain.value = 0.08; o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + (ok ? 0.09 : 0.25));
+    if (navigator.vibrate) navigator.vibrate(ok ? 40 : [80, 60, 80]);
+  } catch (e) {}
+}
 
-    // 2. Salva por vendedora (apaga antigas e reinsere)
-    await sb.from('fechamento_vendedoras').delete().eq('fechamento_id', fech.id);
-    const vendRows = funcionarias
-      .map(f => ({ fechamento_id: fech.id, funcionaria_id: f.id, valor: parseFloat(document.getElementById(`vend-${f.id}`)?.value) || 0 }))
-      .filter(r => r.valor > 0);
-    if (vendRows.length) await sb.from('fechamento_vendedoras').insert(vendRows);
+// ---------------- estado ----------------
+const S = {
+  loja: null, equipe: false,
+  catalogo: [], porCodigo: new Map(), porId: new Map(),
+  funcs: [], formas: {},
+  caixa: null,
+  vendasDia: [], diaVendas: hojeSP(),
+};
+let cart = ler(K.cart, null) || carrinhoVazio();
+function carrinhoVazio() { return { itens: [], descVenda: 0, vendedora: null, cliente: null, autorizadoPct: 0, vale: null }; }
+const salvarCart = () => gravar(K.cart, cart);
 
-    // 3. Também insere em vendas (tabela principal) para o dashboard funcionar
-    await sb.from('vendas').delete().eq('loja', lojaAtual).eq('data_venda', today);
-    const vendasRows = vendRows.map(r => ({ funcionaria_id: r.funcionaria_id, loja: lojaAtual, data_venda: today, valor: r.valor }));
-    if (vendasRows.length) await sb.from('vendas').insert(vendasRows);
-    // Venda sem funcionária = diferença
-    const somaVend = vendRows.reduce((s, r) => s + r.valor, 0);
-    const restante = total - somaVend;
-    if (restante > 0.01) {
-      await sb.from('vendas').insert({ funcionaria_id: null, loja: lojaAtual, data_venda: today, valor: restante, descricao: 'Sem atribuição' });
-    }
-
-    // 4. Salva despesas temporárias com upload de foto
-    for (const d of despesasTemp) {
-      let foto_url = null;
-      if (d._foto) {
-        const ext = d._foto.name.split('.').pop();
-        const path = `${lojaAtual}/${today}/${Date.now()}.${ext}`;
-        const { data: up } = await sb.storage.from('notas-despesas').upload(path, d._foto, { upsert: true });
-        if (up) {
-          const { data: pub } = sb.storage.from('notas-despesas').getPublicUrl(path);
-          foto_url = pub?.publicUrl || null;
-        }
-      }
-      await sb.from('despesas').insert({ loja: lojaAtual, data_despesa: today, descricao: d.descricao, categoria: d.categoria, valor: d.valor, foto_url });
-    }
-    despesasTemp = [];
-
-    showToast('Dia salvo com sucesso!', 'success');
-    loadDespesasHoje();
-  } catch (e) {
-    console.error(e);
-    showToast('Erro ao salvar. Tente novamente.', 'error');
-  } finally {
-    btn.textContent = '<i class="ti ti-check"></i> Salvar Fechamento';
-    btn.disabled = false;
+// =====================================================================
+// CATÁLOGO (espelho do Bling)
+// =====================================================================
+function indexarCatalogo() {
+  S.porCodigo = new Map(); S.porId = new Map();
+  for (const p of S.catalogo) {
+    S.porId.set(p.bling_id, p);
+    if (p.codigo) S.porCodigo.set(String(p.codigo).trim(), p);
+    if (p.gtin) S.porCodigo.set(String(p.gtin).trim(), p);
+    p._busca = norm(`${p.nome} ${p.codigo || ''}`);
   }
 }
+async function carregarCatalogo() {
+  const cache = ler(K.cat, null);
+  if (cache?.linhas?.length) { S.catalogo = cache.linhas; indexarCatalogo(); }
+  if (!navigator.onLine) return;
+  try {
+    // incremental: só o que mudou desde a última carga
+    const desde = cache?.em && cache.linhas?.length ? cache.em : null;
+    const novas = [];
+    for (let de = 0; ; de += 1000) {
+      let q = sb.from('pdv_catalogo').select('bling_id,codigo,gtin,nome,preco,situacao,saldo_areal,saldo_tres_rios,saldo_cd,atualizado_em').neq('formato', 'V').order('bling_id').range(de, de + 999);
+      if (desde) q = q.gt('atualizado_em', desde);
+      const { data, error } = await q;
+      if (error) throw error;
+      novas.push(...data);
+      if (data.length < 1000) break;
+    }
+    if (desde) {
+      const mapa = new Map(S.catalogo.map(p => [p.bling_id, p]));
+      for (const p of novas) mapa.set(p.bling_id, p);
+      S.catalogo = [...mapa.values()];
+    } else S.catalogo = novas;
+    S.catalogo = S.catalogo.filter(p => p.situacao !== 'I');
+    const maisNovo = novas.reduce((m, p) => p.atualizado_em > m ? p.atualizado_em : m, desde || '');
+    gravar(K.cat, { em: maisNovo || new Date().toISOString(), linhas: S.catalogo.map(({ _busca, ...p }) => p) });
+    indexarCatalogo();
+  } catch (e) { console.warn('catálogo', e); }
+}
+const saldoLoja = p => p ? (S.loja === 'Loja Areal' ? p.saldo_areal : S.loja === 'Loja Três Rios' ? p.saldo_tres_rios : null) : null;
 
-// ===== RESUMO =====
-async function verResumo() {
-  const total = parseFloat(document.getElementById('total-loja').value) || 0;
-  const { data: desp } = await sb.from('despesas').select('*').eq('loja', lojaAtual).eq('data_despesa', today);
-  const totalDesp = [...(desp || []), ...despesasTemp].reduce((s, d) => s + d.valor, 0);
-  const liquido = total - totalDesp;
-
-  const vendRows = funcionarias.map(f => {
-    const val = parseFloat(document.getElementById(`vend-${f.id}`)?.value) || 0;
-    return { nome: f.nome, val };
-  }).filter(r => r.val > 0);
-
-  document.getElementById('resumo-content').innerHTML = `
-    <div class="resumo-row"><span class="resumo-label"><i class="ti ti-calendar"></i> Data</span><span class="resumo-valor">${todayLabel}</span></div>
-    <div class="resumo-row"><span class="resumo-label"><i class="ti ti-map-pin"></i> Loja</span><span class="resumo-valor">${lojaAtual}</span></div>
-    <div style="height:8px"></div>
-    <div class="resumo-row"><span class="resumo-label" style="font-weight:600"><i class="ti ti-cash"></i> Total Bruto</span><span class="resumo-valor" style="color:var(--accent);font-size:1.1rem">${fmt(total)}</span></div>
-    ${vendRows.map(r => `<div class="resumo-row" style="padding-left:12px"><span class="resumo-label">↳ ${r.nome}</span><span class="resumo-valor">${fmt(r.val)}</span></div>`).join('')}
-    <div style="height:8px"></div>
-    <div class="resumo-row"><span class="resumo-label"><i class="ti ti-receipt"></i> Total Despesas</span><span class="resumo-valor" style="color:var(--red)">${fmt(totalDesp)}</span></div>
-    <div class="resumo-row" style="padding-top:12px"><span class="resumo-label" style="font-weight:700"><i class="ti ti-wallet"></i> Líquido do Dia</span><span class="resumo-valor" style="color:var(--green);font-size:1.1rem">${fmt(liquido)}</span></div>
-  `;
-  openModal('modal-resumo');
+// código lido -> produto. A etiqueta do Bling é EAN13 = código com zeros à esquerda + dígito verificador.
+function acharPorCodigo(lido) {
+  const t = String(lido || '').trim();
+  if (!t) return null;
+  if (S.porCodigo.has(t)) return S.porCodigo.get(t);
+  if (/^\d{13}$/.test(t)) { const c = String(parseInt(t.slice(0, 12), 10)); if (S.porCodigo.has(c)) return S.porCodigo.get(c); }
+  if (/^\d+$/.test(t)) { const c = String(parseInt(t, 10)); if (S.porCodigo.has(c)) return S.porCodigo.get(c); }
+  return null;
+}
+function codigoDaEtiqueta(lido) {
+  const t = String(lido || '').trim();
+  return /^\d{13}$/.test(t) ? String(parseInt(t.slice(0, 12), 10)) : /^\d+$/.test(t) ? String(parseInt(t, 10)) : t;
+}
+async function buscarNoBling(lido) {
+  if (!navigator.onLine) return null;
+  try {
+    const { data, error } = await sb.functions.invoke('pdv', { body: { acao: 'buscar', codigo: codigoDaEtiqueta(lido) } });
+    if (error || !data?.produtos?.length) return null;
+    for (const p of data.produtos) { if (!S.porId.has(p.bling_id)) S.catalogo.push(p); }
+    indexarCatalogo();
+    return acharPorCodigo(lido) || data.produtos[0];
+  } catch (e) { return null; }
+}
+function buscarTexto(t) {
+  const palavras = norm(t).split(/\s+/).filter(Boolean);
+  if (!palavras.length) return [];
+  const out = [];
+  for (const p of S.catalogo) {
+    if (palavras.every(w => p._busca.includes(w))) { out.push(p); if (out.length >= 30) break; }
+  }
+  return out;
 }
 
-// ===== NAV =====
-function showNav(tab) {
-  ['vendas','despesas','historico','lista'].forEach(t => {
-    document.getElementById('tab-' + t).style.display = t === tab ? '' : 'none';
-    document.getElementById('nav-' + t).classList.toggle('active', t === tab);
-  });
-  if (tab === 'historico') loadHistorico();
-  if (tab === 'lista') loadLista();
+// =====================================================================
+// LEITURA (leitor USB, câmera, digitação)
+// =====================================================================
+function focarBusca() {
+  if (modalAberto() || $('camera').classList.contains('show')) return;
+  const aba = document.querySelector('.tab.active')?.id;
+  if (aba === 'tab-vender' && innerWidth >= 900) $('busca').focus();
 }
-
-// ===== HISTÓRICO =====
-async function loadHistorico() {
-  const el = document.getElementById('historico-list');
-  el.innerHTML = '<div class="empty">Carregando...</div>';
-
-  const [{ data: fechamentos }, { data: despesas }] = await Promise.all([
-    sb.from('fechamento_dia')
-      .select('*')
-      .eq('loja', lojaAtual)
-      .order('data_fechamento', { ascending: false })
-      .limit(30),
-    sb.from('despesas')
-      .select('data_despesa, valor')
-      .eq('loja', lojaAtual)
-      .order('data_despesa', { ascending: false })
-  ]);
-
-  if (!fechamentos?.length) { el.innerHTML = '<div class="empty">Nenhum fechamento registrado</div>'; return; }
-
-  // agrupa despesas por data
-  const despPorDia = {};
-  (despesas || []).forEach(d => {
-    despPorDia[d.data_despesa] = (despPorDia[d.data_despesa] || 0) + d.valor;
-  });
-
-  el.innerHTML = fechamentos.map((d, i) => {
-    const vendas   = d.total_loja || 0;
-    const desp     = despPorDia[d.data_fechamento] || 0;
-    const dataLabel = new Date(d.data_fechamento + 'T12:00:00')
-      .toLocaleDateString('pt-BR', { weekday:'short', day:'2-digit', month:'short' });
-    return `
-      <div class="hist-row" style="flex-direction:column;align-items:flex-start;gap:0;padding:0;overflow:hidden">
-        <button onclick="toggleHist(${i})" style="width:100%;display:flex;justify-content:space-between;align-items:center;background:none;border:none;cursor:pointer;padding:14px;font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent">
-          <span style="font-size:0.85rem;font-weight:600;color:var(--text)">${dataLabel}</span>
-          <div style="display:flex;align-items:center;gap:10px">
-            <span style="font-size:0.85rem;font-weight:600;color:var(--accent)">${fmt(vendas)}</span>
-            <span id="hist-chevron-${i}" style="color:var(--text-muted);font-size:1rem;transition:transform 0.2s">›</span>
-          </div>
-        </button>
-        <div id="hist-detail-${i}" style="display:none;width:100%;padding:0 14px 14px">
-          <div style="display:flex;gap:8px">
-            <div style="flex:1;background:var(--surface2);border-radius:8px;padding:8px 10px">
-              <div style="font-size:0.62rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px"><i class="ti ti-cash"></i> Vendas</div>
-              <div style="font-size:0.9rem;font-weight:600;color:var(--accent)">${fmt(vendas)}</div>
-            </div>
-            <div style="flex:1;background:var(--surface2);border-radius:8px;padding:8px 10px">
-              <div style="font-size:0.62rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px"><i class="ti ti-receipt"></i> Despesas</div>
-              <div style="font-size:0.9rem;font-weight:600;color:var(--red)">${desp > 0 ? fmt(desp) : '—'}</div>
-            </div>
-          </div>
-        </div>
-      </div>`;
+let resSel = 0, resLista = [];
+function buscaDigitando() {
+  const t = $('busca').value.trim();
+  if (t.length < 2 || /^\d{6,}$/.test(t)) { fecharResultados(); return; }
+  resLista = buscarTexto(t); resSel = 0; renderResultados();
+}
+function renderResultados() {
+  const box = $('resultados');
+  if (!resLista.length) { box.innerHTML = `<div class="empty">Nenhuma peça com esse nome</div>`; box.classList.add('show'); return; }
+  box.innerHTML = resLista.map((p, i) => {
+    const pn = partesNome(p.nome), s = saldoLoja(p);
+    return `<div class="res ${i === resSel ? 'sel' : ''}" onmousedown="event.preventDefault();addProduto(resLista[${i}]);limparBusca()">
+      <div class="res-n">${esc(pn.nome)}<small>${pn.tam ? 'Tam ' + esc(pn.tam) + ' · ' : ''}cód ${esc(p.codigo || '—')}${s != null ? ' · ' + s + ' na loja' : ''}</small></div>
+      <div class="res-p">${brl(p.preco)}</div></div>`;
   }).join('');
+  box.classList.add('show');
 }
-
-function toggleHist(i) {
-  const detail  = document.getElementById('hist-detail-' + i);
-  const chevron = document.getElementById('hist-chevron-' + i);
-  const open = detail.style.display === 'none';
-  detail.style.display  = open ? '' : 'none';
-  chevron.style.transform = open ? 'rotate(90deg)' : '';
-  chevron.textContent     = '›';
+function fecharResultados() { $('resultados').classList.remove('show'); resLista = []; }
+function limparBusca() { $('busca').value = ''; fecharResultados(); focarBusca(); }
+function buscaTecla(e) {
+  if (e.key === 'ArrowDown' && resLista.length) { e.preventDefault(); resSel = Math.min(resSel + 1, resLista.length - 1); renderResultados(); return; }
+  if (e.key === 'ArrowUp' && resLista.length) { e.preventDefault(); resSel = Math.max(resSel - 1, 0); renderResultados(); return; }
+  if (e.key === 'Escape') { limparBusca(); return; }
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  const t = $('busca').value.trim();
+  if (!t) { if (cart.itens.length) abrirPagamento(); return; }
+  if (resLista.length && $('resultados').classList.contains('show') && !/^\d+$/.test(t)) { addProduto(resLista[resSel]); limparBusca(); return; }
+  lerCodigo(t, 'vender');
+  limparBusca();
 }
-
-// ===== LISTA DE COMPRAS =====
-async function loadLista() {
-  const el = document.getElementById('lista-itens');
-  el.innerHTML = '<div class="empty">Carregando...</div>';
-  const { data } = await sb.from('lista_loja')
-    .select('*').eq('loja', lojaAtual).eq('status','pendente')
-    .order('criado_em', { ascending: false });
-  if (!data?.length) { el.innerHTML = '<div class="empty">Nenhum item na lista</div>'; return; }
-  el.innerHTML = data.map(item => {
-    const sub = [item.categoria, item.tamanho, item.cor].filter(Boolean).join(' · ');
-    return `
-      <div class="lista-item">
-        <div class="lista-info">
-          <div class="lista-nome">${item.nome}</div>
-          ${sub ? `<div class="lista-sub">${sub}</div>` : ''}
-        </div>
-        <button class="del-btn" onclick="removeLista('${item.id}')"><i class="ti ti-x"></i></button>
-      </div>`;
-  }).join('');
-}
-
-async function addLista() {
-  const nome = document.getElementById('l-nome').value.trim();
-  const cat  = document.getElementById('l-cat').value;
-  if (!nome) { showToast('Informe o nome do produto', 'error'); return; }
-  const tamanho = document.getElementById('l-tamanho').value.trim() || null;
-  const cor     = document.getElementById('l-cor').value.trim()     || null;
-  const { error } = await sb.from('lista_loja').insert({ loja: lojaAtual, nome, tamanho, cor, categoria: cat });
-  if (error) { showToast('Erro ao salvar', 'error'); return; }
-  document.getElementById('l-nome').value    = '';
-  document.getElementById('l-tamanho').value = '';
-  document.getElementById('l-cor').value     = '';
-  showToast('Item adicionado!');
-  loadLista();
-}
-
-async function removeLista(id) {
-  await sb.from('lista_loja').delete().eq('id', id);
-  loadLista();
-}
-
-// ===== UTILS =====
-function showToast(msg, type = 'success') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'show ' + type;
-  setTimeout(() => t.className = '', 3000);
-}
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+// leitor USB funciona como teclado: se nada estiver com o foco, junta os dígitos rápidos até o Enter
+let scanBuf = '', scanT = 0;
+document.addEventListener('keydown', e => {
+  const alvo = e.target;
+  if (alvo && (alvo.tagName === 'INPUT' || alvo.tagName === 'TEXTAREA' || alvo.tagName === 'SELECT')) return;
+  if (modalAberto()) return;
+  const agora = Date.now();
+  if (agora - scanT > 80) scanBuf = '';
+  scanT = agora;
+  if (e.key === 'Enter') {
+    if (scanBuf.length >= 4) { e.preventDefault(); const aba = document.querySelector('.tab.active')?.id; lerCodigo(scanBuf, aba === 'tab-trocas' ? 'trocas' : 'vender'); }
+    scanBuf = ''; return;
+  }
+  if (e.key.length === 1) scanBuf += e.key;
 });
 
-// ===== BOOT =====
+async function lerCodigo(lido, destino) {
+  lido = String(lido).trim();
+  if (destino === 'trocas') { $('tr-busca').value = lido; return trocaLer(lido); }
+  if (/^PDV-/i.test(lido)) { irPara('trocas'); return trocaLer(lido); }
+  let p = acharPorCodigo(lido);
+  if (!p) {
+    if (/^\d{6,8}$/.test(lido) && !/^\d{13}$/.test(lido)) {
+      // número de vale-troca bipado no caixa: já abre o pagamento com o vale
+      const { data: vale } = navigator.onLine ? await sb.from('pdv_vales').select('codigo').eq('codigo', lido).maybeSingle() : { data: null };
+      if (vale) { if (!cart.itens.length) return toast('Bipe as peças primeiro; o vale entra no pagamento.', 'error'); abrirPagamento(lido); return; }
+    }
+    toast('Procurando no Bling…');
+    p = await buscarNoBling(lido);
+  }
+  if (!p) { bip(false); toast(`Código ${lido} não encontrado`, 'error'); return; }
+  addProduto(p);
+}
+
+// ---------------- câmera ----------------
+let camStream = null, camDestino = 'vender', camUltimo = '', camUltimoT = 0, camLoop = null, zxingReader = null;
+async function abrirCamera(destino) {
+  camDestino = destino;
+  $('cam-msg').textContent = 'Aponte para o código de barras';
+  $('camera').classList.add('show');
+  const video = $('cam-video');
+  try {
+    if ('BarcodeDetector' in window) {
+      camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 } }, audio: false });
+      video.srcObject = camStream; await video.play();
+      const det = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'code_128', 'upc_a', 'code_39'] });
+      const passo = async () => {
+        if (!camStream) return;
+        try { const r = await det.detect(video); if (r[0]) camLido(r[0].rawValue); } catch (e) {}
+        camLoop = setTimeout(passo, 180);
+      };
+      passo();
+    } else {
+      // iPhone e navegadores sem leitor nativo: biblioteca ZXing (carregada só quando precisa)
+      if (!window.ZXingBrowser) await carregarScript('https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/zxing-browser.min.js');
+      zxingReader = new ZXingBrowser.BrowserMultiFormatReader();
+      const ctrl = await zxingReader.decodeFromVideoDevice(undefined, video, (res) => { if (res) camLido(res.getText()); });
+      camStream = { ctrl };
+    }
+  } catch (e) {
+    fecharCamera();
+    toast('Não consegui abrir a câmera. Libere a permissão no navegador.', 'error');
+  }
+}
+function camLido(txt) {
+  const agora = Date.now();
+  if (txt === camUltimo && agora - camUltimoT < 2200) return; // mesma peça ainda na frente da câmera
+  camUltimo = txt; camUltimoT = agora;
+  $('cam-msg').textContent = 'Lido: ' + txt;
+  if (camDestino === 'trocas' || /^PDV-/i.test(txt)) { fecharCamera(); lerCodigo(txt, camDestino === 'trocas' ? 'trocas' : 'vender'); return; }
+  lerCodigo(txt, 'vender');
+}
+function fecharCamera() {
+  clearTimeout(camLoop);
+  if (camStream?.ctrl) camStream.ctrl.stop();
+  else if (camStream?.getTracks) camStream.getTracks().forEach(t => t.stop());
+  camStream = null; zxingReader = null;
+  $('cam-video').srcObject = null;
+  $('camera').classList.remove('show');
+  focarBusca();
+}
+function carregarScript(src) {
+  return new Promise((ok, falha) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = falha; document.head.appendChild(s); });
+}
+
+// =====================================================================
+// CARRINHO
+// =====================================================================
+function addProduto(p) {
+  if (!p) return;
+  const it = cart.itens.find(i => i.bling_id === p.bling_id);
+  if (it) it.qtd++;
+  else cart.itens.push({ bling_id: p.bling_id, codigo: p.codigo || null, nome: p.nome, preco: Number(p.preco) || 0, qtd: 1, desc: 0 });
+  if (!(Number(p.preco) > 0)) toast('Atenção: peça sem preço no Bling', 'error'); else bip(true);
+  salvarCart(); renderCarrinho(p.bling_id);
+}
+function totais() {
+  const subtotal = r2(cart.itens.reduce((s, i) => s + i.preco * i.qtd, 0));
+  const descItens = r2(cart.itens.reduce((s, i) => s + (i.desc || 0), 0));
+  const descVenda = r2(Math.min(cart.descVenda || 0, subtotal - descItens));
+  const desconto = r2(descItens + descVenda);
+  const total = r2(subtotal - desconto);
+  const pct = subtotal > 0 ? desconto / subtotal * 100 : 0;
+  return { subtotal, descItens, descVenda, desconto, total, pct, pecas: cart.itens.reduce((s, i) => s + i.qtd, 0) };
+}
+function renderCarrinho(novoId) {
+  const box = $('carrinho');
+  if (!cart.itens.length) {
+    box.innerHTML = `<div class="cart-vazio"><i class="ti ti-scan"></i><b>Bipe a etiqueta da peça</b><br><span style="font-size:.85rem">ou toque na câmera / digite o código ou o nome</span></div>`;
+  } else {
+    box.innerHTML = cart.itens.map((i, idx) => {
+      const pn = partesNome(i.nome), p = S.porId.get(i.bling_id), s = saldoLoja(p);
+      const bruto = i.preco * i.qtd, liq = bruto - (i.desc || 0);
+      return `<div class="item ${i.bling_id === novoId ? 'novo' : ''}">
+        <div class="item-n" onclick="editarItem(${idx})">${esc(pn.nome)}
+          <small>${pn.tam ? 'Tam <b>' + esc(pn.tam) + '</b> · ' : ''}${brl(i.preco)}${i.qtd > 1 ? ' cada' : ''} · cód ${esc(i.codigo || '—')}${s != null ? ' · ' + s + ' na loja' : ''}${i.desc ? ` · <span class="desc">desconto ${brl(i.desc)}</span>` : ''}</small></div>
+        <div class="qtd"><button onclick="mudarQtd(${idx},-1)">−</button><span>${i.qtd}</span><button onclick="mudarQtd(${idx},1)">+</button></div>
+        <div class="item-v mono">${i.desc ? `<small>${brl(bruto)}</small>` : ''}${brl(liq)}</div>
+        <button class="btn-icon" onclick="removerItem(${idx})" title="Tirar"><i class="ti ti-x"></i></button>
+      </div>`;
+    }).join('');
+  }
+  renderResumo();
+}
+function renderResumo() {
+  const t = totais();
+  $('r-pecas').textContent = t.pecas;
+  $('r-sub').textContent = brl(t.subtotal);
+  $('r-desc-l').style.display = t.desconto ? '' : 'none';
+  $('r-desc').textContent = '− ' + brl(t.desconto) + (t.pct ? ` (${t.pct.toFixed(1).replace('.', ',')}%)` : '');
+  $('r-total').textContent = brl(t.total);
+  $('bt-pagar').disabled = !cart.itens.length;
+  $('bt-pagar').innerHTML = `<i class="ti ti-cash"></i>Pagar ${cart.itens.length ? brl(t.total) : ''}`;
+  $('bt-cliente').textContent = cart.cliente?.nome ? cart.cliente.nome.split(' ')[0] : 'Cliente';
+  renderVendedoras();
+  $('credito-troca').innerHTML = cart.vale ? `<div class="aviso green"><i class="ti ti-ticket"></i><div><b>Crédito de troca ${brl(cart.vale.saldo)}</b><br>Entra automático no pagamento (vale ${esc(cart.vale.codigo)}). <a href="#" onclick="tirarCreditoTroca();return false">tirar</a></div></div>` : '';
+}
+function renderVendedoras() {
+  const box = $('vendedoras');
+  if (!S.funcs.length) { box.innerHTML = '<span class="muted" style="font-size:.85rem">Nenhuma vendedora ativa nesta loja</span>'; return; }
+  box.innerHTML = S.funcs.map(f => `<button class="chip ${cart.vendedora === f.id ? 'on' : ''}" onclick="escolherVendedora('${f.id}')">${esc(f.nome)}${f.bling_vendedor_id ? '' : '<small>sem cadastro no Bling</small>'}</button>`).join('');
+}
+function escolherVendedora(id) { cart.vendedora = cart.vendedora === id ? null : id; salvarCart(); renderResumo(); focarBusca(); }
+function mudarQtd(idx, d) {
+  const i = cart.itens[idx]; if (!i) return;
+  i.qtd += d;
+  if (i.qtd <= 0) cart.itens.splice(idx, 1);
+  else if (i.desc > i.preco * i.qtd) i.desc = r2(i.preco * i.qtd);
+  salvarCart(); renderCarrinho(); focarBusca();
+}
+function removerItem(idx) { cart.itens.splice(idx, 1); salvarCart(); renderCarrinho(); focarBusca(); }
+// o crédito de troca não some ao limpar: o vale continua valendo
+function limparVenda(perguntar) {
+  if (perguntar && cart.itens.length && !confirm('Limpar a venda atual?')) return;
+  const vale = cart.vale;
+  cart = carrinhoVazio(); cart.vale = vale;
+  salvarCart(); renderCarrinho(); focarBusca();
+}
+function tirarCreditoTroca() {
+  const v = cart.vale; if (!v) return;
+  cart.vale = null; salvarCart(); renderResumo();
+  abrirModal('Crédito de troca', `<p>O vale <b>${esc(v.codigo)}</b> de <b>${brl(v.saldo)}</b> continua valendo. Imprima para a cliente usar depois.</p>`,
+    `<button class="btn" onclick="fecharModal()">Agora não</button><button class="btn btn-primary" onclick="fecharModal();imprimirVale({codigo:'${esc(v.codigo)}',valor:${v.saldo},loja:S.loja})"><i class="ti ti-printer"></i>Imprimir vale</button>`);
+}
+
+// ---------------- desconto ----------------
+function campoDesconto(prefixo, base) {
+  return `<div class="row" style="margin-top:4px">
+    <div><div class="lbl" style="margin-top:0">Em R$</div><input class="inp big" id="${prefixo}-rs" inputmode="decimal" autofocus oninput="descSync('${prefixo}',${base},'rs')"></div>
+    <div><div class="lbl" style="margin-top:0">Em %</div><input class="inp big" id="${prefixo}-pc" inputmode="decimal" oninput="descSync('${prefixo}',${base},'pc')"></div>
+  </div>`;
+}
+function descSync(prefixo, base, de) {
+  if (de === 'rs') $(`${prefixo}-pc`).value = base ? (num($(`${prefixo}-rs`).value) / base * 100).toFixed(1).replace('.', ',') : '';
+  else $(`${prefixo}-rs`).value = r2(base * num($(`${prefixo}-pc`).value) / 100).toFixed(2).replace('.', ',');
+}
+function editarItem(idx) {
+  const i = cart.itens[idx]; if (!i) return;
+  const base = r2(i.preco * i.qtd);
+  abrirModal(partesNome(i.nome).nome, `
+    <div class="muted" style="font-size:.88rem">${i.qtd} × ${brl(i.preco)} = <b>${brl(base)}</b></div>
+    <div class="lbl">Desconto nesta peça</div>${campoDesconto('di', base)}`,
+    `<button class="btn" onclick="aplicarDescItem(${idx},0)">Sem desconto</button><button class="btn btn-primary" onclick="aplicarDescItem(${idx})">Aplicar</button>`);
+  if (i.desc) { $('di-rs').value = i.desc.toFixed(2).replace('.', ','); descSync('di', base, 'rs'); }
+}
+function aplicarDescItem(idx, forcar) {
+  const i = cart.itens[idx]; const base = r2(i.preco * i.qtd);
+  const v = forcar === 0 ? 0 : r2(num($('di-rs').value));
+  if (v < 0 || v >= base) return toast('Desconto inválido', 'error');
+  i.desc = v; salvarCart(); fecharModal(); renderCarrinho();
+}
+function abrirDescontoVenda() {
+  if (!cart.itens.length) return toast('Bipe as peças primeiro', 'error');
+  const t = totais(); const base = r2(t.subtotal - t.descItens);
+  abrirModal('Desconto na venda', `
+    <div class="muted" style="font-size:.88rem">Sobre ${brl(base)}${t.descItens ? ' (já com o desconto das peças)' : ''}</div>
+    ${campoDesconto('dv', base)}
+    <div class="chips" style="margin-top:12px">${[5, 10, 15, 20].map(p => `<button class="chip" onclick="$('dv-pc').value='${p}';descSync('dv',${base},'pc')">${p}%</button>`).join('')}</div>`,
+    `<button class="btn" onclick="aplicarDescVenda(0)">Sem desconto</button><button class="btn btn-primary" onclick="aplicarDescVenda()">Aplicar</button>`);
+  if (cart.descVenda) { $('dv-rs').value = cart.descVenda.toFixed(2).replace('.', ','); descSync('dv', base, 'rs'); }
+}
+function aplicarDescVenda(forcar) {
+  const t = totais(); const base = r2(t.subtotal - t.descItens);
+  const v = forcar === 0 ? 0 : r2(num($('dv-rs').value));
+  if (v < 0 || v >= base) return toast('Desconto inválido', 'error');
+  cart.descVenda = v; salvarCart(); fecharModal(); renderResumo();
+}
+// desconto acima do limite da vendedora (cadastro de vendedor no Bling) pede a senha da gerente
+async function conferirLimiteDesconto() {
+  const t = totais();
+  if (t.desconto <= 0) return true;
+  const f = S.funcs.find(x => x.id === cart.vendedora);
+  const limite = Number(f?.desconto_limite) || 0;
+  if (t.pct <= limite + 0.01 || t.pct <= cart.autorizadoPct + 0.01) return true;
+  const ok = await pedirSenhaGerente(`Desconto de ${t.pct.toFixed(1).replace('.', ',')}% passa do limite de ${f?.nome || 'a vendedora'} (${limite}%).`);
+  if (ok) { cart.autorizadoPct = t.pct; salvarCart(); }
+  return ok;
+}
+function pedirSenhaGerente(motivo) {
+  return new Promise(resolve => {
+    if (!navigator.onLine) { toast('Sem internet: não dá para conferir a senha da gerente agora', 'error'); return resolve(false); }
+    window._senhaResolve = resolve;
+    abrirModal('Senha da gerente', `<p style="font-size:.9rem;margin-bottom:10px">${esc(motivo)}</p>
+      <input type="password" class="inp big" id="sg" inputmode="numeric" autocomplete="off" autofocus onkeydown="if(event.key==='Enter')conferirSenhaGerente()">
+      <div class="gate-err" id="sg-erro"></div>`,
+      `<button class="btn" onclick="window._senhaResolve(false);fecharModal()">Cancelar</button><button class="btn btn-primary" onclick="conferirSenhaGerente()">Autorizar</button>`, { preso: true });
+  });
+}
+async function conferirSenhaGerente() {
+  const senha = $('sg').value;
+  const { data: tem } = await sb.rpc('pdv_tem_senha', { p_loja: S.loja });
+  if (!tem) { $('sg-erro').textContent = 'A loja ainda não tem senha da gerente. Cadastre em Caixa → Senha da gerente.'; return; }
+  const { data, error } = await sb.rpc('pdv_conferir_senha', { p_loja: S.loja, p_senha: senha });
+  if (error || !data) { $('sg-erro').textContent = 'Senha incorreta'; bip(false); return; }
+  const r = window._senhaResolve; window._senhaResolve = null; fecharModal(); r?.(true);
+}
+
+// ---------------- cliente ----------------
+function abrirCliente(depois) {
+  const c = cart.cliente || {};
+  window._clienteDepois = depois || null;
+  abrirModal('Cliente', `
+    <p class="muted" style="font-size:.85rem">Opcional na venda. Obrigatório no crediário.</p>
+    <div class="lbl">Nome</div><input class="inp" id="cl-nome" value="${esc(c.nome || '')}" autofocus>
+    <div class="row"><div><div class="lbl">CPF</div><input class="inp" id="cl-cpf" inputmode="numeric" value="${esc(c.cpf || '')}"></div>
+    <div><div class="lbl">WhatsApp</div><input class="inp" id="cl-tel" inputmode="tel" value="${esc(c.telefone || '')}"></div></div>`,
+    `<button class="btn" onclick="cart.cliente=null;salvarCart();fecharModal();renderResumo()">Sem cliente</button><button class="btn btn-primary" onclick="salvarCliente()">Salvar</button>`);
+}
+function cpfValido(c) {
+  c = String(c || '').replace(/\D/g, '');
+  if (c.length !== 11 || /^(\d)\1+$/.test(c)) return false;
+  for (let t = 9; t < 11; t++) { let s = 0; for (let i = 0; i < t; i++) s += +c[i] * (t + 1 - i); if (((s * 10) % 11) % 10 !== +c[t]) return false; }
+  return true;
+}
+function salvarCliente() {
+  const nome = $('cl-nome').value.trim(), cpf = $('cl-cpf').value.replace(/\D/g, ''), telefone = $('cl-tel').value.replace(/\D/g, '');
+  if (!nome) return toast('Informe o nome', 'error');
+  if (cpf && !cpfValido(cpf)) return toast('CPF inválido', 'error');
+  cart.cliente = { nome, cpf: cpf || null, telefone: telefone || null };
+  salvarCart(); fecharModal(); renderResumo();
+  const depois = window._clienteDepois; window._clienteDepois = null; if (depois) depois();
+}
+
+// =====================================================================
+// PAGAMENTO
+// =====================================================================
+let pag = null; // { linhas: [{forma, valor, recebido, parcelas, vale, saldoVale}] }
+async function abrirPagamento(valeBipado) {
+  if (!cart.itens.length) return;
+  if (!cart.vendedora) { toast('Escolha a vendedora', 'error'); $('resumo').classList.add('aberto'); bip(false); return; }
+  if (cart.itens.some(i => !(i.preco > 0))) return toast('Há peça sem preço — corrija no Bling ou tire da venda', 'error');
+  if (!S.caixa) { toast('Abra o caixa antes da primeira venda', 'error'); irPara('caixa'); return; }
+  if (!(await conferirLimiteDesconto())) return;
+  pag = { linhas: [] };
+  const t = totais();
+  if (cart.vale?.saldo > 0) pag.linhas.push({ forma: 'vale', valor: r2(Math.min(cart.vale.saldo, t.total)), vale: cart.vale.codigo, saldoVale: cart.vale.saldo });
+  renderPagamento();
+  if (valeBipado) addVale(valeBipado);
+}
+const pagFalta = () => r2(totais().total - pag.linhas.reduce((s, l) => s + (Number(l.valor) || 0), 0));
+function renderPagamento() {
+  const t = totais(), falta = pagFalta();
+  const linhas = pag.linhas.map((l, i) => {
+    const f = FORMAS[l.forma];
+    let extra = '';
+    if (l.forma === 'dinheiro') {
+      const troco = r2((Number(l.recebido) || 0) - l.valor);
+      extra = `<div class="lbl" style="margin-top:6px">Recebido em dinheiro</div><input class="inp big" inputmode="decimal" value="${l.recebido ? String(l.recebido).replace('.', ',') : ''}" placeholder="${brl(l.valor)}" oninput="pagRecebido(${i},this.value)">
+        <div class="troco" id="troco-${i}">${troco > 0 ? 'Troco: ' + brl(troco) : ''}</div>`;
+    } else if (l.forma === 'credito') {
+      extra = `<div class="parc">${[1, 2, 3, 4, 5, 6].map(n => `<button class="${(l.parcelas || 1) === n ? 'on' : ''}" onclick="pag.linhas[${i}].parcelas=${n};renderPagamento()">${n === 1 ? 'À vista' : n + 'x'}</button>`).join('')}</div>`;
+    } else if (l.forma === 'crediario') {
+      extra = `<div class="parc">${[1, 2, 3, 4, 5, 6].map(n => `<button class="${(l.parcelas || 1) === n ? 'on' : ''}" onclick="pag.linhas[${i}].parcelas=${n};renderPagamento()">${n}x</button>`).join('')}</div>
+        <div style="font-size:.82rem;margin-top:8px">${cart.cliente?.nome ? `Cliente: <b>${esc(cart.cliente.nome)}</b>${cart.cliente.cpf ? '' : ' <span style="color:var(--red)">· falta CPF</span>'} <a href="#" onclick="abrirCliente(()=>abrirPagamentoDeNovo());return false">alterar</a>` : `<a href="#" onclick="abrirCliente(()=>abrirPagamentoDeNovo());return false" style="color:var(--red);font-weight:700">Informe a cliente (nome e CPF)</a>`}</div>`;
+    } else if (l.forma === 'vale') {
+      extra = `<div style="font-size:.82rem">Vale nº <b>${esc(l.vale)}</b> · saldo ${brl(l.saldoVale)}</div>`;
+    }
+    return `<div class="pag-linha"><div class="pag-linha-h"><i class="ti ${f.icon}"></i>${f.nome}<span class="sp"></span>
+      <input class="inp" style="width:130px;text-align:right;font-weight:700" inputmode="decimal" value="${l.valor.toFixed(2).replace('.', ',')}" ${l.forma === 'vale' ? '' : ''} onchange="pagValor(${i},this.value)">
+      <button class="btn-icon" onclick="pag.linhas.splice(${i},1);renderPagamento()"><i class="ti ti-x"></i></button></div>${extra}</div>`;
+  }).join('');
+  const usadas = new Set(pag.linhas.map(l => l.forma));
+  const corpo = `
+    <div class="pag-total"><div class="muted">Total da venda</div><div class="v mono">${brl(t.total)}</div>
+      <div class="f" style="color:${falta > 0.004 ? 'var(--red)' : 'var(--green)'}">${falta > 0.004 ? 'Falta ' + brl(falta) : falta < -0.004 ? 'Passou ' + brl(-falta) + ' — ajuste os valores' : '✓ Pagamento completo'}</div></div>
+    ${falta > 0.004 && pag.linhas.length < 3 ? `<div class="formas">${Object.entries(FORMAS).map(([k, f]) =>
+      `<button class="forma" ${usadas.has(k) && k !== 'vale' ? 'disabled' : ''} onclick="addForma('${k}')"><i class="ti ${f.icon}"></i>${f.nome}</button>`).join('')}</div>` : ''}
+    ${linhas}`;
+  abrirModal('Pagamento', corpo,
+    `<button class="btn" onclick="fecharModal()">Voltar</button><button class="btn btn-green btn-lg" id="bt-finalizar" ${Math.abs(falta) > 0.004 ? 'disabled' : ''} onclick="finalizarVenda()"><i class="ti ti-check"></i>Finalizar venda</button>`, { preso: true });
+}
+function abrirPagamentoDeNovo() { if (pag) renderPagamento(); }
+function addForma(k) {
+  if (k === 'vale') {
+    abrirModal('Vale-troca', `<div class="lbl" style="margin-top:0">Bipe ou digite o número do vale</div>
+      <input class="inp big" id="vale-cod" inputmode="numeric" autofocus onkeydown="if(event.key==='Enter')addVale(this.value)">`,
+      `<button class="btn" onclick="renderPagamento()">Voltar</button><button class="btn btn-primary" onclick="addVale($('vale-cod').value)">Usar vale</button>`, { preso: true });
+    return;
+  }
+  if (k === 'crediario' && !cart.cliente?.nome) { pag.linhas.push({ forma: k, valor: pagFalta(), parcelas: 1 }); abrirCliente(() => abrirPagamentoDeNovo()); return; }
+  pag.linhas.push({ forma: k, valor: pagFalta(), parcelas: 1 });
+  renderPagamento();
+}
+async function addVale(codigo) {
+  codigo = String(codigo || '').replace(/\D/g, '');
+  if (!codigo) return;
+  if (!navigator.onLine) return toast('Vale-troca precisa de internet para conferir o saldo', 'error');
+  if (pag.linhas.some(l => l.vale === codigo)) { renderPagamento(); return toast('Esse vale já está no pagamento', 'error'); }
+  const { data: v } = await sb.from('pdv_vales').select('*').eq('codigo', codigo).maybeSingle();
+  if (!v) { bip(false); return toast('Vale não encontrado', 'error'); }
+  if (!(v.saldo > 0)) { bip(false); return toast('Esse vale já foi usado (saldo zero)', 'error'); }
+  const t = totais();
+  const restante = r2(t.total - pag.linhas.reduce((s, l) => s + (Number(l.valor) || 0), 0));
+  pag.linhas.unshift({ forma: 'vale', valor: r2(Math.min(v.saldo, Math.max(restante, 0))), vale: codigo, saldoVale: Number(v.saldo) });
+  bip(true); renderPagamento();
+}
+function pagValor(i, txt) {
+  const l = pag.linhas[i]; let v = r2(num(txt));
+  if (l.forma === 'vale' && v > l.saldoVale) { v = l.saldoVale; toast('O vale só tem ' + brl(l.saldoVale), 'error'); }
+  l.valor = Math.max(0, v); renderPagamento();
+}
+function pagRecebido(i, txt) {
+  const l = pag.linhas[i]; l.recebido = num(txt);
+  const troco = r2(l.recebido - l.valor);
+  $('troco-' + i).textContent = troco > 0 ? 'Troco: ' + brl(troco) : troco < 0 && l.recebido ? 'Recebido menor que o valor' : '';
+}
+
+// ---------------- finalizar ----------------
+let finalizando = false;
+async function finalizarVenda() {
+  if (finalizando) return;
+  const t = totais();
+  if (Math.abs(pagFalta()) > 0.004) return;
+  const din = pag.linhas.find(l => l.forma === 'dinheiro');
+  if (din && din.recebido && din.recebido < din.valor - 0.004) return toast('O dinheiro recebido é menor que o valor em dinheiro', 'error');
+  const cred = pag.linhas.find(l => l.forma === 'crediario');
+  if (cred && !(cart.cliente?.nome && cart.cliente?.cpf)) return toast('Crediário precisa do nome e CPF da cliente', 'error');
+  if (pag.linhas.some(l => l.forma === 'vale') && !navigator.onLine) return toast('Venda com vale precisa de internet', 'error');
+  finalizando = true; $('bt-finalizar').disabled = true;
+  try {
+    const f = S.funcs.find(x => x.id === cart.vendedora);
+    const id = uuid();
+    // rateio do desconto da venda entre as peças (para a troca devolver o que foi pago de verdade)
+    const baseRateio = r2(t.subtotal - t.descItens);
+    let rateado = 0;
+    const itens = cart.itens.map((i, idx) => {
+      const liqItem = r2(i.preco * i.qtd - (i.desc || 0));
+      let parte = baseRateio > 0 ? r2(t.descVenda * liqItem / baseRateio) : 0;
+      if (idx === cart.itens.length - 1) parte = r2(t.descVenda - rateado);
+      rateado = r2(rateado + parte);
+      return { bling_id: i.bling_id, codigo: i.codigo, nome: i.nome, qtd: i.qtd, preco: i.preco, desconto: r2((i.desc || 0) + parte), pago: r2(liqItem - parte) };
+    });
+    const pagamentos = pag.linhas.map(l => {
+      const p = { forma: l.forma === 'credito' && (l.parcelas || 1) > 1 ? 'credito_parcelado' : l.forma, valor: r2(l.valor) };
+      if (l.forma === 'credito' || l.forma === 'crediario') p.parcelas = l.parcelas || 1;
+      if (l.forma === 'vale') p.vale = l.vale;
+      if (l.forma === 'dinheiro' && l.recebido) p.recebido = r2(l.recebido);
+      return p;
+    });
+    const venda = {
+      id, loja: S.loja, data: hojeSP(), criado_em: new Date().toISOString(),
+      funcionaria_id: cart.vendedora, vendedora: f?.nome || null, cliente: cart.cliente,
+      itens, subtotal: t.subtotal, desconto: t.desconto, total: t.total, pagamentos,
+      troco: din?.recebido ? r2(din.recebido - din.valor) : 0,
+      caixa_id: S.caixa?.id || null, status: 'pendente',
+    };
+    // vale: baixa o saldo antes de tudo (não pode ser usado duas vezes)
+    for (const p of pagamentos.filter(p => p.forma === 'vale')) {
+      const { error } = await sb.rpc('pdv_usar_vale', { p_codigo: p.vale, p_valor: p.valor, p_venda: id });
+      if (error) throw new Error('Vale ' + p.vale + ': ' + error.message);
+    }
+    const fila = ler(K.fila, []); fila.push(venda); gravar(K.fila, fila);
+    const sobraVale = cart.vale && pagamentos.find(p => p.vale === cart.vale.codigo) ? r2(cart.vale.saldo - pagamentos.find(p => p.vale === cart.vale.codigo).valor) : 0;
+    const valeSobra = sobraVale > 0 ? cart.vale.codigo : null;
+    cart = carrinhoVazio(); salvarCart(); pag = null;
+    fecharModal(); renderCarrinho();
+    imprimirComprovante(venda);
+    toast(`Venda finalizada — ${brl(venda.total)}`, 'ok');
+    if (valeSobra) setTimeout(() => oferecerSobraVale(valeSobra, sobraVale), 600);
+    atualizarPills();
+    enviarFila();
+  } catch (e) {
+    toast(e.message || 'Erro ao finalizar', 'error');
+    $('bt-finalizar').disabled = false;
+  } finally { finalizando = false; }
+}
+function oferecerSobraVale(codigo, saldo) {
+  abrirModal('Sobrou crédito no vale', `<p>O vale <b>${esc(codigo)}</b> ainda tem <b>${brl(saldo)}</b>. A cliente pode usar depois com o mesmo número.</p>`,
+    `<button class="btn" onclick="fecharModal()">Ok</button><button class="btn btn-primary" onclick="fecharModal();imprimirVale({codigo:'${codigo}',valor:${saldo},loja:S.loja})"><i class="ti ti-printer"></i>Imprimir vale</button>`);
+}
+
+// =====================================================================
+// FILA DE ENVIO (aparelho -> Supabase -> Bling)
+// =====================================================================
+let enviandoFila = false;
+async function enviarFila() {
+  if (enviandoFila || !navigator.onLine || !S.loja) return;
+  enviandoFila = true;
+  try {
+    const fila = ler(K.fila, []);
+    for (const v of fila) {
+      const { error } = await sb.from('pdv_vendas').upsert(v, { onConflict: 'id', ignoreDuplicates: true });
+      if (error) { console.warn('fila', error); break; }
+      gravar(K.fila, ler(K.fila, []).filter(x => x.id !== v.id));
+      sb.functions.invoke('pdv', { body: { acao: 'enviar', venda: v.id } }).then(() => { if (document.querySelector('#tab-vendas.active')) carregarVendas(); atualizarPills(); });
+    }
+  } finally { enviandoFila = false; atualizarPills(); }
+}
+window.addEventListener('online', () => { atualizarPills(); enviarFila(); carregarCatalogo(); });
+window.addEventListener('offline', atualizarPills);
+setInterval(() => { enviarFila(); atualizarPills(); }, 30000);
+
+async function atualizarPills() {
+  const naFila = ler(K.fila, []).length;
+  let comErro = 0, pendServ = 0;
+  if (navigator.onLine && S.loja) {
+    const { data } = await sb.from('pdv_vendas').select('status').eq('loja', S.loja).in('status', ['pendente', 'enviando', 'erro']).gte('data', ontem());
+    for (const v of data || []) v.status === 'erro' ? comErro++ : pendServ++;
+  }
+  const p = $('pill-rede');
+  if (!navigator.onLine) { p.className = 'pill warn'; $('pill-rede-t').textContent = naFila ? `Sem internet · ${naFila} na fila` : 'Sem internet'; }
+  else if (comErro) { p.className = 'pill err'; $('pill-rede-t').textContent = `${comErro} com erro no Bling`; }
+  else if (naFila + pendServ) { p.className = 'pill warn'; $('pill-rede-t').textContent = `Enviando ${naFila + pendServ}…`; }
+  else { p.className = 'pill ok'; $('pill-rede-t').textContent = 'Tudo no Bling'; }
+  const b = $('nav-fila'); const n = naFila + comErro;
+  b.style.display = n ? '' : 'none'; b.textContent = n;
+}
+const ontem = () => { const d = new Date(hojeSP() + 'T12:00:00'); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10); };
+
+// =====================================================================
+// COMPROVANTE (não fiscal, térmica 80mm)
+// =====================================================================
+const NOME_FORMA = { dinheiro: 'Dinheiro', pix: 'Pix', debito: 'Cartão de débito', credito: 'Cartão de crédito', credito_parcelado: 'Cartão de crédito', crediario: 'Crediário', vale: 'Vale-troca' };
+function imprimir(html) {
+  $('print-area').innerHTML = html;
+  if (typeof JsBarcode !== 'undefined') $('print-area').querySelectorAll('svg[data-cod]').forEach(svg => {
+    try { JsBarcode(svg, svg.dataset.cod, { format: 'CODE128', width: 1.5, height: 42, fontSize: 12, margin: 0, displayValue: true }); } catch (e) {}
+  });
+  setTimeout(() => window.print(), 80);
+}
+function imprimirComprovante(v, segundaVia) {
+  const dt = new Date(v.criado_em);
+  const itens = v.itens.map(i => {
+    const pn = partesNome(i.nome);
+    return `<div>${esc(pn.nome)}${pn.tam ? ' · ' + esc(pn.tam) : ''}</div>
+      <div class="l"><span>${i.qtd} × ${brl(i.preco)}</span><span>${brl(i.preco * i.qtd)}</span></div>`;
+  }).join('');
+  const pags = v.pagamentos.map(p => `<div class="l"><span>${NOME_FORMA[p.forma] || p.forma}${p.parcelas > 1 ? ` (${p.parcelas}x)` : ''}${p.vale ? ' nº ' + esc(p.vale) : ''}</span><span>${brl(p.valor)}</span></div>
+    ${p.forma === 'dinheiro' && p.recebido ? `<div class="l peq"><span>Recebido</span><span>${brl(p.recebido)}</span></div>` : ''}`).join('');
+  const crediario = v.pagamentos.find(p => p.forma === 'crediario');
+  let parcelasCred = '';
+  if (crediario) {
+    const n = crediario.parcelas || 1, base = Math.floor(crediario.valor / n * 100) / 100;
+    for (let i = 0; i < n; i++) {
+      const d = new Date(v.data + 'T12:00:00'); d.setDate(d.getDate() + 30 * (i + 1));
+      parcelasCred += `<div class="l peq"><span>${i + 1}/${n} vence ${d.toLocaleDateString('pt-BR')}</span><span>${brl(i === n - 1 ? r2(crediario.valor - base * (n - 1)) : base)}</span></div>`;
+    }
+    parcelasCred = `<hr><div class="b">Crediário — ${esc(v.cliente?.nome || '')}</div>${v.cliente?.cpf ? `<div class="peq">CPF ${esc(v.cliente.cpf)}</div>` : ''}${parcelasCred}<br><br><div class="c">_____________________________</div><div class="c peq">assinatura da cliente</div>`;
+  }
+  imprimir(`
+    <div class="c t">Shai</div>
+    <div class="c">${esc(v.loja)}</div>
+    <div class="c peq">${dt.toLocaleDateString('pt-BR')} ${horaSP(v.criado_em)}${v.vendedora ? ' · ' + esc(v.vendedora) : ''}</div>
+    ${segundaVia ? '<div class="c b">2ª VIA</div>' : ''}
+    <hr>${itens}<hr>
+    <div class="l"><span>Subtotal</span><span>${brl(v.subtotal)}</span></div>
+    ${v.desconto ? `<div class="l"><span>Desconto</span><span>− ${brl(v.desconto)}</span></div>` : ''}
+    <div class="l g"><span>TOTAL</span><span>${brl(v.total)}</span></div><hr>
+    ${pags}
+    ${v.troco ? `<div class="l b"><span>Troco</span><span>${brl(v.troco)}</span></div>` : ''}
+    ${parcelasCred}
+    <hr>
+    <div class="c b">NÃO É DOCUMENTO FISCAL</div>
+    <div class="c peq">Guarde este comprovante para trocas.</div>
+    <svg data-cod="${codigoVenda(v.id)}"></svg>`);
+}
+function imprimirVale(v) {
+  imprimir(`
+    <div class="c t">Shai</div>
+    <div class="c g">VALE-TROCA</div>
+    <div class="c" style="font-size:22px;font-weight:700;margin:6px 0">${brl(v.valor)}</div>
+    <div class="c peq">${esc(v.loja || S.loja)} · ${new Date().toLocaleDateString('pt-BR')}</div>
+    ${v.cliente ? `<div class="c">${esc(v.cliente)}</div>` : ''}
+    <hr><div class="c peq">Vale nas duas lojas Shai. Apresente no caixa.</div>
+    <svg data-cod="${esc(v.codigo)}"></svg>`);
+}
+
+// =====================================================================
+// TROCAS
+// =====================================================================
+let troca = { venda: null, itens: [], destino: null, jaDevolvido: {} };
+function novaTroca() { troca = { venda: null, itens: [], destino: null, jaDevolvido: {} }; renderTroca(); }
+async function trocaLer(lido) {
+  lido = String(lido || '').trim(); $('tr-busca').value = '';
+  if (!lido) return;
+  if (/^PDV-/i.test(lido)) {
+    if (!navigator.onLine) return toast('Sem internet para buscar a venda', 'error');
+    const { data: v } = await sb.from('pdv_vendas').select('*').eq('codigo', lido.toUpperCase()).maybeSingle();
+    if (!v) { bip(false); return toast('Venda não encontrada (só aparecem vendas desta loja)', 'error'); }
+    return trocaComVenda(v);
+  }
+  let p = acharPorCodigo(lido) || await buscarNoBling(lido);
+  if (!p) { bip(false); return toast('Etiqueta não encontrada', 'error'); }
+  if (troca.venda) {
+    // com comprovante: só peças daquela venda, pelo valor pago
+    const it = troca.venda.itens.find(i => i.bling_id === p.bling_id);
+    if (!it) { bip(false); return toast('Essa peça não está nesta venda', 'error'); }
+    const ja = troca.itens.filter(x => x.bling_id === p.bling_id).length + (troca.jaDevolvido[p.bling_id] || 0);
+    if (ja >= it.qtd) { bip(false); return toast('Todas as unidades dessa peça já foram devolvidas', 'error'); }
+    troca.itens.push({ bling_id: it.bling_id, codigo: it.codigo, nome: it.nome, qtd: 1, preco: r2((it.pago ?? it.preco * it.qtd) / it.qtd), volta_estoque: true });
+  } else {
+    troca.itens.push({ bling_id: p.bling_id, codigo: p.codigo, nome: p.nome, qtd: 1, preco: Number(p.preco) || 0, volta_estoque: true, semComprovante: true });
+  }
+  bip(true); renderTroca();
+}
+async function trocaComVenda(v) {
+  troca = { venda: v, itens: [], destino: null, jaDevolvido: {} };
+  const { data: anteriores } = await sb.from('pdv_trocas').select('itens').eq('venda_origem', v.id);
+  for (const t of anteriores || []) for (const i of t.itens || []) troca.jaDevolvido[i.bling_id] = (troca.jaDevolvido[i.bling_id] || 0) + (Number(i.qtd) || 1);
+  irPara('trocas'); renderTroca();
+}
+function trocaAddDaVenda(idx) {
+  const it = troca.venda.itens[idx];
+  const ja = troca.itens.filter(x => x.bling_id === it.bling_id).length + (troca.jaDevolvido[it.bling_id] || 0);
+  if (ja >= it.qtd) return toast('Todas as unidades já estão voltando', 'error');
+  troca.itens.push({ bling_id: it.bling_id, codigo: it.codigo, nome: it.nome, qtd: 1, preco: r2((it.pago ?? it.preco * it.qtd) / it.qtd), volta_estoque: true });
+  renderTroca();
+}
+function renderTroca() {
+  const v = troca.venda;
+  $('tr-venda').innerHTML = v ? `<div class="aviso green"><i class="ti ti-receipt"></i><div><b>Venda ${esc(v.codigo || codigoVenda(v.id))}</b> · ${dataBR(v.data)} · ${brl(v.total)}${v.vendedora ? ' · ' + esc(v.vendedora) : ''}<br>Toque nas peças que a cliente trouxe (ou bipe a etiqueta). <a href="#" onclick="novaTroca();return false">trocar sem este comprovante</a></div></div>
+    <div style="margin-top:10px">${v.itens.map((it, idx) => {
+      const pn = partesNome(it.nome), ja = troca.jaDevolvido[it.bling_id] || 0;
+      return `<div class="lista-l" style="cursor:pointer" onclick="trocaAddDaVenda(${idx})"><div class="sp"><b>${esc(pn.nome)}</b><small>${pn.tam ? 'Tam ' + esc(pn.tam) + ' · ' : ''}${it.qtd} un · pago ${brl((it.pago ?? it.preco * it.qtd) / it.qtd)} cada${ja ? ` · <span style="color:var(--red)">${ja} já devolvida(s)</span>` : ''}</small></div><i class="ti ti-plus" style="color:var(--accent);font-size:1.3rem"></i></div>`;
+    }).join('')}</div>`
+    : `<div class="aviso"><i class="ti ti-info-circle"></i><div>Sem comprovante, a peça volta pelo <b>preço atual</b> do Bling. Com o comprovante, volta pelo valor que a cliente pagou (com desconto).</div></div>`;
+  $('tr-itens').innerHTML = troca.itens.length ? troca.itens.map((i, idx) => {
+    const pn = partesNome(i.nome);
+    return `<div class="troca-item"><input type="checkbox" ${i.volta_estoque ? 'checked' : ''} title="Volta para o estoque" onchange="troca.itens[${idx}].volta_estoque=this.checked;renderTroca()">
+      <div><b style="font-size:.92rem">${esc(pn.nome)}</b><small style="display:block;color:var(--text-muted);font-size:.74rem">${pn.tam ? 'Tam ' + esc(pn.tam) + ' · ' : ''}${i.volta_estoque ? 'volta ao estoque da loja' : '<span style="color:var(--red)">não volta ao estoque (defeito)</span>'}</small></div>
+      <div class="row" style="gap:4px"><b class="mono">${brl(i.preco)}</b><button class="btn-icon" onclick="troca.itens.splice(${idx},1);renderTroca()"><i class="ti ti-x"></i></button></div></div>`;
+  }).join('') : '<div class="empty">Nenhuma peça ainda</div>';
+  const total = r2(troca.itens.reduce((s, i) => s + i.preco * i.qtd, 0));
+  $('tr-total').textContent = brl(total);
+  document.querySelectorAll('#tr-destinos .destino').forEach(b => b.classList.toggle('on', b.dataset.d === troca.destino));
+  $('tr-extra').innerHTML = troca.destino === 'vale' ? `<div class="lbl">Nome da cliente no vale (opcional)</div><input class="inp" id="tr-cliente">`
+    : troca.destino === 'dinheiro' ? `<div class="lbl">Como devolver</div><div class="chips" id="tr-forma">${['dinheiro', 'pix', 'cartao'].map(f => `<button class="chip ${troca.forma === f ? 'on' : ''}" onclick="troca.forma='${f}';renderTroca()">${{ dinheiro: 'Dinheiro do caixa', pix: 'Pix', cartao: 'Estorno no cartão' }[f]}</button>`).join('')}</div>
+      <div class="lbl">Motivo</div><input class="inp" id="tr-motivo" placeholder="Ex.: costura aberta">` : '';
+  $('tr-confirmar').disabled = !troca.itens.length || !troca.destino;
+  $('tr-confirmar').textContent = troca.destino === 'troca' ? 'Confirmar e ir para a venda' : troca.destino === 'vale' ? 'Confirmar e imprimir vale' : troca.destino === 'dinheiro' ? 'Confirmar devolução' : 'Confirmar';
+}
+function trocaDestino(d) { troca.destino = d; renderTroca(); }
+async function confirmarTroca() {
+  if (!navigator.onLine) return toast('Trocas precisam de internet', 'error');
+  const total = r2(troca.itens.reduce((s, i) => s + i.preco * i.qtd, 0));
+  if (!(total > 0)) return toast('Valor da troca é zero', 'error');
+  if (troca.destino === 'dinheiro') {
+    if (!troca.forma) return toast('Escolha como devolver', 'error');
+    if (troca.forma === 'dinheiro' && !S.caixa) return toast('Abra o caixa para devolver dinheiro', 'error');
+    if (!(await pedirSenhaGerente(`Devolver ${brl(total)} em ${troca.forma === 'cartao' ? 'estorno no cartão' : troca.forma}.`))) return;
+  }
+  $('tr-confirmar').disabled = true;
+  try {
+    const id = uuid();
+    const motivo = $('tr-motivo')?.value?.trim() || null;
+    const cliente = $('tr-cliente')?.value?.trim() || troca.venda?.cliente?.nome || null;
+    const reg = {
+      id, loja: S.loja, data: hojeSP(), criado_em: new Date().toISOString(), venda_origem: troca.venda?.id || null,
+      itens: troca.itens.map(({ semComprovante, ...i }) => i), valor: total, destino: troca.destino,
+      forma_reembolso: troca.destino === 'dinheiro' ? troca.forma : null, motivo,
+    };
+    const { error } = await sb.from('pdv_trocas').insert(reg);
+    if (error) throw error;
+    let vale = null;
+    if (troca.destino !== 'dinheiro') {
+      const { data: codigo, error: e2 } = await sb.rpc('pdv_criar_vale', { p_loja: S.loja, p_valor: total, p_cliente: cliente, p_troca: id });
+      if (e2) throw e2;
+      vale = codigo;
+      await sb.from('pdv_trocas').update({ vale_codigo: codigo }).eq('id', id);
+    } else if (troca.forma === 'dinheiro') {
+      await sb.from('pdv_caixa_movs').insert({ caixa_id: S.caixa.id, loja: S.loja, tipo: 'devolucao', valor: total, descricao: motivo || 'Devolução em dinheiro', troca_id: id });
+    }
+    sb.functions.invoke('pdv', { body: { acao: 'enviar', troca: id } }).then(atualizarPills);
+    const destino = troca.destino;
+    novaTroca();
+    if (destino === 'troca') {
+      cart.vale = { codigo: vale, saldo: total }; salvarCart();
+      irPara('vender'); renderResumo();
+      toast(`Crédito de ${brl(total)} pronto. Bipe as peças novas.`, 'ok');
+    } else if (destino === 'vale') {
+      imprimirVale({ codigo: vale, valor: total, loja: S.loja, cliente });
+      toast(`Vale ${vale} de ${brl(total)} criado`, 'ok');
+    } else toast(`Devolução de ${brl(total)} registrada`, 'ok');
+  } catch (e) {
+    toast('Erro na troca: ' + (e.message || e), 'error');
+    $('tr-confirmar').disabled = false;
+  }
+}
+
+// =====================================================================
+// CAIXA
+// =====================================================================
+async function carregarCaixa() {
+  if (!navigator.onLine) { S.caixa = ler(K.caixa, null); atualizarCaixaPill(); return; }
+  const { data } = await sb.from('pdv_caixas').select('*').eq('loja', S.loja).is('fechado_em', null).maybeSingle();
+  S.caixa = data || null; gravar(K.caixa, S.caixa);
+  atualizarCaixaPill();
+}
+function atualizarCaixaPill() {
+  const p = $('pill-caixa');
+  p.className = 'pill ' + (S.caixa ? 'ok' : 'warn');
+  $('pill-caixa-t').textContent = S.caixa ? 'Caixa aberto' : 'Caixa fechado';
+  $('aviso-caixa').innerHTML = S.caixa ? '' : `<div class="aviso"><i class="ti ti-lock"></i><div><b>Caixa fechado.</b> Abra o caixa com o troco do dia antes da primeira venda. <a href="#" onclick="irPara('caixa');return false">Abrir caixa</a></div></div>`;
+}
+async function resumoCaixa(cx) {
+  const [{ data: vendas }, { data: movs }, { data: trocasDin }] = await Promise.all([
+    sb.from('pdv_vendas').select('pagamentos,total,status').eq('caixa_id', cx.id),
+    sb.from('pdv_caixa_movs').select('*').eq('caixa_id', cx.id).order('criado_em'),
+    sb.from('pdv_trocas').select('valor,forma_reembolso,criado_em').eq('loja', cx.loja).eq('destino', 'dinheiro').gte('criado_em', cx.aberto_em),
+  ]);
+  const todas = [...(vendas || []), ...ler(K.fila, []).filter(v => v.caixa_id === cx.id)];
+  const formas = { dinheiro: 0, pix: 0, debito: 0, credito: 0, crediario: 0, vale: 0 };
+  let nVendas = 0;
+  for (const v of todas) {
+    if (v.status === 'cancelada') continue;
+    nVendas++;
+    for (const p of v.pagamentos || []) { const k = p.forma === 'credito_parcelado' ? 'credito' : p.forma; formas[k] = r2((formas[k] || 0) + Number(p.valor)); }
+  }
+  const soma = tipo => r2((movs || []).filter(m => m.tipo === tipo).reduce((s, m) => s + Number(m.valor), 0));
+  const dev = { pix: 0, cartao: 0 };
+  for (const t of trocasDin || []) if (t.forma_reembolso && t.forma_reembolso !== 'dinheiro') dev[t.forma_reembolso] = r2((dev[t.forma_reembolso] || 0) + Number(t.valor));
+  const esperado = r2(Number(cx.troco_inicial) + formas.dinheiro + soma('suprimento') - soma('sangria') - soma('despesa') - soma('devolucao'));
+  return { formas, movs: movs || [], nVendas, esperado, sangria: soma('sangria'), despesa: soma('despesa'), devolucao: soma('devolucao'), suprimento: soma('suprimento'), dev };
+}
+async function renderCaixa() {
+  const box = $('cx-corpo');
+  if (!navigator.onLine) { box.innerHTML = `<div class="aviso"><i class="ti ti-wifi-off"></i><div>O caixa precisa de internet para abrir, lançar saídas e fechar. As vendas continuam funcionando sem internet.</div></div>`; return; }
+  await carregarCaixa();
+  const cx = S.caixa;
+  const senhaBt = `<button class="btn btn-ghost" style="margin-top:14px" onclick="abrirSenhaGerente()"><i class="ti ti-key"></i>Senha da gerente</button>`;
+  if (!cx) {
+    box.innerHTML = `<div class="card" style="max-width:460px"><div class="card-t">Abrir o caixa</div>
+      <div class="lbl" style="margin-top:0">Troco na gaveta</div><input class="inp big" id="cx-troco" inputmode="decimal" placeholder="R$ 0,00">
+      <div class="lbl">Quem está abrindo</div><div class="chips" id="cx-quem">${S.funcs.map(f => `<button class="chip" data-n="${esc(f.nome)}" onclick="document.querySelectorAll('#cx-quem .chip').forEach(c=>c.classList.toggle('on',c===this))">${esc(f.nome)}</button>`).join('')}</div>
+      <button class="btn btn-primary btn-lg btn-block" style="margin-top:16px" onclick="abrirCaixa()"><i class="ti ti-lock-open"></i>Abrir caixa</button></div>${senhaBt}`;
+    return;
+  }
+  const r = await resumoCaixa(cx);
+  $('cx-sub').textContent = `Aberto às ${horaSP(cx.aberto_em)} de ${new Date(cx.aberto_em).toLocaleDateString('pt-BR')}${cx.aberto_por ? ' por ' + cx.aberto_por : ''} · troco inicial ${brl(cx.troco_inicial)}`;
+  const movs = r.movs.map(m => `<div class="lista-l"><div class="sp"><b>${{ sangria: 'Sangria', despesa: 'Despesa', devolucao: 'Devolução', suprimento: 'Reforço de troco' }[m.tipo]}</b><small>${horaSP(m.criado_em)}${m.feito_por ? ' · ' + esc(m.feito_por) : ''}${m.descricao ? ' · ' + esc(m.descricao) : ''}</small></div><b class="mono" style="color:${m.tipo === 'suprimento' ? 'var(--green)' : 'var(--red)'}">${m.tipo === 'suprimento' ? '+' : '−'} ${brl(m.valor)}</b></div>`).join('');
+  box.innerHTML = `
+    <div class="grid-4">
+      <div class="stat"><div class="l">Dinheiro na gaveta</div><div class="v mono">${brl(r.esperado)}</div></div>
+      <div class="stat"><div class="l">Vendas</div><div class="v mono">${r.nVendas}</div></div>
+      <div class="stat"><div class="l">Cartão</div><div class="v mono">${brl(r.formas.debito + r.formas.credito)}</div></div>
+      <div class="stat"><div class="l">Pix</div><div class="v mono">${brl(r.formas.pix)}</div></div>
+    </div>
+    <div class="grid-2" style="margin-top:14px">
+      <div class="card"><div class="card-t">Saídas de dinheiro</div>
+        <div class="row" style="gap:8px;flex-wrap:wrap">
+          <button class="btn" onclick="abrirMov('sangria')"><i class="ti ti-arrow-bar-up"></i>Sangria</button>
+          <button class="btn" onclick="abrirDespesa()"><i class="ti ti-receipt-2"></i>Despesa</button>
+          <button class="btn" onclick="abrirMov('suprimento')"><i class="ti ti-arrow-bar-down"></i>Reforço de troco</button>
+        </div>
+        <div style="margin-top:8px">${movs || '<div class="empty">Nenhuma saída</div>'}</div></div>
+      <div class="card"><div class="card-t">Por forma de pagamento</div>
+        ${Object.entries(r.formas).filter(([, v]) => v).map(([k, v]) => `<div class="tot-linha"><span>${FORMAS[k]?.nome || k}</span><b class="mono">${brl(v)}</b></div>`).join('') || '<div class="empty">Nenhuma venda ainda</div>'}
+        <button class="btn btn-primary btn-lg btn-block" style="margin-top:14px" onclick="abrirFechamento()"><i class="ti ti-lock"></i>Fechar caixa</button></div>
+    </div>${senhaBt}`;
+}
+async function abrirCaixa() {
+  const troco = r2(num($('cx-troco').value));
+  const quem = document.querySelector('#cx-quem .chip.on')?.dataset.n || null;
+  if (!quem) return toast('Toque em quem está abrindo', 'error');
+  const { error } = await sb.from('pdv_caixas').insert({ loja: S.loja, troco_inicial: troco, aberto_por: quem });
+  if (error) return toast(error.code === '23505' ? 'O caixa já foi aberto em outro aparelho' : 'Erro: ' + error.message, 'error');
+  toast('Caixa aberto', 'ok'); renderCaixa(); irPara('vender');
+}
+function abrirMov(tipo) {
+  const nome = tipo === 'sangria' ? 'Sangria (tirar dinheiro do caixa)' : 'Reforço de troco (colocar dinheiro)';
+  abrirModal(nome, `<div class="lbl" style="margin-top:0">Valor</div><input class="inp big" id="mv-valor" inputmode="decimal" autofocus>
+    <div class="lbl">Observação</div><input class="inp" id="mv-obs" placeholder="${tipo === 'sangria' ? 'Ex.: levado ao banco' : ''}">
+    <div class="lbl">Quem</div><div class="chips" id="mv-quem">${S.funcs.map(f => `<button class="chip" data-n="${esc(f.nome)}" onclick="document.querySelectorAll('#mv-quem .chip').forEach(c=>c.classList.toggle('on',c===this))">${esc(f.nome)}</button>`).join('')}</div>`,
+    `<button class="btn" onclick="fecharModal()">Cancelar</button><button class="btn btn-primary" onclick="salvarMov('${tipo}')">Registrar</button>`);
+}
+async function salvarMov(tipo) {
+  const valor = r2(num($('mv-valor').value));
+  if (!(valor > 0)) return toast('Informe o valor', 'error');
+  const quem = document.querySelector('#mv-quem .chip.on')?.dataset.n || null;
+  const { error } = await sb.from('pdv_caixa_movs').insert({ caixa_id: S.caixa.id, loja: S.loja, tipo, valor, descricao: $('mv-obs').value.trim() || null, feito_por: quem });
+  if (error) return toast('Erro: ' + error.message, 'error');
+  fecharModal(); toast('Registrado', 'ok'); renderCaixa();
+}
+let despFoto = null, despCat = 'Alimentação';
+function abrirDespesa() {
+  despFoto = null; despCat = 'Alimentação';
+  abrirModal('Despesa paga com dinheiro do caixa', `
+    <div class="lbl" style="margin-top:0">Categoria</div>
+    <div class="chips" id="dp-cat">${CATS_DESPESA.map(c => `<button class="chip ${c === despCat ? 'on' : ''}" onclick="despCat='${c}';document.querySelectorAll('#dp-cat .chip').forEach(b=>b.classList.toggle('on',b===this));$('dp-desc-box').style.display=despCat==='Outros'?'':'none'">${c}</button>`).join('')}</div>
+    <div id="dp-desc-box" style="display:none"><div class="lbl">O que foi</div><input class="inp" id="dp-desc"></div>
+    <div class="lbl">Valor</div><input class="inp big" id="dp-valor" inputmode="decimal">
+    <div class="lbl">Foto da nota</div>
+    <label class="btn btn-block" style="border-style:dashed"><i class="ti ti-camera"></i><span id="dp-foto-t">Tirar foto ou escolher da galeria</span>
+      <input type="file" accept="image/*" capture="environment" style="display:none" onchange="despFoto=this.files[0];$('dp-foto-t').textContent=despFoto?despFoto.name:'Tirar foto'"></label>`,
+    `<button class="btn" onclick="fecharModal()">Cancelar</button><button class="btn btn-primary" id="dp-salvar" onclick="salvarDespesa()">Registrar</button>`);
+}
+async function salvarDespesa() {
+  const valor = r2(num($('dp-valor').value));
+  const descricao = despCat === 'Outros' ? $('dp-desc').value.trim() : despCat;
+  if (!descricao) return toast('Descreva a despesa', 'error');
+  if (!(valor > 0)) return toast('Informe o valor', 'error');
+  if (!despFoto) return toast('Tire a foto da nota', 'error');
+  $('dp-salvar').disabled = true;
+  try {
+    const ext = (despFoto.name.split('.').pop() || 'jpg').toLowerCase();
+    const caminho = `${S.loja}/${hojeSP()}/${uuid()}.${ext}`;
+    const { error: e1 } = await sb.storage.from('notas-despesas').upload(caminho, despFoto);
+    if (e1) throw e1;
+    const foto_url = sb.storage.from('notas-despesas').getPublicUrl(caminho).data.publicUrl;
+    const { data: d, error: e2 } = await sb.from('despesas').insert({ loja: S.loja, data_despesa: hojeSP(), descricao, categoria: despCat, valor, foto_url }).select('id').single();
+    if (e2) throw e2;
+    const { error: e3 } = await sb.from('pdv_caixa_movs').insert({ caixa_id: S.caixa.id, loja: S.loja, tipo: 'despesa', valor, descricao, despesa_id: d.id });
+    if (e3) throw e3;
+    fecharModal(); toast('Despesa registrada', 'ok'); renderCaixa();
+  } catch (e) { toast('Erro: ' + (e.message || e), 'error'); $('dp-salvar').disabled = false; }
+}
+async function abrirFechamento() {
+  const pend = ler(K.fila, []).filter(v => v.caixa_id === S.caixa.id).length;
+  const r = await resumoCaixa(S.caixa);
+  window._fech = r;
+  abrirModal('Fechar caixa', `
+    ${pend ? `<div class="aviso red" style="margin-bottom:10px"><i class="ti ti-wifi-off"></i><div>${pend} venda(s) ainda neste aparelho, esperando internet. Elas entram no fechamento.</div></div>` : ''}
+    <div class="tot-linha"><span>Troco inicial</span><b class="mono">${brl(S.caixa.troco_inicial)}</b></div>
+    <div class="tot-linha"><span>+ Vendas em dinheiro</span><b class="mono">${brl(r.formas.dinheiro)}</b></div>
+    ${r.suprimento ? `<div class="tot-linha"><span>+ Reforço de troco</span><b class="mono">${brl(r.suprimento)}</b></div>` : ''}
+    ${r.sangria ? `<div class="tot-linha"><span>− Sangrias</span><b class="mono">${brl(r.sangria)}</b></div>` : ''}
+    ${r.despesa ? `<div class="tot-linha"><span>− Despesas</span><b class="mono">${brl(r.despesa)}</b></div>` : ''}
+    ${r.devolucao ? `<div class="tot-linha"><span>− Devoluções</span><b class="mono">${brl(r.devolucao)}</b></div>` : ''}
+    <div class="tot-final"><span>Dinheiro esperado</span><b class="mono" style="font-size:1.4rem">${brl(r.esperado)}</b></div>
+    <div class="lbl">Dinheiro contado na gaveta</div><input class="inp big" id="fc-contado" inputmode="decimal" autofocus oninput="fcDif()">
+    <div id="fc-dif" style="font-weight:700;margin-top:8px"></div>
+    <div class="card-t" style="margin-top:16px">Confira na maquininha</div>
+    <div class="tot-linha"><span>Débito</span><b class="mono">${brl(r.formas.debito)}</b></div>
+    <div class="tot-linha"><span>Crédito</span><b class="mono">${brl(r.formas.credito)}</b></div>
+    <div class="tot-linha"><span>Pix</span><b class="mono">${brl(r.formas.pix)}</b></div>
+    ${r.dev.cartao ? `<div class="tot-linha" style="color:var(--red)"><span>Estornos no cartão (devoluções)</span><b class="mono">− ${brl(r.dev.cartao)}</b></div>` : ''}
+    ${r.dev.pix ? `<div class="tot-linha" style="color:var(--red)"><span>Pix devolvido (devoluções)</span><b class="mono">− ${brl(r.dev.pix)}</b></div>` : ''}
+    ${r.formas.crediario || r.formas.vale ? `<div class="card-t" style="margin-top:16px">Sem dinheiro na hora</div>` : ''}
+    ${r.formas.crediario ? `<div class="tot-linha"><span>Crediário</span><b class="mono">${brl(r.formas.crediario)}</b></div>` : ''}
+    ${r.formas.vale ? `<div class="tot-linha"><span>Pago com vale-troca</span><b class="mono">${brl(r.formas.vale)}</b></div>` : ''}
+    <div class="lbl">Quem está fechando</div><div class="chips" id="fc-quem">${S.funcs.map(f => `<button class="chip" data-n="${esc(f.nome)}" onclick="document.querySelectorAll('#fc-quem .chip').forEach(c=>c.classList.toggle('on',c===this))">${esc(f.nome)}</button>`).join('')}</div>
+    <div class="lbl">Observação</div><input class="inp" id="fc-obs">`,
+    `<button class="btn" onclick="fecharModal()">Cancelar</button><button class="btn btn-primary" id="fc-ok" onclick="fecharCaixa()"><i class="ti ti-lock"></i>Fechar e imprimir</button>`, { wide: true });
+}
+function fcDif() {
+  const c = num($('fc-contado').value), d = r2(c - window._fech.esperado);
+  $('fc-dif').innerHTML = $('fc-contado').value ? (Math.abs(d) < 0.01 ? '<span style="color:var(--green)">✓ Bateu certinho</span>' : `<span style="color:var(--red)">${d > 0 ? 'Sobrando' : 'Faltando'} ${brl(Math.abs(d))}</span>`) : '';
+}
+async function fecharCaixa() {
+  const r = window._fech;
+  if (!$('fc-contado').value.trim()) return toast('Conte o dinheiro da gaveta', 'error');
+  const quem = document.querySelector('#fc-quem .chip.on')?.dataset.n || null;
+  if (!quem) return toast('Toque em quem está fechando', 'error');
+  const contado = r2(num($('fc-contado').value));
+  const dif = r2(contado - r.esperado);
+  const obs = $('fc-obs').value.trim();
+  $('fc-ok').disabled = true;
+  const cx = S.caixa;
+  const { error } = await sb.from('pdv_caixas').update({
+    fechado_em: new Date().toISOString(), fechado_por: quem,
+    esperado: { gaveta: r.esperado, vendas: r.formas, troco_inicial: Number(cx.troco_inicial), sangria: r.sangria, despesa: r.despesa, devolucao: r.devolucao, suprimento: r.suprimento, n_vendas: r.nVendas },
+    contado: { gaveta: contado }, diferenca: dif, obs: obs || null,
+  }).eq('id', cx.id);
+  if (error) { $('fc-ok').disabled = false; return toast('Erro: ' + error.message, 'error'); }
+  fecharModal();
+  imprimir(`<div class="c t">Shai</div><div class="c b">FECHAMENTO DE CAIXA</div><div class="c">${esc(S.loja)}</div>
+    <div class="c peq">Aberto ${new Date(cx.aberto_em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}${cx.aberto_por ? ' · ' + esc(cx.aberto_por) : ''}<br>Fechado ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })} · ${esc(quem)}</div><hr>
+    <div class="l"><span>Vendas</span><span>${r.nVendas}</span></div>
+    ${Object.entries(r.formas).filter(([, v]) => v).map(([k, v]) => `<div class="l"><span>${FORMAS[k]?.nome || k}</span><span>${brl(v)}</span></div>`).join('')}<hr>
+    <div class="l"><span>Troco inicial</span><span>${brl(cx.troco_inicial)}</span></div>
+    ${r.suprimento ? `<div class="l"><span>Reforço de troco</span><span>${brl(r.suprimento)}</span></div>` : ''}
+    ${r.sangria ? `<div class="l"><span>Sangrias</span><span>− ${brl(r.sangria)}</span></div>` : ''}
+    ${r.despesa ? `<div class="l"><span>Despesas</span><span>− ${brl(r.despesa)}</span></div>` : ''}
+    ${r.devolucao ? `<div class="l"><span>Devoluções</span><span>− ${brl(r.devolucao)}</span></div>` : ''}
+    <div class="l b"><span>Dinheiro esperado</span><span>${brl(r.esperado)}</span></div>
+    <div class="l b"><span>Dinheiro contado</span><span>${brl(contado)}</span></div>
+    <div class="l g"><span>Diferença</span><span>${dif > 0 ? '+' : ''}${brl(dif)}</span></div>
+    ${obs ? `<hr><div class="peq">Obs.: ${esc(obs)}</div>` : ''}<br><div class="c">_____________________________</div><div class="c peq">assinatura</div>`);
+  S.caixa = null; gravar(K.caixa, null); atualizarCaixaPill(); renderCaixa();
+  toast(Math.abs(dif) < 0.01 ? 'Caixa fechado — bateu certinho' : `Caixa fechado — diferença de ${brl(dif)}`, Math.abs(dif) < 0.01 ? 'ok' : 'error');
+}
+async function abrirSenhaGerente() {
+  const { data: tem } = await sb.rpc('pdv_tem_senha', { p_loja: S.loja });
+  abrirModal('Senha da gerente', `<p style="font-size:.88rem">Usada para autorizar desconto acima do limite e devolução em dinheiro.</p>
+    ${tem ? `<div class="lbl">Senha atual</div><input type="password" class="inp" id="sgd-atual" inputmode="numeric" autofocus>` : ''}
+    <div class="lbl">Nova senha (mínimo 4 dígitos)</div><input type="password" class="inp" id="sgd-nova" inputmode="numeric" ${tem ? '' : 'autofocus'}>
+    <div class="lbl">Repita a nova senha</div><input type="password" class="inp" id="sgd-nova2" inputmode="numeric">`,
+    `<button class="btn" onclick="fecharModal()">Cancelar</button><button class="btn btn-primary" onclick="salvarSenhaGerente()">Salvar</button>`);
+}
+async function salvarSenhaGerente() {
+  const nova = $('sgd-nova').value, nova2 = $('sgd-nova2').value;
+  if (nova.length < 4) return toast('A senha precisa ter pelo menos 4 dígitos', 'error');
+  if (nova !== nova2) return toast('As senhas não conferem', 'error');
+  const { data, error } = await sb.rpc('pdv_definir_senha', { p_loja: S.loja, p_atual: $('sgd-atual')?.value || '', p_nova: nova });
+  if (error) return toast(error.message, 'error');
+  if (!data) return toast('Senha atual incorreta', 'error');
+  fecharModal(); toast('Senha da gerente salva', 'ok');
+}
+
+// =====================================================================
+// VENDAS DO DIA
+// =====================================================================
+function mudarDia(d) {
+  const x = new Date(S.diaVendas + 'T12:00:00'); x.setDate(x.getDate() + d);
+  const novo = x.toISOString().slice(0, 10);
+  if (novo > hojeSP()) return;
+  S.diaVendas = novo; carregarVendas();
+}
+async function carregarVendas() {
+  $('vd-data').textContent = S.diaVendas === hojeSP() ? 'Hoje' : dataBR(S.diaVendas);
+  let servidor = [];
+  if (navigator.onLine) {
+    const { data } = await sb.from('pdv_vendas').select('*').eq('loja', S.loja).eq('data', S.diaVendas).order('criado_em', { ascending: false });
+    servidor = data || [];
+  }
+  const locais = ler(K.fila, []).filter(v => v.data === S.diaVendas && !servidor.some(s => s.id === v.id)).map(v => ({ ...v, _local: true }));
+  S.vendasDia = [...locais, ...servidor];
+  const vs = S.vendasDia.filter(v => v.status !== 'cancelada');
+  const total = r2(vs.reduce((s, v) => s + Number(v.total), 0));
+  const pecas = vs.reduce((s, v) => s + v.itens.reduce((a, i) => a + Number(i.qtd), 0), 0);
+  $('vd-stats').innerHTML = `
+    <div class="stat"><div class="l">Vendido</div><div class="v mono">${brl(total)}</div></div>
+    <div class="stat"><div class="l">Vendas</div><div class="v mono">${vs.length}</div></div>
+    <div class="stat"><div class="l">Peças</div><div class="v mono">${pecas}</div></div>
+    <div class="stat"><div class="l">Ticket médio</div><div class="v mono">${brl(vs.length ? total / vs.length : 0)}</div></div>`;
+  $('vd-lista').innerHTML = S.vendasDia.length ? S.vendasDia.map((v, idx) => {
+    const st = v._local ? '<span class="st fila">No aparelho</span>'
+      : v.status === 'enviada' ? `<span class="st ok">Bling${v.bling_numero ? ' nº ' + v.bling_numero : ''}</span>`
+      : v.status === 'erro' ? `<span class="st err" title="${esc(v.erro)}">Erro no Bling</span>`
+      : '<span class="st fila">Enviando</span>';
+    const formas = v.pagamentos.map(p => (NOME_FORMA[p.forma] || p.forma).replace('Cartão de ', '')).join(' + ');
+    return `<div class="lista-l"><div class="sp"><b>${horaSP(v.criado_em)} · ${brl(v.total)}</b>
+      <small>${esc(v.vendedora || 'sem vendedora')} · ${v.itens.reduce((a, i) => a + Number(i.qtd), 0)} peça(s) · ${esc(formas)}${v.cliente?.nome ? ' · ' + esc(v.cliente.nome) : ''}</small>
+      ${v.status === 'erro' ? `<small style="color:var(--red)">${esc(v.erro || '')}</small>` : ''}</div>
+      ${st}
+      <button class="btn-icon" title="Reimprimir" onclick="imprimirComprovante(S.vendasDia[${idx}],true)"><i class="ti ti-printer"></i></button>
+      ${!v._local ? `<button class="btn-icon" title="Troca" onclick="trocaComVenda(S.vendasDia[${idx}])"><i class="ti ti-arrows-exchange"></i></button>` : ''}
+      ${v.status === 'erro' ? `<button class="btn-icon" title="Tentar de novo" onclick="reenviar('${v.id}')"><i class="ti ti-refresh"></i></button>` : ''}
+    </div>`;
+  }).join('') : '<div class="empty">Nenhuma venda neste dia</div>';
+}
+async function reenviar(id) {
+  toast('Enviando ao Bling…');
+  const { data, error } = await sb.functions.invoke('pdv', { body: { acao: 'enviar', venda: id } });
+  if (error || data?.ok === false) toast('Ainda com erro: ' + (data?.erro || error?.message || ''), 'error');
+  else toast('Venda lançada no Bling', 'ok');
+  carregarVendas(); atualizarPills();
+}
+
+// =====================================================================
+// NAVEGAÇÃO, LOGIN E INÍCIO
+// =====================================================================
+function irPara(tab) {
+  document.querySelectorAll('.tab').forEach(s => s.classList.toggle('active', s.id === 'tab-' + tab));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  if (tab === 'vendas') carregarVendas();
+  if (tab === 'caixa') renderCaixa();
+  if (tab === 'trocas') { renderTroca(); setTimeout(() => innerWidth >= 900 && $('tr-busca').focus(), 50); }
+  if (tab === 'vender') setTimeout(focarBusca, 50);
+  window.scrollTo(0, 0);
+}
+let gateLojaSel = null, gateEquipe = false;
+function gateLoja(el) { gateLojaSel = el.dataset.loja; document.querySelectorAll('.gate-lojas .chip').forEach(c => c.classList.toggle('on', c === el)); $('gate-senha').focus(); }
+function gateModoEquipe() {
+  gateEquipe = !gateEquipe;
+  $('gate-modo').textContent = gateEquipe ? 'Entrar com a senha da loja' : 'Entrar como equipe';
+  $('gate-senha').placeholder = gateEquipe ? 'Senha da equipe' : 'Senha da loja';
+}
+async function gateEntrar() {
+  const senha = $('gate-senha').value, err = $('gate-erro'); err.textContent = '';
+  if (!gateLojaSel) { err.textContent = 'Escolha a loja.'; return; }
+  if (!senha) { err.textContent = 'Digite a senha.'; return; }
+  const { error } = await sb.auth.signInWithPassword({ email: gateEquipe ? EQUIPE_EMAIL : LOJA_EMAIL[gateLojaSel], password: senha });
+  if (error) { err.textContent = error.message?.includes('fetch') ? 'Sem internet.' : 'Senha incorreta.'; return; }
+  gravar(K.loja, gateLojaSel);
+  $('gate').classList.remove('show');
+  iniciar();
+}
+async function sair() {
+  if (ler(K.fila, []).length && !confirm('Ainda há vendas neste aparelho esperando internet. Se sair agora elas continuam guardadas aqui e saem quando entrar de novo. Sair?')) return;
+  if (!confirm('Sair do caixa?')) return;
+  await sb.auth.signOut();
+  location.reload();
+}
+async function carregarVendedoras() {
+  const cache = ler(K.funcs, null);
+  if (cache?.loja === S.loja) S.funcs = cache.lista;
+  if (!navigator.onLine) return;
+  const { data } = await sb.from('funcionarias').select('id,nome,cargo,bling_vendedor_id,desconto_limite').eq('loja', S.loja).eq('ativa', true).order('nome');
+  if (data) { S.funcs = data; gravar(K.funcs, { loja: S.loja, lista: data }); }
+}
+async function iniciar() {
+  const { data: { session } } = await sb.auth.getSession();
+  const metaLoja = session?.user?.user_metadata?.loja;
+  S.equipe = metaLoja === '*';
+  S.loja = S.equipe ? ler(K.loja, null) : metaLoja;
+  if (!S.loja || !LOJA_EMAIL[S.loja]) { await sb.auth.signOut(); $('gate').classList.add('show'); return; }
+  $('h-loja').textContent = S.loja + (S.equipe ? ' · equipe' : '');
+  renderCarrinho(); atualizarPills(); atualizarCaixaPill();
+  irPara('vender');
+  await Promise.all([carregarCatalogo(), carregarVendedoras(), carregarCaixa()]);
+  renderCarrinho(); atualizarPills();
+  enviarFila();
+  setInterval(carregarCatalogo, 10 * 60000);
+}
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
-  if (session) {
-    iniciarApp(session.user.user_metadata?.loja || 'Loja Areal');
-  } else {
-    document.getElementById('auth-screen').style.display = 'flex';
-    mostrarLogin();
-  }
+  if (session) iniciar(); else $('gate').classList.add('show');
 })();
+
+// app instalável + funciona sem internet
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+// avisa antes de fechar com venda em andamento
+window.addEventListener('beforeunload', e => { if (cart.itens.length) { e.preventDefault(); e.returnValue = ''; } });
 </script>
 </body>
 </html>
