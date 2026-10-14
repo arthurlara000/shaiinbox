@@ -172,6 +172,8 @@ h1.titulo { font-family: 'Playfair Display', serif; font-size: 1.45rem; margin-b
 /* listas */
 .lista-l { display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--surface2); }
 .lista-l:last-child { border-bottom: none; }
+.venda-l { cursor: pointer; border-radius: 10px; padding-left: 8px; padding-right: 8px; }
+.venda-l:hover { background: var(--surface2); }
 .lista-l .sp { flex: 1; min-width: 0; }
 .lista-l b { font-weight: 700; }
 .lista-l small { display: block; color: var(--text-muted); font-size: .76rem; margin-top: 2px; }
@@ -251,6 +253,7 @@ h1.titulo { font-family: 'Playfair Display', serif; font-size: 1.45rem; margin-b
   #toast { top: calc(64px + env(safe-area-inset-top)); bottom: auto; transform: translateX(-50%) translateY(-20px); }
 }
 @media (min-width: 900px) { .so-cel { display: none !important; } }
+@media (max-width: 899px) { .esconde-cel { display: none !important; } }
 
 /* ---------- impressão 80mm ---------- */
 @media print {
@@ -390,7 +393,7 @@ h1.titulo { font-family: 'Playfair Display', serif; font-size: 1.45rem; margin-b
   <!-- ================= VENDAS DO DIA ================= -->
   <section class="tab" id="tab-vendas">
     <div class="row" style="align-items:flex-end;margin-bottom:14px">
-      <div><h1 class="titulo">Vendas</h1><p class="sub" style="margin:0">Tudo que passou pelo caixa e o envio de cada venda ao Bling.</p></div>
+      <div><h1 class="titulo">Vendas</h1><p class="sub esconde-cel" style="margin:0">Toque numa venda para ver o que foi vendido.</p></div>
       <div class="data-nav" style="flex:0 0 auto">
         <button class="btn" onclick="mudarDia(-1)"><i class="ti ti-chevron-left"></i></button>
         <span id="vd-data"></span>
@@ -1484,15 +1487,52 @@ async function carregarVendas() {
       : v.status === 'erro' ? `<span class="st err" title="${esc(v.erro)}">Erro no Bling</span>`
       : '<span class="st fila">Enviando</span>';
     const formas = v.pagamentos.map(p => (NOME_FORMA[p.forma] || p.forma).replace('Cartão de ', '')).join(' + ');
-    return `<div class="lista-l"><div class="sp"><b>${horaSP(v.criado_em)} · ${brl(v.total)}</b>
+    return `<div class="lista-l venda-l" onclick="verVenda(${idx})"><div class="sp"><b>${horaSP(v.criado_em)} · ${brl(v.total)}</b>
       <small>${esc(v.vendedora || 'sem vendedora')} · ${v.itens.reduce((a, i) => a + Number(i.qtd), 0)} peça(s) · ${esc(formas)}${v.cliente?.nome ? ' · ' + esc(v.cliente.nome) : ''}</small>
       ${v.status === 'erro' ? `<small style="color:var(--red)">${esc(v.erro || '')}</small>` : ''}</div>
       ${st}
-      <button class="btn-icon" title="Reimprimir" onclick="imprimirComprovante(S.vendasDia[${idx}],true)"><i class="ti ti-printer"></i></button>
-      ${!v._local ? `<button class="btn-icon" title="Troca" onclick="trocaComVenda(S.vendasDia[${idx}])"><i class="ti ti-arrows-exchange"></i></button>` : ''}
-      ${v.status === 'erro' ? `<button class="btn-icon" title="Tentar de novo" onclick="reenviar('${v.id}')"><i class="ti ti-refresh"></i></button>` : ''}
+      <button class="btn-icon" title="Reimprimir" onclick="event.stopPropagation();imprimirComprovante(S.vendasDia[${idx}],true)"><i class="ti ti-printer"></i></button>
+      ${!v._local ? `<button class="btn-icon" title="Troca" onclick="event.stopPropagation();trocaComVenda(S.vendasDia[${idx}])"><i class="ti ti-arrows-exchange"></i></button>` : ''}
+      ${v.status === 'erro' ? `<button class="btn-icon" title="Tentar de novo" onclick="event.stopPropagation();reenviar('${v.id}')"><i class="ti ti-refresh"></i></button>` : ''}
     </div>`;
   }).join('') : '<div class="empty">Nenhuma venda neste dia</div>';
+}
+async function verVenda(idx) {
+  const v = S.vendasDia[idx]; if (!v) return;
+  const linha = (a, b, estilo = '') => `<div class="tot-linha" style="${estilo}"><span>${a}</span><b class="mono">${b}</b></div>`;
+  const itens = v.itens.map(i => {
+    const pn = partesNome(i.nome), bruto = r2(i.preco * i.qtd), pago = i.pago ?? r2(bruto - (i.desconto || 0));
+    return `<div class="lista-l"><div class="sp"><b>${esc(pn.nome)}</b>
+      <small>${pn.tam ? 'Tam ' + esc(pn.tam) + ' · ' : ''}${i.qtd} × ${brl(i.preco)} · cód ${esc(i.codigo || '—')}${i.desconto ? ` · <span style="color:var(--green)">desconto ${brl(i.desconto)}</span>` : ''}</small></div>
+      <b class="mono">${brl(pago)}</b></div>`;
+  }).join('');
+  const pags = v.pagamentos.map(p => linha(
+    `${NOME_FORMA[p.forma] || p.forma}${p.parcelas > 1 ? ` (${p.parcelas}x)` : ''}${p.vale ? ' nº ' + esc(p.vale) : ''}${p.recebido ? ` · recebido ${brl(p.recebido)}` : ''}`, brl(p.valor))).join('');
+  const status = S.treino ? 'Treino (não vai para o Bling)'
+    : v._local ? 'Guardada neste aparelho, esperando internet'
+    : v.status === 'enviada' ? `No Bling${v.bling_numero ? ' — pedido nº ' + v.bling_numero : ''}`
+    : v.status === 'erro' ? `<span style="color:var(--red)">Erro no Bling: ${esc(v.erro || '')}</span>` : 'Enviando ao Bling…';
+  abrirModal(`Venda das ${horaSP(v.criado_em)}`, `
+    <div style="font-size:.86rem;line-height:1.6;margin-bottom:6px">
+      <div><span class="muted">Data:</span> ${dataBR(v.data)} às ${horaSP(v.criado_em)}</div>
+      <div><span class="muted">Código:</span> ${esc(v.codigo || codigoVenda(v.id))}</div>
+      <div><span class="muted">Vendedora:</span> ${esc(v.vendedora || '—')}</div>
+      ${v.cliente?.nome ? `<div><span class="muted">Cliente:</span> ${esc(v.cliente.nome)}${v.cliente.cpf ? ' · CPF ' + esc(v.cliente.cpf) : ''}${v.cliente.telefone ? ' · ' + esc(v.cliente.telefone) : ''}</div>` : ''}
+      <div><span class="muted">Situação:</span> ${status}</div>
+    </div>
+    <div class="card-t" style="margin-top:12px">Peças</div>${itens}
+    <div style="margin-top:8px">${linha('Subtotal', brl(v.subtotal))}${v.desconto ? linha('Descontos', '− ' + brl(v.desconto), 'color:var(--green)') : ''}</div>
+    <div class="tot-final"><span>Total</span><b class="mono" style="font-size:1.5rem">${brl(v.total)}</b></div>
+    <div class="card-t" style="margin-top:14px">Pagamento</div>${pags}${v.troco ? linha('Troco', brl(v.troco)) : ''}
+    <div id="vv-trocas"></div>`,
+    `<button class="btn" onclick="imprimirComprovante(S.vendasDia[${idx}],true)"><i class="ti ti-printer"></i>Reimprimir</button>
+     ${!v._local ? `<button class="btn" onclick="fecharModal();trocaComVenda(S.vendasDia[${idx}])"><i class="ti ti-arrows-exchange"></i>Troca</button>` : ''}
+     ${v.status === 'erro' ? `<button class="btn btn-primary" onclick="fecharModal();reenviar('${v.id}')"><i class="ti ti-refresh"></i>Tentar de novo</button>` : ''}`);
+  if (v._local || !(navigator.onLine || S.treino)) return;
+  const { data: trocas } = await db.from('pdv_trocas').select('*').eq('venda_origem', v.id);
+  if (trocas?.length && $('vv-trocas')) $('vv-trocas').innerHTML = `<div class="card-t" style="margin-top:14px">Trocas desta venda</div>` + trocas.map(t =>
+    `<div class="lista-l"><div class="sp"><b>${dataBR(t.data)} · ${{ troca: 'Troca na hora', vale: 'Vale-troca', dinheiro: 'Devolução de dinheiro' }[t.destino]}</b>
+      <small>${t.itens.map(i => esc(partesNome(i.nome).nome)).join(', ')}${t.vale_codigo ? ' · vale nº ' + esc(t.vale_codigo) : ''}${t.motivo ? ' · ' + esc(t.motivo) : ''}</small></div><b class="mono">${brl(t.valor)}</b></div>`).join('');
 }
 async function reenviar(id) {
   toast('Enviando ao Bling…');
