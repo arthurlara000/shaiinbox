@@ -224,6 +224,11 @@ h1.titulo { font-family: 'Playfair Display', serif; font-size: 1.45rem; margin-b
 #print-area { display: none; }
 #faixa-treino { background: #fff3d6; color: #7a4f1d; border-bottom: 1px solid rgba(184,120,48,.35); padding: 8px 20px; font-size: .82rem; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 #faixa-treino span { flex: 1; min-width: 220px; }
+.etq-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+.etq-teste { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 8px; text-align: center; color: #000; }
+.etq-teste svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+.etq-n { font-size: .74rem; font-weight: 600; line-height: 1.2; min-height: 2.4em; }
+.etq-p { font-weight: 700; font-size: .9rem; }
 #faixa-treino button { background: #fff; border: 1px solid rgba(184,120,48,.4); color: #7a4f1d; border-radius: 8px; padding: 5px 10px; font-size: .78rem; font-weight: 600; }
 
 /* ---------- celular ---------- */
@@ -305,7 +310,7 @@ h1.titulo { font-family: 'Playfair Display', serif; font-size: 1.45rem; margin-b
 </header>
 <div id="faixa-treino" style="display:none">
   <i class="ti ti-school"></i><span><b>Modo treino</b> — peças de exemplo, nada vai para o Bling. Senha da gerente: <b>1234</b>. Códigos: 900101 a 900171 ou busque por nome.</span>
-  <button onclick="zerarTreino()">Zerar treino</button><button onclick="sairTreino()">Sair do treino</button>
+  <button onclick="etiquetasTreino()">Etiquetas de teste</button><button onclick="zerarTreino()">Zerar treino</button><button onclick="sairTreino()">Sair do treino</button>
 </div>
 <nav class="nav">
   <button data-tab="vender" onclick="irPara('vender')"><i class="ti ti-shopping-bag"></i>Vender</button>
@@ -1659,6 +1664,30 @@ async function iniciarTreino(loja) {
   await Promise.all([carregarVendedoras(), carregarCaixa()]);
   S.catalogo = CATALOGO_TREINO.map(p => ({ ...p })); indexarCatalogo();
   renderCarrinho(); atualizarPills();
+}
+// etiquetas das peças de exemplo, no mesmo formato da etiqueta do Bling (EAN13 = código com zeros + dígito)
+function etiquetaTreinoHtml(p) {
+  const pn = partesNome(p.nome);
+  return `<div class="etq-teste"><div class="etq-n">${esc(pn.nome)}${pn.tam ? ' · ' + esc(pn.tam) : ''}</div>
+    <svg data-ean="${String(p.codigo).padStart(12, '0')}"></svg><div class="etq-p">${brl(p.preco)}</div></div>`;
+}
+function desenharEans(raiz) {
+  if (typeof JsBarcode === 'undefined') return;
+  raiz.querySelectorAll('svg[data-ean]').forEach(svg => {
+    try { JsBarcode(svg, svg.dataset.ean, { format: 'EAN13', width: 2, height: 56, fontSize: 14, margin: 4, flat: true }); } catch (e) {}
+  });
+}
+function etiquetasTreino() {
+  abrirModal('Etiquetas de teste', `
+    <p class="muted" style="font-size:.85rem;margin-bottom:10px">Leia com o leitor ou com a câmera do celular apontando para a tela. Também dá para imprimir na térmica.</p>
+    <div class="etq-grade">${CATALOGO_TREINO.map(etiquetaTreinoHtml).join('')}</div>`,
+    `<button class="btn" onclick="fecharModal()">Fechar</button><button class="btn btn-primary" onclick="imprimirEtiquetasTreino()"><i class="ti ti-printer"></i>Imprimir</button>`, { wide: true });
+  desenharEans($('modal-b'));
+}
+function imprimirEtiquetasTreino() {
+  $('print-area').innerHTML = CATALOGO_TREINO.map(p => etiquetaTreinoHtml(p) + '<hr>').join('');
+  desenharEans($('print-area'));
+  setTimeout(() => window.print(), 80);
 }
 function zerarTreino() {
   if (!confirm('Apagar todas as vendas, trocas e caixas do treino neste aparelho?')) return;
