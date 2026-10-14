@@ -3,7 +3,9 @@
 //  - configurar   : confere as permissões do app no Bling e preenche pdv_config (depósitos, formas, Consumidor Final, vendedoras)
 //  - catalogo     : espelha produtos (simples + variações) e saldos por depósito em pdv_catalogo
 //  - buscar       : procura um código direto no Bling (peça que ainda não está no espelho)
-//  - enviar       : manda vendas/trocas pendentes ao Bling (uma específica ou a fila toda)
+//  - enviar       : manda ao Bling vendas, trocas, cancelamentos e parcelas de crediário recebidas (um item ou a fila toda)
+//  - cancelar     : desfaz uma venda no Bling (estorna estoque e contas, situação cancelado)
+//  - clientes     : procura clientes já cadastradas no Bling (nome ou CPF)
 // Auth: login da equipe/loja (JWT do app) ou ?key= igual ao sync_secret da bling_config (cron). Por isso verify_jwt off.
 // O Bling limita 3 requisições/s: pausa entre chamadas e nova tentativa quando recusa (429).
 import { createClient, SupabaseClient } from 'jsr:@supabase/supabase-js@2';
@@ -11,7 +13,7 @@ import { createClient, SupabaseClient } from 'jsr:@supabase/supabase-js@2';
 const API = 'https://api.bling.com.br/Api/v3';
 const pausa = (ms: number) => new Promise(r => setTimeout(r, ms));
 const ehJwt = (t?: string) => !!t && t.split('.').length === 3;
-const norm = (s: string) => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+const norm = (s: string) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 const primeiroNome = (s: string) => norm(s).split(/\s+/)[0] || '';
 const r2 = (n: number) => Math.round((Number(n) || 0) * 100) / 100;
 const LOJAS = ['Loja Areal', 'Loja Três Rios'];
@@ -168,6 +170,21 @@ async function configurar(sb: SupabaseClient, bl: Bling, cfgPdv: any, criarConsu
     novo.contas_caixa = contas;
     rel.contasCaixa = { ok: true, usadas: contas, todas: (rcc.json.data || []).map((c: any) => `${c.id} ${c.descricao}`) };
   } else rel.contasCaixa = { ok: false, erro: erroBling(rcc), falta: semPermissao(rcc) ? 'escopo Caixas e Bancos / Contas financeiras' : undefined };
+
+  // situações do módulo de vendas: códigos reais de "Atendido" e "Cancelado" nesta conta
+  const rm = await bl.get('/situacoes/modulos');
+  if (rm.ok) {
+    const mod = (rm.json.data || []).find((m: any) => /venda/.test(norm(m.nome || m.descricao || '')) && !/compra|proposta|servico/.test(norm(m.nome || m.descricao || '')));
+    const rsit = mod ? await bl.get(`/situacoes/modulos/${mod.id}`) : null;
+    if (rsit?.ok) {
+      const lista = rsit.json.data || [];
+      const achar = (re: RegExp) => lista.find((s: any) => re.test(norm(s.nome || '')))?.id;
+      const atendido = achar(/^atendido/), cancelado = achar(/^cancelado/);
+      if (atendido) novo.situacao_atendido = atendido;
+      if (cancelado) novo.situacao_cancelado = cancelado;
+      rel.situacoes = { ok: true, modulo: mod.nome || mod.id, atendido, cancelado, todas: lista.map((s: any) => `${s.id} ${s.nome}`) };
+    } else rel.situacoes = { ok: false, erro: rsit ? erroBling(rsit) : 'módulo de vendas não encontrado' };
+  } else rel.situacoes = { ok: false, erro: erroBling(rm), falta: semPermissao(rm) ? 'escopo Situações' : undefined };
 
   // vendedoras: liga funcionarias ao vendedor do Bling e traz o limite de desconto
   rel.vendedoras = await sincronizarVendedoras(sb, bl);
@@ -374,9 +391,10 @@ async function enviarVenda(sb: SupabaseClient, bl: Bling, cfgPdv: any, cfgBling:
         if (!contato) throw new Error('contato Consumidor Final não configurado — rode configurar');
         const clienteObs = !daCliente && v.cliente?.nome ? ` — cliente ${v.cliente.nome}${v.cliente.telefone ? ' ' + v.cliente.telefone : ''}` : '';
         const { data: func } = v.funcionaria_id ? await sb.from('funcionarias').select('bling_vendedor_id').eq('id', v.funcionaria_id).maybeSingle() : { data: null };
+        // peça avulsa (sem cadastro) vai sem produto: o Bling registra a venda e não mexe em estoque
         const itens = (v.itens || []).map((it: any) => ({
-          produto: { id: it.bling_id }, codigo: it.codigo || undefined, descricao: it.nome, unidade: 'UN',
-          quantidade: Number(it.qtd) || 1, valor: r2(it.preco),
+          ...(it.bling_id ? { produto: { id: it.bling_id } } : {}), codigo: it.codigo || (it.bling_id ? undefined : 'AVULSO'),
+          descricao: it.nome, unidade: 'UN', quantidade: Number(it.qtd) || 1, valor: r2(it.preco),
         }));
         const vales = (v.pagamentos || []).filter((p: any) => p.forma === 'vale');
         const totalVale = r2(vales.reduce((s: number, p: any) => s + Number(p.valor), 0));
@@ -435,13 +453,102 @@ async function enviarVenda(sb: SupabaseClient, bl: Bling, cfgPdv: any, cfgBling:
       etapas.atendido = new Date().toISOString();
       await salvar();
     }
-    await sb.from('pdv_vendas').update({ status: 'enviada', etapas, erro: null, enviando_ate: null, enviada_em: new Date().toISOString(), tentativas: (v.tentativas || 0) + 1 }).eq('id', id);
+    // só fecha como enviada se ninguém pediu o cancelamento no meio do caminho
+    await sb.from('pdv_vendas').update({ status: 'enviada', etapas, erro: null, enviando_ate: null, enviada_em: new Date().toISOString(), tentativas: (v.tentativas || 0) + 1 }).eq('id', id).eq('status', 'enviando');
     return { id, ok: true, pedido: pid };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    await sb.from('pdv_vendas').update({ status: 'erro', etapas, erro: msg, enviando_ate: null, tentativas: (v.tentativas || 0) + 1 }).eq('id', id);
+    await sb.from('pdv_vendas').update({ status: 'erro', etapas, erro: msg, enviando_ate: null, tentativas: (v.tentativas || 0) + 1 }).eq('id', id).eq('status', 'enviando');
     return { id, ok: false, erro: msg };
   }
+}
+
+// ---------------- cancelamento de venda (desfaz no Bling: estoque, contas e situação) ----------------
+async function cancelarVenda(sb: SupabaseClient, bl: Bling, cfgPdv: any, id: string) {
+  const agora = new Date().toISOString();
+  const { data: v } = await sb.from('pdv_vendas')
+    .update({ enviando_ate: new Date(Date.now() + 3 * 60000).toISOString() })
+    .eq('id', id).eq('status', 'cancelar').or(`enviando_ate.is.null,enviando_ate.lt.${agora}`)
+    .select('*').maybeSingle();
+  if (!v) return { id, pulada: true };
+  const canc: Record<string, any> = { ...(v.cancelamento || {}) };
+  const et: Record<string, any> = { ...(canc.etapas || {}) };
+  const salvar = () => sb.from('pdv_vendas').update({ cancelamento: { ...canc, etapas: et } }).eq('id', id);
+  try {
+    let pid = v.bling_pedido_id;
+    if (!pid) {
+      // pode ter sido criado sem a gente saber (resposta perdida): procura pelo numeroLoja
+      const rx = await bl.get(`/pedidos/vendas?numerosLojas[]=${numeroLojaDe(v.id)}&limite=5`);
+      if (!rx.ok) throw new Error('conferir pedido no Bling: ' + erroBling(rx));
+      pid = rx.json.data?.[0]?.id || null;
+    }
+    if (pid) {
+      if (!et.estoque) {
+        const r = await bl.req('POST', `/pedidos/vendas/${pid}/estornar-estoque`);
+        if (!r.ok && !jaFeito(r) && r.status !== 404) throw new Error('estornar estoque: ' + erroBling(r));
+        et.estoque = new Date().toISOString(); await salvar();
+      }
+      if (!et.contas) {
+        const r = await bl.req('POST', `/pedidos/vendas/${pid}/estornar-contas`);
+        if (!r.ok && !jaFeito(r) && r.status !== 404) throw new Error('estornar contas: ' + erroBling(r));
+        et.contas = new Date().toISOString(); await salvar();
+      }
+      if (!et.situacao) {
+        const r = await bl.req('PATCH', `/pedidos/vendas/${pid}/situacoes/${cfgPdv.situacao_cancelado || 12}`);
+        if (!r.ok && !/mesma situa|j[aá] est[aá]/i.test(JSON.stringify(r.json || {}))) throw new Error('marcar como cancelado: ' + erroBling(r));
+        et.situacao = new Date().toISOString(); await salvar();
+      }
+    } else et.semPedido = 'a venda não tinha chegado ao Bling';
+    await sb.from('pdv_vendas').update({ status: 'cancelada', cancelada_em: new Date().toISOString(), enviando_ate: null, bling_pedido_id: pid, cancelamento: { ...canc, etapas: et, erro: null } }).eq('id', id);
+    return { id, ok: true, cancelada: true };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    await sb.from('pdv_vendas').update({ enviando_ate: null, cancelamento: { ...canc, etapas: et, erro: msg, tentativas: (canc.tentativas || 0) + 1 } }).eq('id', id);
+    return { id, ok: false, erro: msg };
+  }
+}
+
+// ---------------- parcela de crediário recebida na loja: baixa a conta a receber no Bling ----------------
+async function baixarParcela(sb: SupabaseClient, bl: Bling, cfgPdv: any, id: string) {
+  const { data: p } = await sb.from('pdv_crediario').update({ bling_status: 'enviando' })
+    .eq('id', id).not('pago_em', 'is', null).in('bling_status', ['pendente', 'erro']).select('*').maybeSingle();
+  if (!p) return { id, pulada: true };
+  try {
+    const { data: v } = await sb.from('pdv_vendas').select('cliente, status, data, bling_pedido_id').eq('id', p.venda_id).maybeSingle();
+    const contato = v?.cliente?.bling_contato_id;
+    if (!contato || v?.status !== 'enviada') throw new Error('a venda ainda não foi lançada no Bling');
+    const forma = (cfgPdv.formas || {}).crediario;
+    const r = await bl.get(`/contas/receber?idContato=${contato}&situacoes[]=1&situacoes[]=3${forma ? `&idFormaPagamento=${forma}` : ''}&limite=100&dataInicial=${v.data}&tipoFiltroData=E`);
+    if (!r.ok) throw new Error('procurar a parcela no Bling: ' + erroBling(r));
+    const contas = r.json.data || [];
+    const mesmoValor = (c: any) => Math.abs(Number(c.valor) - Number(p.valor)) < 0.01;
+    const doPedido = (c: any) => !v.bling_pedido_id || c.origem?.id === v.bling_pedido_id;
+    const conta = contas.find((c: any) => doPedido(c) && c.vencimento === p.vencimento && mesmoValor(c))
+      || contas.find((c: any) => doPedido(c) && mesmoValor(c))
+      || contas.find((c: any) => c.vencimento === p.vencimento && mesmoValor(c));
+    if (!conta) throw new Error(`parcela ${p.numero}/${p.total_parcelas} (${p.valor}) não encontrada no Bling`);
+    const rb = await bl.req('POST', `/contas/receber/${conta.id}/baixar`, {
+      data: String(p.pago_em).slice(0, 10), valorRecebido: r2(p.pago_valor ?? p.valor),
+      historico: `Crediário ${p.numero}/${p.total_parcelas} recebido na ${p.pago_loja || p.loja} (${p.pago_forma}) — PDV Shai`,
+    });
+    if (!rb.ok && !jaFeito(rb)) throw new Error('baixar parcela: ' + erroBling(rb));
+    await sb.from('pdv_crediario').update({ bling_status: 'enviada', bling_erro: null }).eq('id', id);
+    return { id, ok: true };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    await sb.from('pdv_crediario').update({ bling_status: 'erro', bling_erro: msg, bling_tentativas: (p.bling_tentativas || 0) + 1 }).eq('id', id);
+    return { id, ok: false, erro: msg };
+  }
+}
+
+// ---------------- clientes já cadastradas no Bling ----------------
+async function buscarClientes(bl: Bling, pesquisa: string) {
+  const so = pesquisa.replace(/\D/g, '');
+  const path = so.length === 11 ? `/contatos?numeroDocumento=${so}&limite=10` : `/contatos?pesquisa=${encodeURIComponent(pesquisa)}&limite=20`;
+  const r = await bl.get(path);
+  if (!r.ok) throw new Error(erroBling(r));
+  return (r.json.data || []).filter((c: any) => !/consumidor final/.test(norm(c.nome)) && c.situacao !== 'E')
+    .map((c: any) => ({ bling_contato_id: c.id, nome: c.nome, cpf: String(c.numeroDocumento || '').replace(/\D/g, '') || null, telefone: String(c.celular || c.telefone || '').replace(/\D/g, '') || null }));
 }
 
 // ---------------- envio de trocas (peças devolvidas voltam ao estoque da loja) ----------------
@@ -459,7 +566,7 @@ async function enviarTroca(sb: SupabaseClient, bl: Bling, cfgPdv: any, id: strin
     const itens = t.itens || [];
     for (let i = 0; i < itens.length; i++) {
       const it = itens[i];
-      if (!it.volta_estoque || etapas[`item${i}`]) continue;
+      if (!it.volta_estoque || !it.bling_id || etapas[`item${i}`]) continue; // peça avulsa não tem estoque no Bling
       const r = await bl.req('POST', '/estoques', {
         produto: { id: it.bling_id }, deposito: { id: deposito }, operacao: 'E',
         quantidade: Number(it.qtd) || 1, preco: r2(it.preco),
@@ -494,10 +601,15 @@ async function enviarFila(sb: SupabaseClient, bl: Bling, cfgPdv: any, cfgBling: 
   let qv = sb.from('pdv_vendas').select('id').or(`status.in.(pendente,erro),and(status.eq.enviando,enviando_ate.lt.${agora})`).lt('tentativas', 20).order('criado_em').limit(30);
   let qt = sb.from('pdv_trocas').select('id').or(`status.in.(pendente,erro),and(status.eq.enviando,enviando_ate.lt.${agora})`).lt('tentativas', 20).order('criado_em').limit(30);
   if (filtroLoja) { qv = qv.eq('loja', filtroLoja); qt = qt.eq('loja', filtroLoja); }
-  const [{ data: vs }, { data: ts }] = await Promise.all([qv, qt]);
+  let qc = sb.from('pdv_vendas').select('id').eq('status', 'cancelar').or(`enviando_ate.is.null,enviando_ate.lt.${agora}`).order('criado_em').limit(30);
+  let qp = sb.from('pdv_crediario').select('id').not('pago_em', 'is', null).in('bling_status', ['pendente', 'erro']).lt('bling_tentativas', 20).limit(30);
+  if (filtroLoja) { qc = qc.eq('loja', filtroLoja); qp = qp.eq('pago_loja', filtroLoja); }
+  const [{ data: vs }, { data: ts }, { data: cs }, { data: ps }] = await Promise.all([qv, qt, qc, qp]);
   const out: unknown[] = [];
   for (const v of vs || []) out.push(await enviarVenda(sb, bl, cfgPdv, cfgBling, v.id));
+  for (const c of cs || []) out.push(await cancelarVenda(sb, bl, cfgPdv, c.id));
   for (const t of ts || []) out.push(await enviarTroca(sb, bl, cfgPdv, t.id));
+  for (const p of ps || []) out.push(await baixarParcela(sb, bl, cfgPdv, p.id));
   return out;
 }
 
@@ -561,9 +673,26 @@ Deno.serve(async (req: Request) => {
         if (loja && t.loja !== loja) return resposta({ erro: 'troca de outra loja' }, 403);
         return resposta(await enviarTroca(sb, bl, cfgPdv, corpo.troca));
       }
+      if (corpo.parcela) {
+        const { data: p } = await sb.from('pdv_crediario').select('pago_loja').eq('id', corpo.parcela).maybeSingle();
+        if (!p) return resposta({ erro: 'parcela não encontrada' }, 404);
+        if (loja && p.pago_loja !== loja) return resposta({ erro: 'parcela recebida em outra loja' }, 403);
+        return resposta(await baixarParcela(sb, bl, cfgPdv, corpo.parcela));
+      }
       return resposta({ ok: true, resultados: await enviarFila(sb, bl, cfgPdv, cfgBling, loja) });
     }
-    return resposta({ erro: 'ação desconhecida', acoes: ['configurar', 'catalogo', 'buscar', 'enviar'] }, 400);
+    if (acao === 'cancelar') {
+      const { data: v } = await sb.from('pdv_vendas').select('loja').eq('id', corpo.venda).maybeSingle();
+      if (!v) return resposta({ erro: 'venda não encontrada' }, 404);
+      if (loja && v.loja !== loja) return resposta({ erro: 'venda de outra loja' }, 403);
+      return resposta(await cancelarVenda(sb, bl, cfgPdv, corpo.venda));
+    }
+    if (acao === 'clientes') {
+      const pesquisa = String(corpo.pesquisa || '').trim();
+      if (pesquisa.length < 3) return resposta({ ok: true, clientes: [] });
+      return resposta({ ok: true, clientes: await buscarClientes(bl, pesquisa) });
+    }
+    return resposta({ erro: 'ação desconhecida', acoes: ['configurar', 'catalogo', 'buscar', 'enviar', 'cancelar', 'clientes'] }, 400);
   } catch (e) {
     return resposta({ erro: e instanceof Error ? e.message : String(e) }, 500);
   }

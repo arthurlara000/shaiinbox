@@ -333,6 +333,10 @@ h1.titulo { font-family: 'Playfair Display', serif; font-size: 1.45rem; margin-b
           </div>
           <div class="resultados" id="resultados"></div>
         </div>
+        <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn btn-ghost" style="flex:0 0 auto;padding:8px 12px;font-size:.84rem" onclick="abrirAvulso()"><i class="ti ti-tag-off"></i>Peça sem etiqueta ou sem cadastro</button>
+          <div id="espera" style="flex:1"></div>
+        </div>
         <div id="aviso-caixa" style="margin-top:12px"></div>
         <div class="carrinho" id="carrinho"></div>
       </div>
@@ -345,6 +349,7 @@ h1.titulo { font-family: 'Playfair Display', serif; font-size: 1.45rem; margin-b
           <div class="acoes-mini">
             <button class="btn" onclick="abrirDescontoVenda()"><i class="ti ti-discount-2"></i>Desconto</button>
             <button class="btn" onclick="abrirCliente()"><i class="ti ti-user"></i><span id="bt-cliente">Cliente</span></button>
+            <button class="btn" onclick="guardarVenda()"><i class="ti ti-player-pause"></i>Guardar</button>
             <button class="btn btn-ghost" onclick="limparVenda(true)"><i class="ti ti-trash"></i>Limpar</button>
           </div>
           <div class="tot-linha"><span>Subtotal (<span id="r-pecas">0</span> peças)</span><span class="mono" id="r-sub">R$ 0,00</span></div>
@@ -452,7 +457,7 @@ let db = sb; // no modo treino vira um banco de mentira guardado só no aparelho
 
 const LOJA_EMAIL = { 'Loja Areal': 'lojaareal@shai.local', 'Loja Três Rios': 'lojatresrios@shai.local' };
 const EQUIPE_EMAIL = 'equipe@shai.local';
-const K = { cat: 'shai-pdv-catalogo-v1', fila: 'shai-pdv-fila-v1', cart: 'shai-pdv-carrinho-v1', funcs: 'shai-pdv-vendedoras-v1', loja: 'shai-pdv-loja', caixa: 'shai-pdv-caixa-v1', trocasFila: 'shai-pdv-trocas-fila-v1' };
+const K = { cat: 'shai-pdv-catalogo-v1', fila: 'shai-pdv-fila-v1', cart: 'shai-pdv-carrinho-v1', funcs: 'shai-pdv-vendedoras-v1', loja: 'shai-pdv-loja', caixa: 'shai-pdv-caixa-v1', trocasFila: 'shai-pdv-trocas-fila-v1', espera: 'shai-pdv-espera-v1', lojaInfo: 'shai-pdv-loja-info-v1' };
 const FORMAS = {
   dinheiro: { nome: 'Dinheiro', icon: 'ti-cash' },
   pix: { nome: 'Pix', icon: 'ti-qrcode' },
@@ -731,7 +736,7 @@ function carregarScript(src) {
 // =====================================================================
 function addProduto(p) {
   if (!p) return;
-  const it = cart.itens.find(i => i.bling_id === p.bling_id);
+  const it = cart.itens.find(i => i.bling_id && i.bling_id === p.bling_id);
   if (it) it.qtd++;
   else cart.itens.push({ bling_id: p.bling_id, codigo: p.codigo || null, nome: p.nome, preco: Number(p.preco) || 0, qtd: 1, desc: 0 });
   if (!(Number(p.preco) > 0)) toast('Atenção: peça sem preço no Bling', 'error'); else bip(true);
@@ -799,6 +804,51 @@ function limparVenda(perguntar) {
   cart = carrinhoVazio(); cart.vale = vale;
   salvarCart(); renderCarrinho(); focarBusca();
 }
+// ---------------- peça sem etiqueta ou sem cadastro (senha da gerente) ----------------
+// vai para o Bling sem produto: registra a venda, mas não mexe em estoque
+function abrirAvulso() {
+  abrirModal('Peça sem etiqueta ou sem cadastro', `
+    <p class="muted" style="font-size:.84rem;margin-bottom:6px">Use só quando a peça não aparece na busca. Ela é vendida sem baixar estoque no Bling.</p>
+    <div class="lbl">O que é a peça</div><input class="inp" id="av-nome" placeholder="Ex.: Blusa listrada azul M" autofocus>
+    <div class="lbl">Preço</div><input class="inp big" id="av-preco" inputmode="decimal" placeholder="R$ 0,00">`,
+    `<button class="btn" onclick="fecharModal()">Cancelar</button><button class="btn btn-primary" onclick="addAvulso()">Adicionar</button>`);
+}
+async function addAvulso() {
+  const nome = $('av-nome').value.trim(), preco = r2(num($('av-preco').value));
+  if (!nome) return toast('Descreva a peça', 'error');
+  if (!(preco > 0)) return toast('Informe o preço', 'error');
+  if (!(await pedirSenhaGerente(`Vender "${nome}" por ${brl(preco)} sem cadastro.`))) return;
+  cart.itens.push({ bling_id: null, codigo: null, nome: 'AVULSO: ' + nome.toUpperCase(), preco, qtd: 1, desc: 0, avulso: true });
+  salvarCart(); renderCarrinho(); bip(true);
+}
+
+// ---------------- vendas em espera (a cliente foi provar outra peça) ----------------
+function rotuloVenda(c) {
+  const t = c.itens.reduce((s, i) => s + i.preco * i.qtd - (i.desc || 0), 0) - (c.descVenda || 0);
+  const f = S.funcs.find(x => x.id === c.vendedora);
+  return `${c.cliente?.nome ? c.cliente.nome.split(' ')[0] : (f ? f.nome : 'Venda')} · ${c.itens.reduce((s, i) => s + i.qtd, 0)} peça(s) · ${brl(t)}`;
+}
+function guardarVenda() {
+  if (!cart.itens.length) return toast('Não há peças para guardar', 'error');
+  const lista = ler(K.espera, []);
+  lista.push({ id: uuid(), em: new Date().toISOString(), cart });
+  gravar(K.espera, lista);
+  cart = carrinhoVazio(); salvarCart(); renderCarrinho(); renderEspera();
+  toast('Venda guardada. Toque nela para continuar.', 'ok');
+}
+function retomarVenda(id) {
+  const lista = ler(K.espera, []), e = lista.find(x => x.id === id); if (!e) return;
+  const resto = lista.filter(x => x.id !== id);
+  if (cart.itens.length) resto.push({ id: uuid(), em: new Date().toISOString(), cart }); // a que estava na tela vai para a espera
+  gravar(K.espera, resto);
+  cart = e.cart; salvarCart(); renderCarrinho(); renderEspera(); focarBusca();
+}
+function renderEspera() {
+  const lista = ler(K.espera, []);
+  $('espera').innerHTML = lista.length ? `<div class="chips">${lista.map(e =>
+    `<button class="chip" style="padding:7px 11px;font-size:.8rem;border-style:dashed" onclick="retomarVenda('${e.id}')"><i class="ti ti-player-play"></i> ${esc(rotuloVenda(e.cart))}<small>em espera desde ${horaSP(e.em)}</small></button>`).join('')}</div>` : '';
+}
+
 function tirarCreditoTroca() {
   const v = cart.vale; if (!v) return;
   cart.vale = null; salvarCart(); renderResumo();
@@ -882,12 +932,39 @@ async function conferirSenhaGerente() {
 function abrirCliente(depois) {
   const c = cart.cliente || {};
   window._clienteDepois = depois || null;
+  window._clienteSel = c.bling_contato_id ? c : null;
   abrirModal('Cliente', `
     <p class="muted" style="font-size:.85rem">Opcional na venda. Obrigatório no crediário.</p>
-    <div class="lbl">Nome</div><input class="inp" id="cl-nome" value="${esc(c.nome || '')}" autofocus>
-    <div class="row"><div><div class="lbl">CPF</div><input class="inp" id="cl-cpf" inputmode="numeric" value="${esc(c.cpf || '')}"></div>
+    <div class="lbl">Buscar cliente já cadastrada</div>
+    <input class="inp" id="cl-busca" placeholder="Nome ou CPF" autocomplete="off" autofocus oninput="buscarClienteDigitando(this.value)">
+    <div id="cl-res"></div>
+    <div class="card-t" style="margin-top:14px">Ou cadastre agora</div>
+    <div class="lbl" style="margin-top:0">Nome</div><input class="inp" id="cl-nome" value="${esc(c.nome || '')}" oninput="window._clienteSel=null">
+    <div class="row"><div><div class="lbl">CPF</div><input class="inp" id="cl-cpf" inputmode="numeric" value="${esc(c.cpf || '')}" oninput="window._clienteSel=null"></div>
     <div><div class="lbl">WhatsApp</div><input class="inp" id="cl-tel" inputmode="tel" value="${esc(c.telefone || '')}"></div></div>`,
     `<button class="btn" onclick="cart.cliente=null;salvarCart();fecharModal();renderResumo()">Sem cliente</button><button class="btn btn-primary" onclick="salvarCliente()">Salvar</button>`);
+}
+let buscaClienteT;
+function buscarClienteDigitando(t) {
+  clearTimeout(buscaClienteT);
+  t = t.trim();
+  if (t.length < 3) { $('cl-res').innerHTML = ''; return; }
+  buscaClienteT = setTimeout(async () => {
+    if (!navigator.onLine && !S.treino) { $('cl-res').innerHTML = '<div class="empty" style="padding:10px">Sem internet para buscar</div>'; return; }
+    $('cl-res').innerHTML = '<div class="empty" style="padding:10px">Procurando…</div>';
+    const { data } = await db.functions.invoke('pdv', { body: { acao: 'clientes', pesquisa: t } });
+    window._clientesAchados = data?.clientes || [];
+    if ($('cl-busca')?.value.trim() !== t) return;
+    $('cl-res').innerHTML = window._clientesAchados.length ? window._clientesAchados.map((c, i) =>
+      `<div class="lista-l venda-l" onclick="escolherClienteAchada(${i})"><div class="sp"><b>${esc(c.nome)}</b><small>${c.cpf ? 'CPF ' + esc(c.cpf) : 'sem CPF'}${c.telefone ? ' · ' + esc(c.telefone) : ''}</small></div><i class="ti ti-check" style="color:var(--accent)"></i></div>`).join('')
+      : '<div class="empty" style="padding:10px">Ninguém encontrado — cadastre abaixo</div>';
+  }, 400);
+}
+function escolherClienteAchada(i) {
+  const c = window._clientesAchados[i];
+  window._clienteSel = c;
+  $('cl-nome').value = c.nome; $('cl-cpf').value = c.cpf || ''; $('cl-tel').value = c.telefone || '';
+  $('cl-res').innerHTML = `<div class="aviso green" style="margin-top:8px"><i class="ti ti-user-check"></i><div><b>${esc(c.nome)}</b> selecionada. Toque em Salvar.</div></div>`;
 }
 function cpfValido(c) {
   c = String(c || '').replace(/\D/g, '');
@@ -899,7 +976,8 @@ function salvarCliente() {
   const nome = $('cl-nome').value.trim(), cpf = $('cl-cpf').value.replace(/\D/g, ''), telefone = $('cl-tel').value.replace(/\D/g, '');
   if (!nome) return toast('Informe o nome', 'error');
   if (cpf && !cpfValido(cpf)) return toast('CPF inválido', 'error');
-  cart.cliente = { nome, cpf: cpf || null, telefone: telefone || null };
+  const sel = window._clienteSel;
+  cart.cliente = { nome, cpf: cpf || null, telefone: telefone || null, ...(sel?.bling_contato_id ? { bling_contato_id: sel.bling_contato_id } : {}) };
   salvarCart(); fecharModal(); renderResumo();
   const depois = window._clienteDepois; window._clienteDepois = null; if (depois) depois();
 }
@@ -934,7 +1012,7 @@ function renderPagamento() {
       extra = `<div class="parc">${[1, 2, 3, 4, 5, 6].map(n => `<button class="${(l.parcelas || 1) === n ? 'on' : ''}" onclick="pag.linhas[${i}].parcelas=${n};renderPagamento()">${n === 1 ? 'À vista' : n + 'x'}</button>`).join('')}</div>`;
     } else if (l.forma === 'crediario') {
       extra = `<div class="parc">${[1, 2, 3, 4, 5, 6].map(n => `<button class="${(l.parcelas || 1) === n ? 'on' : ''}" onclick="pag.linhas[${i}].parcelas=${n};renderPagamento()">${n}x</button>`).join('')}</div>
-        <div style="font-size:.82rem;margin-top:8px">${cart.cliente?.nome ? `Cliente: <b>${esc(cart.cliente.nome)}</b>${cart.cliente.cpf ? '' : ' <span style="color:var(--red)">· falta CPF</span>'} <a href="#" onclick="abrirCliente(()=>abrirPagamentoDeNovo());return false">alterar</a>` : `<a href="#" onclick="abrirCliente(()=>abrirPagamentoDeNovo());return false" style="color:var(--red);font-weight:700">Informe a cliente (nome e CPF)</a>`}</div>`;
+        <div style="font-size:.82rem;margin-top:8px">${cart.cliente?.nome ? `Cliente: <b>${esc(cart.cliente.nome)}</b>${cart.cliente.cpf || cart.cliente.bling_contato_id ? '' : ' <span style="color:var(--red)">· falta CPF</span>'} <a href="#" onclick="abrirCliente(()=>abrirPagamentoDeNovo());return false">alterar</a>` : `<a href="#" onclick="abrirCliente(()=>abrirPagamentoDeNovo());return false" style="color:var(--red);font-weight:700">Informe a cliente (nome e CPF)</a>`}</div>`;
     } else if (l.forma === 'vale') {
       extra = `<div style="font-size:.82rem">Vale nº <b>${esc(l.vale)}</b> · saldo ${brl(l.saldoVale)}</div>`;
     }
@@ -1002,7 +1080,7 @@ async function finalizarVenda() {
   const din = pag.linhas.find(l => l.forma === 'dinheiro');
   if (din && din.recebido && din.recebido < din.valor - 0.004) return toast('O dinheiro recebido é menor que o valor em dinheiro', 'error');
   const cred = pag.linhas.find(l => l.forma === 'crediario');
-  if (cred && !(cart.cliente?.nome && cart.cliente?.cpf)) return toast('Crediário precisa do nome e CPF da cliente', 'error');
+  if (cred && !(cart.cliente?.nome && (cart.cliente?.cpf || cart.cliente?.bling_contato_id))) return toast('Crediário precisa do nome e CPF da cliente', 'error');
   if (pag.linhas.some(l => l.forma === 'vale') && !navigator.onLine) return toast('Venda com vale precisa de internet', 'error');
   finalizando = true; $('bt-finalizar').disabled = true;
   try {
@@ -1132,7 +1210,7 @@ function imprimirComprovante(v, segundaVia) {
   }
   imprimir(`
     <div class="c t">Shai</div>
-    <div class="c">${esc(v.loja)}</div>
+    ${cabecalhoLoja()}
     <div class="c peq">${dt.toLocaleDateString('pt-BR')} ${horaSP(v.criado_em)}${v.vendedora ? ' · ' + esc(v.vendedora) : ''}</div>
     ${segundaVia ? '<div class="c b">2ª VIA</div>' : ''}
     <hr>${itens}<hr>
@@ -1144,7 +1222,7 @@ function imprimirComprovante(v, segundaVia) {
     ${parcelasCred}
     <hr>
     <div class="c b">NÃO É DOCUMENTO FISCAL</div>
-    <div class="c peq">Guarde este comprovante para trocas.</div>
+    <div class="c peq">${esc(S.lojaInfo?.politica || 'Guarde este comprovante para trocas.')}</div>
     <svg data-cod="${codigoVenda(v.id)}"></svg>`);
 }
 function imprimirVale(v) {
@@ -1157,6 +1235,7 @@ function imprimirVale(v) {
     <hr><div class="c peq">Número do vale</div>
     <div class="c" style="font-size:24px;font-weight:700;letter-spacing:2px">Nº ${esc(v.codigo)}</div>
     <div class="c peq">Vale nas duas lojas Shai. Apresente no caixa.</div>
+    ${S.lojaInfo?.instagram || S.lojaInfo?.telefone ? `<div class="c peq">${[S.lojaInfo.telefone, S.lojaInfo.instagram].filter(Boolean).map(esc).join(' · ')}</div>` : ''}
     <svg data-cod="${esc(v.codigo)}"></svg>`);
 }
 
@@ -1204,50 +1283,64 @@ async function trocaLer(lido) {
   lido = String(lido || '').trim(); $('tr-busca').value = '';
   if (!lido) return;
   if (/^PDV-/i.test(lido)) {
-    if (!navigator.onLine) return toast('Sem internet para buscar a venda', 'error');
-    const { data: v } = await db.from('pdv_vendas').select('*').eq('codigo', lido.toUpperCase()).maybeSingle();
-    if (!v) { bip(false); return toast('Venda não encontrada (só aparecem vendas desta loja)', 'error'); }
-    return trocaComVenda(v);
+    if (!navigator.onLine && !S.treino) return toast('Sem internet para buscar a venda', 'error');
+    // acha vendas das duas lojas (a cliente pode trocar na outra loja) e as devoluções já feitas
+    const { data: achado } = await db.rpc('pdv_buscar_venda', { p_codigo: lido.toUpperCase() });
+    if (!achado?.venda) { bip(false); return toast('Venda não encontrada', 'error'); }
+    return trocaComVenda(achado.venda, achado.trocas || []);
   }
   let p = acharPorCodigo(lido) || await buscarNoBling(lido);
   if (!p) { bip(false); return toast('Etiqueta não encontrada', 'error'); }
   if (troca.venda) {
     // com comprovante: só peças daquela venda, pelo valor pago
-    const it = troca.venda.itens.find(i => i.bling_id === p.bling_id);
-    if (!it) { bip(false); return toast('Essa peça não está nesta venda', 'error'); }
-    const ja = troca.itens.filter(x => x.bling_id === p.bling_id).length + (troca.jaDevolvido[p.bling_id] || 0);
-    if (ja >= it.qtd) { bip(false); return toast('Todas as unidades dessa peça já foram devolvidas', 'error'); }
-    troca.itens.push({ bling_id: it.bling_id, codigo: it.codigo, nome: it.nome, qtd: 1, preco: r2((it.pago ?? it.preco * it.qtd) / it.qtd), volta_estoque: true });
+    const idx = troca.venda.itens.findIndex(i => i.bling_id && i.bling_id === p.bling_id);
+    if (idx < 0) { bip(false); return toast('Essa peça não está nesta venda', 'error'); }
+    if (!trocaAddDaVenda(idx)) { bip(false); return; }
   } else {
     troca.itens.push({ bling_id: p.bling_id, codigo: p.codigo, nome: p.nome, qtd: 1, preco: Number(p.preco) || 0, volta_estoque: true, semComprovante: true });
   }
   bip(true); renderTroca();
 }
-async function trocaComVenda(v) {
+// cada peça da venda é contada pela posição dela na venda (peça avulsa não tem código do Bling)
+const chaveItem = (it, idx) => it.bling_id ? 'b' + it.bling_id : 'i' + idx;
+async function trocaComVenda(v, trocasAnteriores) {
+  if (v.status === 'cancelada' || v.status === 'cancelar') return toast('Essa venda foi cancelada', 'error');
+  if (!trocasAnteriores) {
+    const { data: achado } = await db.rpc('pdv_buscar_venda', { p_codigo: v.codigo || codigoVenda(v.id) });
+    trocasAnteriores = achado?.trocas || [];
+  }
+  const prazo = Number(S.cfg?.prazo_troca_dias) || 0;
+  if (prazo) {
+    const dias = Math.floor((new Date(hojeSP() + 'T12:00:00') - new Date(v.data + 'T12:00:00')) / 86400000);
+    if (dias > prazo && !(await pedirSenhaGerente(`A venda tem ${dias} dias — passou do prazo de troca de ${prazo} dias.`))) return;
+  }
   troca = { venda: v, itens: [], destino: null, jaDevolvido: {} };
-  const { data: anteriores } = await db.from('pdv_trocas').select('itens').eq('venda_origem', v.id);
-  for (const t of anteriores || []) for (const i of t.itens || []) troca.jaDevolvido[i.bling_id] = (troca.jaDevolvido[i.bling_id] || 0) + (Number(i.qtd) || 1);
+  for (const t of trocasAnteriores) for (const i of t.itens || []) {
+    const k = i.bling_id ? 'b' + i.bling_id : (i.orig != null ? 'i' + i.orig : null);
+    if (k) troca.jaDevolvido[k] = (troca.jaDevolvido[k] || 0) + (Number(i.qtd) || 1);
+  }
   irPara('trocas'); renderTroca();
 }
 function trocaAddDaVenda(idx) {
-  const it = troca.venda.itens[idx];
-  const ja = troca.itens.filter(x => x.bling_id === it.bling_id).length + (troca.jaDevolvido[it.bling_id] || 0);
-  if (ja >= it.qtd) return toast('Todas as unidades já estão voltando', 'error');
-  troca.itens.push({ bling_id: it.bling_id, codigo: it.codigo, nome: it.nome, qtd: 1, preco: r2((it.pago ?? it.preco * it.qtd) / it.qtd), volta_estoque: true });
-  renderTroca();
+  const it = troca.venda.itens[idx], k = chaveItem(it, idx);
+  const ja = troca.itens.filter(x => x.orig === idx).length + (troca.jaDevolvido[k] || 0);
+  if (ja >= it.qtd) { toast('Todas as unidades dessa peça já voltaram', 'error'); return false; }
+  troca.itens.push({ bling_id: it.bling_id, codigo: it.codigo, nome: it.nome, qtd: 1, preco: r2((it.pago ?? it.preco * it.qtd) / it.qtd), volta_estoque: !!it.bling_id, orig: idx });
+  renderTroca(); bip(true);
+  return true;
 }
 function renderTroca() {
   const v = troca.venda;
-  $('tr-venda').innerHTML = v ? `<div class="aviso green"><i class="ti ti-receipt"></i><div><b>Venda ${esc(v.codigo || codigoVenda(v.id))}</b> · ${dataBR(v.data)} · ${brl(v.total)}${v.vendedora ? ' · ' + esc(v.vendedora) : ''}<br>Toque nas peças que a cliente trouxe (ou bipe a etiqueta). <a href="#" onclick="novaTroca();return false">trocar sem este comprovante</a></div></div>
+  $('tr-venda').innerHTML = v ? `<div class="aviso green"><i class="ti ti-receipt"></i><div><b>Venda ${esc(v.codigo || codigoVenda(v.id))}</b> · ${dataBR(v.data)} · ${brl(v.total)}${v.vendedora ? ' · ' + esc(v.vendedora) : ''}${v.loja !== S.loja ? ` · <b>comprada na ${esc(v.loja)}</b>` : ''}<br>Toque nas peças que a cliente trouxe (ou bipe a etiqueta). <a href="#" onclick="novaTroca();return false">trocar sem este comprovante</a></div></div>
     <div style="margin-top:10px">${v.itens.map((it, idx) => {
-      const pn = partesNome(it.nome), ja = troca.jaDevolvido[it.bling_id] || 0;
+      const pn = partesNome(it.nome), ja = troca.jaDevolvido[chaveItem(it, idx)] || 0;
       return `<div class="lista-l" style="cursor:pointer" onclick="trocaAddDaVenda(${idx})"><div class="sp"><b>${esc(pn.nome)}</b><small>${pn.tam ? 'Tam ' + esc(pn.tam) + ' · ' : ''}${it.qtd} un · pago ${brl((it.pago ?? it.preco * it.qtd) / it.qtd)} cada${ja ? ` · <span style="color:var(--red)">${ja} já devolvida(s)</span>` : ''}</small></div><i class="ti ti-plus" style="color:var(--accent);font-size:1.3rem"></i></div>`;
     }).join('')}</div>`
     : `<div class="aviso"><i class="ti ti-info-circle"></i><div>Sem comprovante, a peça volta pelo <b>preço atual</b> do Bling. Com o comprovante, volta pelo valor que a cliente pagou (com desconto).</div></div>`;
   $('tr-itens').innerHTML = troca.itens.length ? troca.itens.map((i, idx) => {
     const pn = partesNome(i.nome);
-    return `<div class="troca-item"><input type="checkbox" ${i.volta_estoque ? 'checked' : ''} title="Volta para o estoque" onchange="troca.itens[${idx}].volta_estoque=this.checked;renderTroca()">
-      <div><b style="font-size:.92rem">${esc(pn.nome)}</b><small style="display:block;color:var(--text-muted);font-size:.74rem">${pn.tam ? 'Tam ' + esc(pn.tam) + ' · ' : ''}${i.volta_estoque ? 'volta ao estoque da loja' : '<span style="color:var(--red)">não volta ao estoque (defeito)</span>'}</small></div>
+    return `<div class="troca-item"><input type="checkbox" ${i.volta_estoque ? 'checked' : ''} ${i.bling_id ? '' : 'disabled'} title="Volta para o estoque" onchange="troca.itens[${idx}].volta_estoque=this.checked;renderTroca()">
+      <div><b style="font-size:.92rem">${esc(pn.nome)}</b><small style="display:block;color:var(--text-muted);font-size:.74rem">${pn.tam ? 'Tam ' + esc(pn.tam) + ' · ' : ''}${!i.bling_id ? 'peça avulsa (sem estoque no Bling)' : i.volta_estoque ? 'volta ao estoque da loja' : '<span style="color:var(--red)">não volta ao estoque (defeito)</span>'}</small></div>
       <div class="row" style="gap:4px"><b class="mono">${brl(i.preco)}</b><button class="btn-icon" onclick="troca.itens.splice(${idx},1);renderTroca()"><i class="ti ti-x"></i></button></div></div>`;
   }).join('') : '<div class="empty">Nenhuma peça ainda</div>';
   const total = r2(troca.itens.reduce((s, i) => s + i.preco * i.qtd, 0));
@@ -1323,36 +1416,43 @@ function atualizarCaixaPill() {
   $('aviso-caixa').innerHTML = S.caixa ? '' : `<div class="aviso"><i class="ti ti-lock"></i><div><b>Caixa fechado.</b> Abra o caixa com o troco do dia antes da primeira venda. <a href="#" onclick="irPara('caixa');return false">Abrir caixa</a></div></div>`;
 }
 async function resumoCaixa(cx) {
-  const [{ data: vendas }, { data: movs }, { data: trocasDin }] = await Promise.all([
+  const [{ data: vendas }, { data: movs }, { data: trocasDin }, { data: cred }] = await Promise.all([
     db.from('pdv_vendas').select('pagamentos,total,status').eq('caixa_id', cx.id),
     db.from('pdv_caixa_movs').select('*').eq('caixa_id', cx.id).order('criado_em'),
     db.from('pdv_trocas').select('valor,forma_reembolso,criado_em').eq('loja', cx.loja).eq('destino', 'dinheiro').gte('criado_em', cx.aberto_em),
+    db.from('pdv_crediario').select('pago_valor,pago_forma').eq('pago_caixa_id', cx.id),
   ]);
   const todas = [...(vendas || []), ...ler(K.fila, []).filter(v => v.caixa_id === cx.id)];
   const formas = { dinheiro: 0, pix: 0, debito: 0, credito: 0, crediario: 0, vale: 0 };
   let nVendas = 0;
   for (const v of todas) {
-    if (v.status === 'cancelada') continue;
+    if (v.status === 'cancelada' || v.status === 'cancelar') continue;
     nVendas++;
     for (const p of v.pagamentos || []) { const k = p.forma === 'credito_parcelado' ? 'credito' : p.forma; formas[k] = r2((formas[k] || 0) + Number(p.valor)); }
   }
+  // parcelas de crediário recebidas neste caixa (o dinheiro entra na gaveta; o cartão/pix na maquininha)
+  const credRec = { dinheiro: 0, pix: 0, debito: 0, credito: 0 };
+  for (const c of cred || []) credRec[c.pago_forma] = r2((credRec[c.pago_forma] || 0) + Number(c.pago_valor));
+  const credTotal = r2(Object.values(credRec).reduce((a, b) => a + b, 0));
   const soma = tipo => r2((movs || []).filter(m => m.tipo === tipo).reduce((s, m) => s + Number(m.valor), 0));
   const dev = { pix: 0, cartao: 0 };
   for (const t of trocasDin || []) if (t.forma_reembolso && t.forma_reembolso !== 'dinheiro') dev[t.forma_reembolso] = r2((dev[t.forma_reembolso] || 0) + Number(t.valor));
-  const esperado = r2(Number(cx.troco_inicial) + formas.dinheiro + soma('suprimento') - soma('sangria') - soma('despesa') - soma('devolucao'));
-  return { formas, movs: movs || [], nVendas, esperado, sangria: soma('sangria'), despesa: soma('despesa'), devolucao: soma('devolucao'), suprimento: soma('suprimento'), dev };
+  const esperado = r2(Number(cx.troco_inicial) + formas.dinheiro + credRec.dinheiro + soma('suprimento') - soma('sangria') - soma('despesa') - soma('devolucao'));
+  return { formas, movs: movs || [], nVendas, esperado, sangria: soma('sangria'), despesa: soma('despesa'), devolucao: soma('devolucao'), suprimento: soma('suprimento'), dev, credRec, credTotal };
 }
 async function renderCaixa() {
   const box = $('cx-corpo');
-  if (!navigator.onLine) { box.innerHTML = `<div class="aviso"><i class="ti ti-wifi-off"></i><div>O caixa precisa de internet para abrir, lançar saídas e fechar. As vendas continuam funcionando sem internet.</div></div>`; return; }
+  if (!navigator.onLine && !S.treino) { box.innerHTML = `<div class="aviso"><i class="ti ti-wifi-off"></i><div>O caixa precisa de internet para abrir, lançar saídas e fechar. As vendas continuam funcionando sem internet.</div></div>`; return; }
   await carregarCaixa();
   const cx = S.caixa;
-  const senhaBt = `<button class="btn btn-ghost" style="margin-top:14px" onclick="abrirSenhaGerente()"><i class="ti ti-key"></i>Senha da gerente</button>`;
+  const rodape = `<div class="row" style="gap:8px;margin-top:14px;flex-wrap:wrap">
+    <button class="btn btn-ghost" style="flex:0 0 auto" onclick="abrirSenhaGerente()"><i class="ti ti-key"></i>Senha da gerente</button>
+    <button class="btn btn-ghost" style="flex:0 0 auto" onclick="abrirDadosLoja()"><i class="ti ti-building-store"></i>Dados do comprovante</button></div>`;
   if (!cx) {
     box.innerHTML = `<div class="card" style="max-width:460px"><div class="card-t">Abrir o caixa</div>
       <div class="lbl" style="margin-top:0">Troco na gaveta</div><input class="inp big" id="cx-troco" inputmode="decimal" placeholder="R$ 0,00">
-      <div class="lbl">Quem está abrindo</div><div class="chips" id="cx-quem">${S.funcs.map(f => `<button class="chip" data-n="${esc(f.nome)}" onclick="document.querySelectorAll('#cx-quem .chip').forEach(c=>c.classList.toggle('on',c===this))">${esc(f.nome)}</button>`).join('')}</div>
-      <button class="btn btn-primary btn-lg btn-block" style="margin-top:16px" onclick="abrirCaixa()"><i class="ti ti-lock-open"></i>Abrir caixa</button></div>${senhaBt}`;
+      <div class="lbl">Quem está abrindo</div><div class="chips" id="cx-quem">${chipsQuem('cx-quem')}</div>
+      <button class="btn btn-primary btn-lg btn-block" style="margin-top:16px" onclick="abrirCaixa()"><i class="ti ti-lock-open"></i>Abrir caixa</button></div>${rodape}`;
     return;
   }
   const r = await resumoCaixa(cx);
@@ -1360,27 +1460,30 @@ async function renderCaixa() {
   const movs = r.movs.map(m => `<div class="lista-l"><div class="sp"><b>${{ sangria: 'Sangria', despesa: 'Despesa', devolucao: 'Devolução', suprimento: 'Reforço de troco' }[m.tipo]}</b><small>${horaSP(m.criado_em)}${m.feito_por ? ' · ' + esc(m.feito_por) : ''}${m.descricao ? ' · ' + esc(m.descricao) : ''}</small></div><b class="mono" style="color:${m.tipo === 'suprimento' ? 'var(--green)' : 'var(--red)'}">${m.tipo === 'suprimento' ? '+' : '−'} ${brl(m.valor)}</b></div>`).join('');
   box.innerHTML = `
     <div class="grid-4">
-      <div class="stat"><div class="l">Dinheiro na gaveta</div><div class="v mono">${brl(r.esperado)}</div></div>
       <div class="stat"><div class="l">Vendas</div><div class="v mono">${r.nVendas}</div></div>
       <div class="stat"><div class="l">Cartão</div><div class="v mono">${brl(r.formas.debito + r.formas.credito)}</div></div>
       <div class="stat"><div class="l">Pix</div><div class="v mono">${brl(r.formas.pix)}</div></div>
+      <div class="stat"><div class="l">Crediário recebido</div><div class="v mono">${brl(r.credTotal)}</div></div>
     </div>
     <div class="grid-2" style="margin-top:14px">
-      <div class="card"><div class="card-t">Saídas de dinheiro</div>
+      <div class="card"><div class="card-t">Dinheiro</div>
         <div class="row" style="gap:8px;flex-wrap:wrap">
           <button class="btn" onclick="abrirMov('sangria')"><i class="ti ti-arrow-bar-up"></i>Sangria</button>
           <button class="btn" onclick="abrirDespesa()"><i class="ti ti-receipt-2"></i>Despesa</button>
           <button class="btn" onclick="abrirMov('suprimento')"><i class="ti ti-arrow-bar-down"></i>Reforço de troco</button>
+          <button class="btn" onclick="abrirCrediario()"><i class="ti ti-notebook"></i>Receber crediário</button>
         </div>
         <div style="margin-top:8px">${movs || '<div class="empty">Nenhuma saída</div>'}</div></div>
       <div class="card"><div class="card-t">Por forma de pagamento</div>
         ${Object.entries(r.formas).filter(([, v]) => v).map(([k, v]) => `<div class="tot-linha"><span>${FORMAS[k]?.nome || k}</span><b class="mono">${brl(v)}</b></div>`).join('') || '<div class="empty">Nenhuma venda ainda</div>'}
         <button class="btn btn-primary btn-lg btn-block" style="margin-top:14px" onclick="abrirFechamento()"><i class="ti ti-lock"></i>Fechar caixa</button></div>
-    </div>${senhaBt}`;
+    </div>${rodape}`;
 }
+const chipsQuem = id => S.funcs.map(f => `<button class="chip" data-n="${esc(f.nome)}" onclick="document.querySelectorAll('#${id} .chip').forEach(c=>c.classList.toggle('on',c===this))">${esc(f.nome)}</button>`).join('');
+const quemEscolhido = id => document.querySelector(`#${id} .chip.on`)?.dataset.n || null;
 async function abrirCaixa() {
   const troco = r2(num($('cx-troco').value));
-  const quem = document.querySelector('#cx-quem .chip.on')?.dataset.n || null;
+  const quem = quemEscolhido('cx-quem');
   if (!quem) return toast('Toque em quem está abrindo', 'error');
   const { error } = await db.from('pdv_caixas').insert({ loja: S.loja, troco_inicial: troco, aberto_por: quem });
   if (error) return toast(error.code === '23505' ? 'O caixa já foi aberto em outro aparelho' : 'Erro: ' + error.message, 'error');
@@ -1390,16 +1493,20 @@ function abrirMov(tipo) {
   const nome = tipo === 'sangria' ? 'Sangria (tirar dinheiro do caixa)' : 'Reforço de troco (colocar dinheiro)';
   abrirModal(nome, `<div class="lbl" style="margin-top:0">Valor</div><input class="inp big" id="mv-valor" inputmode="decimal" autofocus>
     <div class="lbl">Observação</div><input class="inp" id="mv-obs" placeholder="${tipo === 'sangria' ? 'Ex.: levado ao banco' : ''}">
-    <div class="lbl">Quem</div><div class="chips" id="mv-quem">${S.funcs.map(f => `<button class="chip" data-n="${esc(f.nome)}" onclick="document.querySelectorAll('#mv-quem .chip').forEach(c=>c.classList.toggle('on',c===this))">${esc(f.nome)}</button>`).join('')}</div>`,
+    <div class="lbl">Quem</div><div class="chips" id="mv-quem">${chipsQuem('mv-quem')}</div>`,
     `<button class="btn" onclick="fecharModal()">Cancelar</button><button class="btn btn-primary" onclick="salvarMov('${tipo}')">Registrar</button>`);
 }
+// mexer no dinheiro da gaveta pede a senha da gerente
 async function salvarMov(tipo) {
   const valor = r2(num($('mv-valor').value));
   if (!(valor > 0)) return toast('Informe o valor', 'error');
-  const quem = document.querySelector('#mv-quem .chip.on')?.dataset.n || null;
-  const { error } = await db.from('pdv_caixa_movs').insert({ caixa_id: S.caixa.id, loja: S.loja, tipo, valor, descricao: $('mv-obs').value.trim() || null, feito_por: quem });
+  const quem = quemEscolhido('mv-quem');
+  if (!quem) return toast('Toque em quem está fazendo', 'error');
+  const descricao = $('mv-obs').value.trim() || null;
+  if (!(await pedirSenhaGerente(`${tipo === 'sangria' ? 'Sangria' : 'Reforço de troco'} de ${brl(valor)} por ${quem}.`))) return;
+  const { error } = await db.from('pdv_caixa_movs').insert({ caixa_id: S.caixa.id, loja: S.loja, tipo, valor, descricao, feito_por: quem });
   if (error) return toast('Erro: ' + error.message, 'error');
-  fecharModal(); toast('Registrado', 'ok'); renderCaixa();
+  toast('Registrado', 'ok'); renderCaixa();
 }
 let despFoto = null, despCat = 'Alimentação';
 function abrirDespesa() {
@@ -1420,74 +1527,86 @@ async function salvarDespesa() {
   if (!descricao) return toast('Descreva a despesa', 'error');
   if (!(valor > 0)) return toast('Informe o valor', 'error');
   if (!despFoto) return toast('Tire a foto da nota', 'error');
-  $('dp-salvar').disabled = true;
+  const foto = despFoto, cat = despCat;
+  if (!(await pedirSenhaGerente(`Despesa de ${brl(valor)} (${descricao}) paga com dinheiro do caixa.`))) return;
   try {
-    const ext = (despFoto.name.split('.').pop() || 'jpg').toLowerCase();
+    const ext = (foto.name.split('.').pop() || 'jpg').toLowerCase();
     const caminho = `${S.loja}/${hojeSP()}/${uuid()}.${ext}`;
-    const { error: e1 } = await db.storage.from('notas-despesas').upload(caminho, despFoto);
+    const { error: e1 } = await db.storage.from('notas-despesas').upload(caminho, foto);
     if (e1) throw e1;
     const foto_url = db.storage.from('notas-despesas').getPublicUrl(caminho).data.publicUrl;
-    const { data: d, error: e2 } = await db.from('despesas').insert({ loja: S.loja, data_despesa: hojeSP(), descricao, categoria: despCat, valor, foto_url }).select('id').single();
+    const { data: d, error: e2 } = await db.from('despesas').insert({ loja: S.loja, data_despesa: hojeSP(), descricao, categoria: cat, valor, foto_url }).select('id').single();
     if (e2) throw e2;
     const { error: e3 } = await db.from('pdv_caixa_movs').insert({ caixa_id: S.caixa.id, loja: S.loja, tipo: 'despesa', valor, descricao, despesa_id: d.id });
     if (e3) throw e3;
-    fecharModal(); toast('Despesa registrada', 'ok'); renderCaixa();
-  } catch (e) { toast('Erro: ' + (e.message || e), 'error'); $('dp-salvar').disabled = false; }
+    toast('Despesa registrada', 'ok'); renderCaixa();
+  } catch (e) { toast('Erro: ' + (e.message || e), 'error'); }
 }
+
+// ---------------- fechamento às cegas: conta primeiro, depois o app mostra o esperado ----------------
 async function abrirFechamento() {
   const pend = ler(K.fila, []).filter(v => v.caixa_id === S.caixa.id).length;
-  const r = await resumoCaixa(S.caixa);
-  window._fech = r;
-  abrirModal('Fechar caixa', `
+  abrirModal('Fechar caixa — 1. Contagem', `
     ${pend ? `<div class="aviso red" style="margin-bottom:10px"><i class="ti ti-wifi-off"></i><div>${pend} venda(s) ainda neste aparelho, esperando internet. Elas entram no fechamento.</div></div>` : ''}
+    <p style="font-size:.9rem">Conte todo o dinheiro da gaveta (troco inicial incluído) e digite o total. O valor esperado só aparece depois.</p>
+    <div class="lbl">Dinheiro contado na gaveta</div><input class="inp big" id="fc-contado" inputmode="decimal" autofocus>
+    <div class="lbl">Quem está fechando</div><div class="chips" id="fc-quem">${chipsQuem('fc-quem')}</div>`,
+    `<button class="btn" onclick="fecharModal()">Cancelar</button><button class="btn btn-primary" onclick="conferirFechamento()">Conferir</button>`, { wide: true });
+}
+async function conferirFechamento() {
+  if (!$('fc-contado').value.trim()) return toast('Digite o dinheiro contado', 'error');
+  const quem = quemEscolhido('fc-quem');
+  if (!quem) return toast('Toque em quem está fechando', 'error');
+  const contado = r2(num($('fc-contado').value));
+  const r = await resumoCaixa(S.caixa);
+  const dif = r2(contado - r.esperado);
+  window._fech = { r, contado, quem, dif };
+  const bateu = Math.abs(dif) < 0.01;
+  abrirModal('Fechar caixa — 2. Conferência', `
+    <div class="pag-total"><div class="muted">Diferença na gaveta</div>
+      <div class="v mono" style="color:${bateu ? 'var(--green)' : 'var(--red)'}">${bateu ? '✓ Bateu' : (dif > 0 ? '+ ' : '− ') + brl(Math.abs(dif))}</div>
+      <div class="f muted">${bateu ? 'Dinheiro certinho' : dif > 0 ? 'Sobrando dinheiro na gaveta' : 'Faltando dinheiro na gaveta'}</div></div>
     <div class="tot-linha"><span>Troco inicial</span><b class="mono">${brl(S.caixa.troco_inicial)}</b></div>
     <div class="tot-linha"><span>+ Vendas em dinheiro</span><b class="mono">${brl(r.formas.dinheiro)}</b></div>
+    ${r.credRec.dinheiro ? `<div class="tot-linha"><span>+ Crediário recebido em dinheiro</span><b class="mono">${brl(r.credRec.dinheiro)}</b></div>` : ''}
     ${r.suprimento ? `<div class="tot-linha"><span>+ Reforço de troco</span><b class="mono">${brl(r.suprimento)}</b></div>` : ''}
     ${r.sangria ? `<div class="tot-linha"><span>− Sangrias</span><b class="mono">${brl(r.sangria)}</b></div>` : ''}
     ${r.despesa ? `<div class="tot-linha"><span>− Despesas</span><b class="mono">${brl(r.despesa)}</b></div>` : ''}
     ${r.devolucao ? `<div class="tot-linha"><span>− Devoluções</span><b class="mono">${brl(r.devolucao)}</b></div>` : ''}
-    <div class="tot-final"><span>Dinheiro esperado</span><b class="mono" style="font-size:1.4rem">${brl(r.esperado)}</b></div>
-    <div class="lbl">Dinheiro contado na gaveta</div><input class="inp big" id="fc-contado" inputmode="decimal" autofocus oninput="fcDif()">
-    <div id="fc-dif" style="font-weight:700;margin-top:8px"></div>
+    <div class="tot-linha"><b>Esperado</b><b class="mono">${brl(r.esperado)}</b></div>
+    <div class="tot-linha"><b>Contado</b><b class="mono">${brl(contado)}</b></div>
     <div class="card-t" style="margin-top:16px">Confira na maquininha</div>
-    <div class="tot-linha"><span>Débito</span><b class="mono">${brl(r.formas.debito)}</b></div>
-    <div class="tot-linha"><span>Crédito</span><b class="mono">${brl(r.formas.credito)}</b></div>
-    <div class="tot-linha"><span>Pix</span><b class="mono">${brl(r.formas.pix)}</b></div>
+    <div class="tot-linha"><span>Débito</span><b class="mono">${brl(r.formas.debito + r.credRec.debito)}</b></div>
+    <div class="tot-linha"><span>Crédito</span><b class="mono">${brl(r.formas.credito + r.credRec.credito)}</b></div>
+    <div class="tot-linha"><span>Pix</span><b class="mono">${brl(r.formas.pix + r.credRec.pix)}</b></div>
+    ${r.credRec.debito + r.credRec.credito + r.credRec.pix ? `<div class="muted" style="font-size:.76rem">inclui parcelas de crediário recebidas no cartão/Pix</div>` : ''}
     ${r.dev.cartao ? `<div class="tot-linha" style="color:var(--red)"><span>Estornos no cartão (devoluções)</span><b class="mono">− ${brl(r.dev.cartao)}</b></div>` : ''}
     ${r.dev.pix ? `<div class="tot-linha" style="color:var(--red)"><span>Pix devolvido (devoluções)</span><b class="mono">− ${brl(r.dev.pix)}</b></div>` : ''}
     ${r.formas.crediario || r.formas.vale ? `<div class="card-t" style="margin-top:16px">Sem dinheiro na hora</div>` : ''}
-    ${r.formas.crediario ? `<div class="tot-linha"><span>Crediário</span><b class="mono">${brl(r.formas.crediario)}</b></div>` : ''}
+    ${r.formas.crediario ? `<div class="tot-linha"><span>Vendido no crediário</span><b class="mono">${brl(r.formas.crediario)}</b></div>` : ''}
     ${r.formas.vale ? `<div class="tot-linha"><span>Pago com vale-troca</span><b class="mono">${brl(r.formas.vale)}</b></div>` : ''}
-    <div class="lbl">Quem está fechando</div><div class="chips" id="fc-quem">${S.funcs.map(f => `<button class="chip" data-n="${esc(f.nome)}" onclick="document.querySelectorAll('#fc-quem .chip').forEach(c=>c.classList.toggle('on',c===this))">${esc(f.nome)}</button>`).join('')}</div>
-    <div class="lbl">Observação</div><input class="inp" id="fc-obs">`,
-    `<button class="btn" onclick="fecharModal()">Cancelar</button><button class="btn btn-primary" id="fc-ok" onclick="fecharCaixa()"><i class="ti ti-lock"></i>Fechar e imprimir</button>`, { wide: true });
-}
-function fcDif() {
-  const c = num($('fc-contado').value), d = r2(c - window._fech.esperado);
-  $('fc-dif').innerHTML = $('fc-contado').value ? (Math.abs(d) < 0.01 ? '<span style="color:var(--green)">✓ Bateu certinho</span>' : `<span style="color:var(--red)">${d > 0 ? 'Sobrando' : 'Faltando'} ${brl(Math.abs(d))}</span>`) : '';
+    <div class="lbl">Observação ${bateu ? '' : '(explique a diferença)'}</div><input class="inp" id="fc-obs">`,
+    `<button class="btn" onclick="abrirFechamento()">Contar de novo</button><button class="btn btn-primary" id="fc-ok" onclick="fecharCaixa()"><i class="ti ti-lock"></i>Fechar e imprimir</button>`, { wide: true });
 }
 async function fecharCaixa() {
-  const r = window._fech;
-  if (!$('fc-contado').value.trim()) return toast('Conte o dinheiro da gaveta', 'error');
-  const quem = document.querySelector('#fc-quem .chip.on')?.dataset.n || null;
-  if (!quem) return toast('Toque em quem está fechando', 'error');
-  const contado = r2(num($('fc-contado').value));
-  const dif = r2(contado - r.esperado);
+  const { r, contado, quem, dif } = window._fech;
   const obs = $('fc-obs').value.trim();
-  $('fc-ok').disabled = true;
+  if (Math.abs(dif) >= 0.01 && !obs) return toast('Explique a diferença na observação', 'error');
+  if (!(await pedirSenhaGerente(`Fechar o caixa com ${Math.abs(dif) < 0.01 ? 'o dinheiro certinho' : 'diferença de ' + brl(dif)}.`))) return;
   const cx = S.caixa;
   const { error } = await db.from('pdv_caixas').update({
     fechado_em: new Date().toISOString(), fechado_por: quem,
-    esperado: { gaveta: r.esperado, vendas: r.formas, troco_inicial: Number(cx.troco_inicial), sangria: r.sangria, despesa: r.despesa, devolucao: r.devolucao, suprimento: r.suprimento, n_vendas: r.nVendas },
+    esperado: { gaveta: r.esperado, vendas: r.formas, crediario_recebido: r.credRec, troco_inicial: Number(cx.troco_inicial), sangria: r.sangria, despesa: r.despesa, devolucao: r.devolucao, suprimento: r.suprimento, n_vendas: r.nVendas },
     contado: { gaveta: contado }, diferenca: dif, obs: obs || null,
   }).eq('id', cx.id);
-  if (error) { $('fc-ok').disabled = false; return toast('Erro: ' + error.message, 'error'); }
-  fecharModal();
+  if (error) return toast('Erro: ' + error.message, 'error');
   imprimir(`<div class="c t">Shai</div><div class="c b">FECHAMENTO DE CAIXA</div><div class="c">${esc(S.loja)}</div>
     <div class="c peq">Aberto ${new Date(cx.aberto_em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}${cx.aberto_por ? ' · ' + esc(cx.aberto_por) : ''}<br>Fechado ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })} · ${esc(quem)}</div><hr>
     <div class="l"><span>Vendas</span><span>${r.nVendas}</span></div>
-    ${Object.entries(r.formas).filter(([, v]) => v).map(([k, v]) => `<div class="l"><span>${FORMAS[k]?.nome || k}</span><span>${brl(v)}</span></div>`).join('')}<hr>
+    ${Object.entries(r.formas).filter(([, v]) => v).map(([k, v]) => `<div class="l"><span>${FORMAS[k]?.nome || k}</span><span>${brl(v)}</span></div>`).join('')}
+    ${r.credTotal ? `<div class="l"><span>Crediário recebido</span><span>${brl(r.credTotal)}</span></div>` : ''}<hr>
     <div class="l"><span>Troco inicial</span><span>${brl(cx.troco_inicial)}</span></div>
+    ${r.credRec.dinheiro ? `<div class="l"><span>Crediário em dinheiro</span><span>${brl(r.credRec.dinheiro)}</span></div>` : ''}
     ${r.suprimento ? `<div class="l"><span>Reforço de troco</span><span>${brl(r.suprimento)}</span></div>` : ''}
     ${r.sangria ? `<div class="l"><span>Sangrias</span><span>− ${brl(r.sangria)}</span></div>` : ''}
     ${r.despesa ? `<div class="l"><span>Despesas</span><span>− ${brl(r.despesa)}</span></div>` : ''}
@@ -1499,9 +1618,91 @@ async function fecharCaixa() {
   S.caixa = null; gravar(K.caixa, null); atualizarCaixaPill(); renderCaixa();
   toast(Math.abs(dif) < 0.01 ? 'Caixa fechado — bateu certinho' : `Caixa fechado — diferença de ${brl(dif)}`, Math.abs(dif) < 0.01 ? 'ok' : 'error');
 }
+
+// ---------------- receber parcela de crediário (a cliente pode pagar em qualquer loja) ----------------
+function abrirCrediario() {
+  window._parcelas = []; window._parcSel = new Set(); window._crForma = null;
+  abrirModal('Receber crediário', `
+    <div class="lbl" style="margin-top:0">Cliente (nome ou CPF)</div>
+    <input class="inp" id="cr-busca" autocomplete="off" autofocus placeholder="Ex.: Maria ou 529.982.247-25" oninput="clearTimeout(window._crT);window._crT=setTimeout(buscarParcelas,350)">
+    <div id="cr-lista" style="margin-top:8px"></div>`,
+    `<button class="btn" onclick="fecharModal()">Fechar</button><button class="btn btn-primary" id="cr-ok" onclick="receberParcelas()" disabled>Receber</button>`, { wide: true, preso: true });
+}
+async function buscarParcelas() {
+  const t = $('cr-busca').value.trim(), so = t.replace(/\D/g, '');
+  if (t.length < 3) { $('cr-lista').innerHTML = ''; return; }
+  let q = db.from('pdv_crediario').select('*').is('pago_em', null).eq('cancelada', false).order('vencimento');
+  q = so.length >= 11 ? q.eq('cliente->>cpf', so) : q.ilike('cliente->>nome', `%${t}%`);
+  const { data } = await q;
+  window._parcelas = data || [];
+  window._parcSel = new Set();
+  renderParcelas();
+}
+function renderParcelas() {
+  const ps = window._parcelas || [];
+  const hoje = hojeSP();
+  const sel = window._parcSel;
+  const total = r2(ps.filter(p => sel.has(p.id)).reduce((s, p) => s + Number(p.valor), 0));
+  $('cr-lista').innerHTML = ps.length ? ps.map(p => `
+    <label class="troca-item" style="cursor:pointer"><input type="checkbox" ${sel.has(p.id) ? 'checked' : ''} onchange="this.checked?_parcSel.add('${p.id}'):_parcSel.delete('${p.id}');renderParcelas()">
+      <div><b style="font-size:.92rem">${esc(p.cliente?.nome || '—')}</b><small style="display:block;font-size:.76rem;color:${p.vencimento < hoje ? 'var(--red)' : 'var(--text-muted)'}">Parcela ${p.numero}/${p.total_parcelas} · vence ${dataBR(p.vencimento)}${p.vencimento < hoje ? ' · VENCIDA' : ''} · compra na ${esc(lojaCurta(p.loja))}</small></div>
+      <b class="mono">${brl(p.valor)}</b></label>`).join('')
+    + (sel.size ? `<div class="lbl">Como a cliente pagou (${brl(total)})</div><div class="chips" id="cr-forma">${['dinheiro', 'pix', 'debito', 'credito'].map(f => `<button class="chip ${window._crForma === f ? 'on' : ''}" onclick="window._crForma='${f}';renderParcelas()">${FORMAS[f].nome}</button>`).join('')}</div>
+      <div class="lbl">Quem recebeu</div><div class="chips" id="cr-quem">${chipsQuem('cr-quem')}</div>` : '')
+    : '<div class="empty">Nenhuma parcela em aberto para essa cliente</div>';
+  $('cr-ok').disabled = !sel.size;
+  $('cr-ok').textContent = sel.size ? `Receber ${brl(total)}` : 'Receber';
+}
+async function receberParcelas() {
+  if (!S.caixa) return toast('Abra o caixa para receber', 'error');
+  const forma = window._crForma, quem = quemEscolhido('cr-quem');
+  if (!forma) return toast('Escolha como a cliente pagou', 'error');
+  if (!quem) return toast('Toque em quem recebeu', 'error');
+  const ps = window._parcelas.filter(p => window._parcSel.has(p.id));
+  const agora = new Date().toISOString();
+  for (const p of ps) {
+    const { error } = await db.from('pdv_crediario').update({ pago_em: agora, pago_valor: p.valor, pago_forma: forma, pago_loja: S.loja, pago_caixa_id: S.caixa.id, pago_por: quem, bling_status: 'pendente' }).eq('id', p.id).is('pago_em', null);
+    if (error) return toast('Erro: ' + error.message, 'error');
+    db.functions.invoke('pdv', { body: { acao: 'enviar', parcela: p.id } });
+  }
+  modalPreso = false; fecharModal();
+  const total = r2(ps.reduce((s, p) => s + Number(p.valor), 0));
+  imprimir(`<div class="c t">Shai</div><div class="c b">RECIBO — CREDIÁRIO</div>${cabecalhoLoja()}
+    <div class="c peq">${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })} · ${esc(quem)}</div><hr>
+    <div class="b">${esc(ps[0].cliente?.nome || '')}</div>${ps[0].cliente?.cpf ? `<div class="peq">CPF ${esc(ps[0].cliente.cpf)}</div>` : ''}
+    ${ps.map(p => `<div class="l"><span>Parcela ${p.numero}/${p.total_parcelas} (venc. ${dataBR(p.vencimento)})</span><span>${brl(p.valor)}</span></div>`).join('')}
+    <hr><div class="l g"><span>RECEBIDO</span><span>${brl(total)}</span></div><div class="l"><span>Forma</span><span>${FORMAS[forma].nome}</span></div>
+    <hr><div class="c peq">NÃO É DOCUMENTO FISCAL</div>`);
+  toast(`Recebido ${brl(total)}`, 'ok'); renderCaixa();
+}
+
+// ---------------- dados da loja no comprovante (senha da gerente) ----------------
+function abrirDadosLoja() {
+  const i = S.lojaInfo || {};
+  abrirModal('Dados do comprovante', `
+    <p class="muted" style="font-size:.84rem">Aparecem no comprovante, no vale e na mensagem do WhatsApp da ${esc(S.loja)}.</p>
+    <div class="lbl">Endereço</div><input class="inp" id="dl-end" value="${esc(i.endereco || '')}">
+    <div class="row"><div><div class="lbl">Telefone / WhatsApp</div><input class="inp" id="dl-tel" value="${esc(i.telefone || '')}"></div>
+    <div><div class="lbl">Instagram</div><input class="inp" id="dl-ig" value="${esc(i.instagram || '')}" placeholder="@loja.shai"></div></div>
+    <div class="lbl">Política de troca (sai no pé do comprovante)</div><textarea class="inp" id="dl-pol" rows="3" placeholder="Ex.: Trocas em até 30 dias com etiqueta e este comprovante.">${esc(i.politica || '')}</textarea>
+    <div class="lbl">Senha da gerente</div><input type="password" class="inp" id="dl-senha" inputmode="numeric">`,
+    `<button class="btn" onclick="fecharModal()">Cancelar</button><button class="btn btn-primary" onclick="salvarDadosLoja()">Salvar</button>`);
+}
+async function salvarDadosLoja() {
+  const info = { endereco: $('dl-end').value.trim(), telefone: $('dl-tel').value.trim(), instagram: $('dl-ig').value.trim(), politica: $('dl-pol').value.trim() };
+  const { data, error } = await db.rpc('pdv_salvar_loja_info', { p_loja: S.loja, p_senha: $('dl-senha').value, p_info: info });
+  if (error) return toast(error.message, 'error');
+  if (!data) return toast('Senha da gerente incorreta', 'error');
+  S.lojaInfo = info; gravar(K.lojaInfo, { loja: S.loja, info });
+  fecharModal(); toast('Dados do comprovante salvos', 'ok');
+}
+function cabecalhoLoja() {
+  const i = S.lojaInfo || {};
+  return `<div class="c">${esc(S.loja)}</div>${i.endereco ? `<div class="c peq">${esc(i.endereco)}</div>` : ''}${i.telefone || i.instagram ? `<div class="c peq">${[i.telefone, i.instagram].filter(Boolean).map(esc).join(' · ')}</div>` : ''}`;
+}
 async function abrirSenhaGerente() {
   const { data: tem } = await db.rpc('pdv_tem_senha', { p_loja: S.loja });
-  abrirModal('Senha da gerente', `<p style="font-size:.88rem">Usada para autorizar desconto acima do limite e devolução em dinheiro.</p>
+  abrirModal('Senha da gerente', `<p style="font-size:.88rem">Autoriza desconto acima do limite, peça sem cadastro, devolução em dinheiro, cancelamento de venda, sangria, despesa, reforço de troco e fechamento do caixa.</p>
     ${tem ? `<div class="lbl">Senha atual</div><input type="password" class="inp" id="sgd-atual" inputmode="numeric" autofocus>` : ''}
     <div class="lbl">Nova senha (mínimo 4 dígitos)</div><input type="password" class="inp" id="sgd-nova" inputmode="numeric" ${tem ? '' : 'autofocus'}>
     <div class="lbl">Repita a nova senha</div><input type="password" class="inp" id="sgd-nova2" inputmode="numeric">`,
@@ -1535,7 +1736,7 @@ async function carregarVendas() {
   }
   const locais = ler(K.fila, []).filter(v => v.data === S.diaVendas && !servidor.some(s => s.id === v.id)).map(v => ({ ...v, _local: true }));
   S.vendasDia = [...locais, ...servidor];
-  const vs = S.vendasDia.filter(v => v.status !== 'cancelada');
+  const vs = S.vendasDia.filter(v => v.status !== 'cancelada' && v.status !== 'cancelar');
   // pago com vale-troca não é dinheiro novo (já entrou na venda original) — igual ao Manager
   const comVale = r2(vs.reduce((s, v) => s + v.pagamentos.filter(p => p.forma === 'vale').reduce((a, p) => a + Number(p.valor), 0), 0));
   const total = r2(vs.reduce((s, v) => s + Number(v.total), 0) - comVale);
@@ -1546,13 +1747,15 @@ async function carregarVendas() {
     <div class="stat"><div class="l">Peças</div><div class="v mono">${pecas}</div></div>
     <div class="stat"><div class="l">Ticket médio</div><div class="v mono">${brl(vs.length ? total / vs.length : 0)}</div></div>`;
   $('vd-lista').innerHTML = S.vendasDia.length ? S.vendasDia.map((v, idx) => {
-    const st = S.treino ? '<span class="st fila">Treino</span>'
+    const st = v.status === 'cancelada' || v.status === 'cancelar' ? '<span class="st err">Cancelada</span>'
+      : S.treino ? '<span class="st fila">Treino</span>'
       : v._local ? '<span class="st fila">No aparelho</span>'
       : v.status === 'enviada' ? `<span class="st ok">Bling${v.bling_numero ? ' nº ' + v.bling_numero : ''}</span>`
       : v.status === 'erro' ? `<span class="st err" title="${esc(v.erro)}">Erro no Bling</span>`
       : '<span class="st fila">Enviando</span>';
     const formas = v.pagamentos.map(p => (NOME_FORMA[p.forma] || p.forma).replace('Cartão de ', '')).join(' + ');
-    return `<div class="lista-l venda-l" onclick="verVenda(${idx})"><div class="sp"><b>${horaSP(v.criado_em)} · ${brl(v.total)}</b>
+    const riscada = v.status === 'cancelada' || v.status === 'cancelar' ? 'style="text-decoration:line-through;opacity:.6"' : '';
+    return `<div class="lista-l venda-l" onclick="verVenda(${idx})"><div class="sp" ${riscada}><b>${horaSP(v.criado_em)} · ${brl(v.total)}</b>
       <small>${esc(v.vendedora || 'sem vendedora')} · ${v.itens.reduce((a, i) => a + Number(i.qtd), 0)} peça(s) · ${esc(formas)}${v.cliente?.nome ? ' · ' + esc(v.cliente.nome) : ''}</small>
       ${v.status === 'erro' ? `<small style="color:var(--red)">${esc(v.erro || '')}</small>` : ''}</div>
       ${st}
@@ -1598,7 +1801,10 @@ async function verVenda(idx) {
   }).join('');
   const pags = v.pagamentos.map(p => linha(
     `${NOME_FORMA[p.forma] || p.forma}${p.parcelas > 1 ? ` (${p.parcelas}x)` : ''}${p.vale ? ' nº ' + esc(p.vale) : ''}${p.recebido ? ` · recebido ${brl(p.recebido)}` : ''}`, brl(p.valor))).join('');
-  const status = S.treino ? 'Treino (não vai para o Bling)'
+  const cancelada = v.status === 'cancelada' || v.status === 'cancelar';
+  const status = v.status === 'cancelada' ? `<span style="color:var(--red)">Cancelada${v.cancelamento?.motivo ? ' — ' + esc(v.cancelamento.motivo) : ''}</span>`
+    : v.status === 'cancelar' ? `<span style="color:var(--red)">Cancelando no Bling…${v.cancelamento?.erro ? ' erro: ' + esc(v.cancelamento.erro) : ''}</span>`
+    : S.treino ? 'Treino (não vai para o Bling)'
     : v._local ? 'Guardada neste aparelho, esperando internet'
     : v.status === 'enviada' ? `No Bling${v.bling_numero ? ' — pedido nº ' + v.bling_numero : ''}`
     : v.status === 'erro' ? `<span style="color:var(--red)">Erro no Bling: ${esc(v.erro || '')}</span>` : 'Enviando ao Bling…';
@@ -1615,15 +1821,91 @@ async function verVenda(idx) {
     <div class="tot-final"><span>Total</span><b class="mono" style="font-size:1.5rem">${brl(v.total)}</b></div>
     <div class="card-t" style="margin-top:14px">Pagamento</div>${pags}${v.troco ? linha('Troco', brl(v.troco)) : ''}
     <div id="vv-trocas"></div>`,
-    `<button class="btn" onclick="imprimirComprovante(S.vendasDia[${idx}],true)"><i class="ti ti-printer"></i>Reimprimir</button>
+    cancelada ? `<button class="btn" onclick="fecharModal()">Fechar</button>` :
+    `<button class="btn" onclick="imprimirComprovante(S.vendasDia[${idx}],true)" title="Reimprimir"><i class="ti ti-printer"></i></button>
+     <button class="btn" onclick="enviarWhatsApp(S.vendasDia[${idx}])" title="Mandar pelo WhatsApp"><i class="ti ti-brand-whatsapp"></i></button>
      ${!v._local ? `<button class="btn" onclick="fecharModal();trocaComVenda(S.vendasDia[${idx}])"><i class="ti ti-arrows-exchange"></i>Troca</button>` : ''}
-     ${v.status === 'erro' ? `<button class="btn btn-primary" onclick="fecharModal();reenviar('${v.id}')"><i class="ti ti-refresh"></i>Tentar de novo</button>` : ''}`);
+     ${v.data === hojeSP() ? `<button class="btn btn-red" onclick="cancelarVendaUI(${idx})"><i class="ti ti-ban"></i>Cancelar</button>` : ''}
+     ${v.status === 'erro' ? `<button class="btn btn-primary" onclick="fecharModal();reenviar('${v.id}')"><i class="ti ti-refresh"></i>Reenviar</button>` : ''}`);
   if (v._local || !(navigator.onLine || S.treino)) return;
   const { data: trocas } = await db.from('pdv_trocas').select('*').eq('venda_origem', v.id);
   if (trocas?.length && $('vv-trocas')) $('vv-trocas').innerHTML = `<div class="card-t" style="margin-top:14px">Trocas desta venda</div>` + trocas.map(t =>
     `<div class="lista-l"><div class="sp"><b>${dataBR(t.data)} · ${{ troca: 'Troca na hora', vale: 'Vale-troca', dinheiro: 'Devolução de dinheiro' }[t.destino]}</b>
       <small>${t.itens.map(i => esc(partesNome(i.nome).nome)).join(', ')}${t.vale_codigo ? ' · vale nº ' + esc(t.vale_codigo) : ''}${t.motivo ? ' · ' + esc(t.motivo) : ''}</small></div><b class="mono">${brl(t.valor)}</b></div>`).join('');
 }
+// ---------------- cancelar venda (erro no caixa ou desistência) — só no dia, senha da gerente ----------------
+function cancelarVendaUI(idx) {
+  const v = S.vendasDia[idx]; if (!v) return;
+  abrirModal('Cancelar venda', `
+    <p style="font-size:.9rem">Venda das <b>${horaSP(v.criado_em)}</b> de <b>${brl(v.total)}</b> (${esc(v.vendedora || 'sem vendedora')}).</p>
+    <p class="muted" style="font-size:.82rem;margin-top:6px">O estoque volta, o pagamento sai do caixa${v.pagamentos.some(p => p.forma === 'vale') ? ', o saldo do vale volta' : ''} e a venda é desfeita no Bling. Se foi só um erro (forma de pagamento, vendedora, peça), use <b>Cancelar e refazer</b>: as peças voltam para o carrinho.</p>
+    <div class="lbl">Motivo</div><input class="inp" id="cv-motivo" placeholder="Ex.: lançou débito, era crédito" autofocus>`,
+    `<button class="btn" onclick="verVenda(${idx})">Voltar</button>
+     <button class="btn btn-red" onclick="executarCancelamento(${idx},false)">Só cancelar</button>
+     <button class="btn btn-primary" onclick="executarCancelamento(${idx},true)">Cancelar e refazer</button>`);
+}
+async function executarCancelamento(idx, refazer) {
+  const v = S.vendasDia[idx]; if (!v) return;
+  const motivo = $('cv-motivo').value.trim();
+  if (!motivo) return toast('Escreva o motivo', 'error');
+  if (!navigator.onLine && !S.treino && !v._local) return toast('Cancelar precisa de internet', 'error');
+  if (refazer && cart.itens.length) return toast('Finalize ou guarde a venda que está no caixa antes de refazer', 'error');
+  if (!v._local && v.pagamentos.some(p => p.forma === 'crediario')) {
+    const { data: pagas } = await db.from('pdv_crediario').select('id').eq('venda_id', v.id).not('pago_em', 'is', null);
+    if (pagas?.length) return toast('Essa venda já tem parcela de crediário paga — use a troca', 'error');
+  }
+  if (!(await pedirSenhaGerente(`Cancelar a venda de ${brl(v.total)}: ${motivo}`))) return;
+  try {
+    if (v.pagamentos.some(p => p.forma === 'vale')) {
+      const { error } = await db.rpc('pdv_estornar_vale', { p_venda: v.id });
+      if (error) throw error;
+    }
+    if (v._local) {
+      gravar(K.fila, ler(K.fila, []).filter(x => x.id !== v.id)); // nunca saiu do aparelho
+    } else {
+      const { error } = await db.from('pdv_vendas').update({ status: 'cancelar', cancelamento: { motivo, em: new Date().toISOString() } }).eq('id', v.id);
+      if (error) throw error;
+      db.functions.invoke('pdv', { body: { acao: 'cancelar', venda: v.id } }).then(() => { carregarVendas(); atualizarPills(); });
+    }
+    if (refazer) {
+      cart = carrinhoVazio();
+      cart.itens = v.itens.map(i => ({ bling_id: i.bling_id, codigo: i.codigo, nome: i.nome, preco: i.preco, qtd: i.qtd, desc: r2(i.desconto || 0), ...(i.bling_id ? {} : { avulso: true }) }));
+      cart.vendedora = v.funcionaria_id; cart.cliente = v.cliente;
+      cart.autorizadoPct = v.subtotal ? r2(v.desconto / v.subtotal * 100) : 0; // o desconto já tinha sido autorizado
+      salvarCart(); renderCarrinho();
+      irPara('vender');
+      toast('Venda cancelada. As peças voltaram para o carrinho — corrija e finalize.', 'ok');
+    } else {
+      carregarVendas();
+      toast('Venda cancelada', 'ok');
+    }
+    atualizarPills();
+  } catch (e) { toast('Erro ao cancelar: ' + (e.message || e), 'error'); }
+}
+
+// ---------------- comprovante pelo WhatsApp ----------------
+function textoComprovante(v) {
+  const info = S.lojaInfo || {};
+  const linhas = [`*Shai — ${v.loja}*`, `${dataBR(v.data)} ${horaSP(v.criado_em)}${v.vendedora ? ' · ' + v.vendedora : ''}`, ''];
+  for (const i of v.itens) { const pn = partesNome(i.nome); linhas.push(`${i.qtd}x ${pn.nome}${pn.tam ? ' (' + pn.tam + ')' : ''} — ${brl(i.preco * i.qtd)}`); }
+  linhas.push('');
+  if (v.desconto) linhas.push(`Desconto: − ${brl(v.desconto)}`);
+  linhas.push(`*Total: ${brl(v.total)}*`);
+  for (const p of v.pagamentos) linhas.push(`${NOME_FORMA[p.forma] || p.forma}${p.parcelas > 1 ? ` (${p.parcelas}x)` : ''}: ${brl(p.valor)}`);
+  if (v.troco) linhas.push(`Troco: ${brl(v.troco)}`);
+  linhas.push('', `Comprovante ${v.codigo || codigoVenda(v.id)} (não é documento fiscal)`);
+  if (info.politica) linhas.push('', info.politica);
+  if (info.instagram) linhas.push(info.instagram);
+  return linhas.join('\n');
+}
+function enviarWhatsApp(v) {
+  let tel = String(v.cliente?.telefone || '').replace(/\D/g, '');
+  if (!tel) tel = String(prompt('WhatsApp da cliente (com DDD):') || '').replace(/\D/g, '');
+  if (tel.length < 10) return toast('Número inválido', 'error');
+  if (!tel.startsWith('55')) tel = '55' + tel;
+  window.open(`https://wa.me/${tel}?text=${encodeURIComponent(textoComprovante(v))}`, '_blank');
+}
+
 async function reenviar(id) {
   toast('Enviando ao Bling…');
   const { data, error } = await db.functions.invoke('pdv', { body: { acao: 'enviar', venda: id } });
@@ -1651,23 +1933,44 @@ const VENDEDORAS_TREINO = {
 };
 function bancoTreino(loja) {
   const chave = 'shai-pdv-treino-db-v1|' + loja;
-  const base = ler(chave, null) || { pdv_vendas: [], pdv_trocas: [], pdv_vales: [], pdv_caixas: [], pdv_caixa_movs: [], despesas: [], seq: 100001 };
+  const base = ler(chave, null) || {};
+  for (const t of ['pdv_vendas', 'pdv_trocas', 'pdv_vales', 'pdv_caixas', 'pdv_caixa_movs', 'despesas', 'pdv_crediario']) base[t] ||= [];
+  base.seq ||= 100001; base.lojas_info ||= {};
   const salvar = () => gravar(chave, base);
   const fixas = {
     pdv_catalogo: () => CATALOGO_TREINO,
     funcionarias: () => VENDEDORAS_TREINO[loja].map(([nome, cargo, lim, bling], i) => ({ id: `treino-${i}`, nome, cargo, loja, ativa: true, desconto_limite: lim, bling_vendedor_id: bling ? 1 : null })),
+    pdv_config: () => [{ id: 1, lojas_info: base.lojas_info, prazo_troca_dias: null, validade_vale_dias: null }],
   };
+  const CLIENTES_TREINO = [
+    { bling_contato_id: 1, nome: 'MARIA APARECIDA SILVA', cpf: '52998224725', telefone: '24999990001' },
+    { bling_contato_id: 2, nome: 'ANA PAULA SOUZA', cpf: '11144477735', telefone: '24999990002' },
+    { bling_contato_id: 3, nome: 'JULIANA COSTA', cpf: null, telefone: '24999990003' },
+  ];
+  // o banco de verdade cria as parcelas do crediário por gatilho; aqui imita
+  const gerarParcelas = v => {
+    for (const pg of v.pagamentos || []) {
+      if (pg.forma !== 'crediario') continue;
+      const n = Math.max(Number(pg.parcelas) || 1, 1), valor = Number(pg.valor), b = Math.floor(valor / n * 100) / 100;
+      for (let i = 1; i <= n; i++) {
+        const d = new Date(v.data + 'T12:00:00'); d.setDate(d.getDate() + 30 * i);
+        base.pdv_crediario.push({ id: uuid(), venda_id: v.id, loja: v.loja, cliente: v.cliente || {}, numero: i, total_parcelas: n, vencimento: d.toISOString().slice(0, 10),
+          valor: i === n ? r2(valor - b * (n - 1)) : b, pago_em: null, cancelada: false, bling_status: 'pendente', criado_em: new Date().toISOString() });
+      }
+    }
+  };
+  const valor = (r, col) => col.includes('->>') ? (r[col.split('->>')[0]] || {})[col.split('->>')[1]] : r[col];
   const erro = message => ({ data: null, error: { message } });
   function consulta(tabela) {
     const st = { op: 'select', f: [], payload: null, opts: null, single: false, ordem: null };
     const executar = () => {
-      if (fixas[tabela]) return { data: st.single ? fixas[tabela]().filter(r => st.f.every(f => f(r)))[0] || null : fixas[tabela]().filter(r => st.f.every(f => f(r))), error: null };
+      if (fixas[tabela]) { const l = fixas[tabela]().filter(r => st.f.every(f => f(r))); return { data: st.single ? l[0] || null : l, error: null }; }
       const t = base[tabela] ||= [];
       if (st.op === 'insert' || st.op === 'upsert') {
         const linhas = (Array.isArray(st.payload) ? st.payload : [st.payload]).map(r => ({ id: r.id || uuid(), criado_em: new Date().toISOString(), ...r }));
         for (const n of linhas) {
           if (t.some(x => x.id === n.id)) { if (st.op === 'insert') return erro('duplicado'); continue; }
-          if (tabela === 'pdv_vendas') n.codigo = codigoVenda(n.id);
+          if (tabela === 'pdv_vendas') { n.codigo = codigoVenda(n.id); gerarParcelas(n); }
           if (tabela === 'pdv_caixas') { if (t.some(c => c.loja === n.loja && !c.fechado_em)) return { data: null, error: { code: '23505', message: 'caixa já aberto' } }; n.aberto_em ||= new Date().toISOString(); }
           t.push(n);
         }
@@ -1675,7 +1978,12 @@ function bancoTreino(loja) {
         return { data: st.single ? linhas[linhas.length - 1] : linhas, error: null };
       }
       let linhas = t.filter(r => st.f.every(f => f(r)));
-      if (st.op === 'update') { linhas.forEach(r => Object.assign(r, st.payload)); salvar(); }
+      if (st.op === 'update') {
+        linhas.forEach(r => Object.assign(r, st.payload));
+        if (tabela === 'pdv_vendas' && ['cancelar', 'cancelada'].includes(st.payload.status))
+          for (const r of linhas) base.pdv_crediario.filter(p => p.venda_id === r.id && !p.pago_em).forEach(p => p.cancelada = true);
+        salvar();
+      }
       if (st.op === 'delete') { base[tabela] = t.filter(r => !linhas.includes(r)); salvar(); }
       if (st.ordem) { const [col, o] = st.ordem; linhas = [...linhas].sort((a, b) => (String(a[col]) < String(b[col]) ? -1 : 1) * (o?.ascending === false ? -1 : 1)); }
       return { data: st.single ? (linhas[0] || null) : linhas, error: null };
@@ -1683,12 +1991,14 @@ function bancoTreino(loja) {
     const api = new Proxy({}, { get(_, k) {
       if (k === 'then') return (ok, ko) => Promise.resolve(executar()).then(ok, ko);
       return (...a) => {
-        const v = r => r[a[0]];
+        const v = r => valor(r, a[0]);
         if (['insert', 'upsert', 'update', 'delete'].includes(k)) { st.op = k; st.payload = a[0]; st.opts = a[1]; }
         else if (k === 'eq') st.f.push(r => String(v(r)) === String(a[1]));
         else if (k === 'neq') st.f.push(r => String(v(r)) !== String(a[1]));
         else if (k === 'is') st.f.push(r => v(r) == null);
+        else if (k === 'not') st.f.push(r => v(r) != null);
         else if (k === 'in') st.f.push(r => a[1].map(String).includes(String(v(r))));
+        else if (k === 'ilike') { const re = new RegExp('^' + String(a[1]).split('%').map(x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*') + '$', 'i'); st.f.push(r => re.test(norm(v(r)) ) || re.test(String(v(r) || ''))); }
         else if (k === 'gte') st.f.push(r => String(v(r)) >= String(a[1]));
         else if (k === 'gt') st.f.push(r => String(v(r)) > String(a[1]));
         else if (k === 'lt') st.f.push(r => String(v(r)) < String(a[1]));
@@ -1706,6 +2016,7 @@ function bancoTreino(loja) {
       if (fn === 'pdv_tem_senha') return { data: true, error: null };
       if (fn === 'pdv_conferir_senha') return { data: a.p_senha === '1234', error: null };
       if (fn === 'pdv_definir_senha') return { data: true, error: null };
+      if (fn === 'pdv_salvar_loja_info') { if (a.p_senha !== '1234') return { data: false, error: null }; base.lojas_info[a.p_loja] = a.p_info; salvar(); return { data: true, error: null }; }
       if (fn === 'pdv_criar_vale') {
         const n = String(base.seq++); let s = 0;
         for (let i = 0; i < n.length; i++) s += +n[i] * ((i + 1) % 2 === 0 ? 3 : 1);
@@ -1721,12 +2032,30 @@ function bancoTreino(loja) {
         vl.saldo = r2(vl.saldo - a.p_valor); vl.usos.push({ venda_id: a.p_venda, valor: a.p_valor, em: new Date().toISOString() }); salvar();
         return { data: vl.saldo, error: null };
       }
+      if (fn === 'pdv_estornar_vale') {
+        let n = 0;
+        for (const vl of base.pdv_vales) {
+          const usado = vl.usos.filter(u => u.venda_id === a.p_venda).reduce((s, u) => s + Number(u.valor), 0);
+          if (usado) { vl.saldo = r2(vl.saldo + usado); vl.usos = vl.usos.filter(u => u.venda_id !== a.p_venda); n++; }
+        }
+        salvar(); return { data: n, error: null };
+      }
+      if (fn === 'pdv_buscar_venda') {
+        const v = base.pdv_vendas.find(x => x.codigo === String(a.p_codigo).toUpperCase());
+        return { data: v ? { venda: v, trocas: base.pdv_trocas.filter(t => t.venda_origem === v.id).map(t => ({ itens: t.itens, loja: t.loja, data: t.data })) } : null, error: null };
+      }
       return { data: null, error: null };
     },
     functions: { invoke: async (nome, o) => {
       const b = o?.body || {};
-      if (b.acao === 'enviar' && b.venda) { const v = base.pdv_vendas.find(x => x.id === b.venda); if (v) { v.status = 'enviada'; salvar(); } }
+      if (b.acao === 'enviar' && b.venda) { const v = base.pdv_vendas.find(x => x.id === b.venda); if (v && v.status !== 'cancelar') { v.status = 'enviada'; salvar(); } }
       if (b.acao === 'enviar' && b.troca) { const t = base.pdv_trocas.find(x => x.id === b.troca); if (t) { t.status = 'enviada'; salvar(); } }
+      if (b.acao === 'enviar' && b.parcela) { const p = base.pdv_crediario.find(x => x.id === b.parcela); if (p) { p.bling_status = 'enviada'; salvar(); } }
+      if (b.acao === 'cancelar') { const v = base.pdv_vendas.find(x => x.id === b.venda); if (v) { v.status = 'cancelada'; v.cancelada_em = new Date().toISOString(); salvar(); } }
+      if (b.acao === 'clientes') {
+        const t = norm(b.pesquisa), so = String(b.pesquisa).replace(/\D/g, '');
+        return { data: { ok: true, clientes: CLIENTES_TREINO.filter(c => (so.length >= 3 && (c.cpf || '').includes(so)) || norm(c.nome).includes(t)) }, error: null };
+      }
       return { data: { ok: true, produtos: [] }, error: null };
     } },
     storage: { from: () => ({ upload: async () => ({ error: null }), getPublicUrl: () => ({ data: { publicUrl: '' } }) }) },
@@ -1746,9 +2075,9 @@ async function iniciarTreino(loja) {
   $('h-loja').textContent = loja + ' · treino';
   $('faixa-treino').style.display = '';
   irPara('vender');
-  await Promise.all([carregarVendedoras(), carregarCaixa()]);
+  await Promise.all([carregarVendedoras(), carregarCaixa(), carregarConfig()]);
   S.catalogo = CATALOGO_TREINO.map(p => ({ ...p })); indexarCatalogo();
-  renderCarrinho(); atualizarPills();
+  renderCarrinho(); renderEspera(); atualizarPills();
 }
 // etiquetas das peças de exemplo, no mesmo formato da etiqueta do Bling (EAN13 = código com zeros + dígito)
 function etiquetaTreinoHtml(p) {
@@ -1830,6 +2159,16 @@ async function carregarVendedoras() {
   const { data } = await db.from('funcionarias').select('id,nome,cargo,bling_vendedor_id,desconto_limite').eq('loja', S.loja).eq('ativa', true).order('nome');
   if (data) { S.funcs = data; gravar(K.funcs, { loja: S.loja, lista: data }); }
 }
+// configuração do PDV (dados da loja no comprovante, prazo de troca) — guardada para abrir sem internet
+async function carregarConfig() {
+  const cache = ler(K.lojaInfo, null);
+  if (cache?.loja === S.loja) { S.lojaInfo = cache.info; S.cfg = cache.cfg || {}; }
+  if (!navigator.onLine && !S.treino) return;
+  const { data } = await db.from('pdv_config').select('lojas_info,prazo_troca_dias,validade_vale_dias').eq('id', 1).maybeSingle();
+  if (!data) return;
+  S.cfg = data; S.lojaInfo = (data.lojas_info || {})[S.loja] || {};
+  gravar(K.lojaInfo, { loja: S.loja, info: S.lojaInfo, cfg: { prazo_troca_dias: data.prazo_troca_dias, validade_vale_dias: data.validade_vale_dias } });
+}
 async function iniciar() {
   const { data: { session } } = await sb.auth.getSession();
   const metaLoja = session?.user?.user_metadata?.loja;
@@ -1839,8 +2178,8 @@ async function iniciar() {
   $('h-loja').textContent = S.loja + (S.equipe ? ' · equipe' : '');
   renderCarrinho(); atualizarPills(); atualizarCaixaPill();
   irPara('vender');
-  await Promise.all([carregarCatalogo(), carregarVendedoras(), carregarCaixa()]);
-  renderCarrinho(); atualizarPills();
+  await Promise.all([carregarCatalogo(), carregarVendedoras(), carregarCaixa(), carregarConfig()]);
+  renderCarrinho(); renderEspera(); atualizarPills();
   enviarFila();
   setInterval(carregarCatalogo, 10 * 60000);
 }

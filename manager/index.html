@@ -282,6 +282,7 @@ tr:hover td { background: var(--surface2); }
 
 <div class="nav-tabs">
   <button class="nav-tab active" onclick="showTab('dashboard',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
+  <button class="nav-tab" onclick="showTab('aovivo',this)"><i class="ti ti-broadcast"></i>Ao vivo</button>
   <button class="nav-tab" onclick="showTab('metas',this)"><i class="ti ti-target-arrow"></i>Metas</button>
   <button class="nav-tab" onclick="showTab('historico',this)"><i class="ti ti-trending-up"></i>Vendas</button>
   <button class="nav-tab" onclick="showTab('comissoes',this)"><i class="ti ti-coin"></i>Comissões</button>
@@ -293,6 +294,27 @@ tr:hover td { background: var(--surface2); }
 </div>
 
 <div class="content">
+
+  <!-- ===== AO VIVO (vendas do caixa das lojas em tempo real) ===== -->
+  <div class="tab-panel" id="tab-aovivo">
+    <div class="section-header">
+      <div class="section-title">Hoje ao vivo <span id="av-pulso" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--green);margin-left:6px;vertical-align:middle"></span></div>
+      <div style="font-size:0.78rem;color:var(--text-muted)" id="av-atualizado">—</div>
+    </div>
+    <div class="grid-4" style="margin-bottom:16px">
+      <div class="stat-card"><div class="stat-label">Vendido hoje</div><div class="stat-value" id="av-total" style="color:var(--accent)">R$ 0</div><div class="stat-sub" id="av-total-sub">—</div></div>
+      <div class="stat-card"><div class="stat-label">Loja Areal</div><div class="stat-value" id="av-l1" style="color:var(--loja1)">R$ 0</div><div class="stat-sub" id="av-l1-sub">—</div></div>
+      <div class="stat-card"><div class="stat-label">Loja Três Rios</div><div class="stat-value" id="av-l2" style="color:var(--loja2)">R$ 0</div><div class="stat-sub" id="av-l2-sub">—</div></div>
+      <div class="stat-card"><div class="stat-label">Ticket médio</div><div class="stat-value" id="av-ticket">R$ 0</div><div class="stat-sub" id="av-pecas">0 peças</div></div>
+    </div>
+    <div id="av-alertas" style="margin-bottom:16px"></div>
+    <div class="grid-2" style="margin-bottom:16px" id="av-lojas"></div>
+    <div class="grid-2">
+      <div class="card"><div class="card-title">Últimas vendas</div><div id="av-ultimas"></div></div>
+      <div class="card"><div class="card-title">Trocas, devoluções e vales</div><div id="av-trocas"></div></div>
+    </div>
+    <div style="font-size:0.75rem;color:var(--text-muted);margin-top:12px">Mostra o que passa pelo caixa novo (PDV). Vendas feitas direto no Bling entram no Dashboard depois da sincronização da noite.</div>
+  </div>
 
   <!-- ===== DASHBOARD ===== -->
   <div class="tab-panel active" id="tab-dashboard">
@@ -1070,6 +1092,126 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
 });
 
+// ===== AO VIVO — vendas do caixa (PDV) das duas lojas, atualizando sozinho =====
+// Lê as tabelas do PDV direto (pdv_vendas etc.) e escuta mudanças pelo Realtime do Supabase.
+// "Vendido" não soma o que foi pago com vale-troca (o dinheiro entrou na venda original) — igual ao fechamento.
+const LOJAS_AV = ['Loja Areal', 'Loja Três Rios'];
+let avCanal = null, avTimer = null, avDebounce = null;
+const avHoje = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+const avHora = d => new Date(d).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+const avEsc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const AV_FORMA = { dinheiro: 'Dinheiro', pix: 'Pix', debito: 'Débito', credito: 'Crédito', credito_parcelado: 'Crédito', crediario: 'Crediário', vale: 'Vale-troca' };
+const avBadge = l => `<span class="badge ${l === 'Loja Areal' ? 'badge-loja1' : 'badge-loja2'}">${l.replace('Loja ', '')}</span>`;
+
+function iniciarAoVivo() {
+  carregarAoVivo();
+  if (!avCanal) {
+    const recarregar = () => { clearTimeout(avDebounce); avDebounce = setTimeout(carregarAoVivo, 800); };
+    avCanal = sb.channel('pdv-ao-vivo');
+    for (const t of ['pdv_vendas', 'pdv_trocas', 'pdv_caixas', 'pdv_caixa_movs', 'pdv_crediario']) avCanal.on('postgres_changes', { event: '*', schema: 'public', table: t }, recarregar);
+    avCanal.subscribe();
+  }
+  clearInterval(avTimer); avTimer = setInterval(carregarAoVivo, 60000); // reserva, caso a conexão ao vivo caia
+}
+function pararAoVivo() {
+  clearInterval(avTimer); avTimer = null;
+  if (avCanal) { sb.removeChannel(avCanal); avCanal = null; }
+}
+async function carregarAoVivo() {
+  const hoje = avHoje();
+  const [{ data: vendas }, { data: trocas }, { data: caixas }, { data: vales }, { data: funcs }] = await Promise.all([
+    sb.from('pdv_vendas').select('*').eq('data', hoje).order('criado_em', { ascending: false }),
+    sb.from('pdv_trocas').select('*').eq('data', hoje).order('criado_em', { ascending: false }),
+    sb.from('pdv_caixas').select('*').or(`fechado_em.is.null,aberto_em.gte.${hoje}T00:00:00-03:00`).order('aberto_em', { ascending: false }),
+    sb.from('pdv_vales').select('saldo').gt('saldo', 0),
+    sb.from('funcionarias').select('id, nome, loja'),
+  ]);
+  const caixaIds = (caixas || []).map(c => c.id);
+  const [{ data: movs }, { data: cred }] = caixaIds.length ? await Promise.all([
+    sb.from('pdv_caixa_movs').select('*').in('caixa_id', caixaIds),
+    sb.from('pdv_crediario').select('pago_valor, pago_forma, pago_caixa_id').in('pago_caixa_id', caixaIds),
+  ]) : [{ data: [] }, { data: [] }];
+
+  const validas = (vendas || []).filter(v => v.status !== 'cancelada' && v.status !== 'cancelar');
+  const valeDe = v => (v.pagamentos || []).filter(p => p.forma === 'vale').reduce((s, p) => s + Number(p.valor), 0);
+  const liquido = v => Number(v.total) - valeDe(v);
+  const porLoja = Object.fromEntries(LOJAS_AV.map(l => [l, { total: 0, n: 0, pecas: 0, formas: {}, vend: {} }]));
+  for (const v of validas) {
+    const L = porLoja[v.loja]; if (!L) continue;
+    L.total += liquido(v); L.n++; L.pecas += (v.itens || []).reduce((s, i) => s + Number(i.qtd), 0);
+    for (const p of v.pagamentos || []) { const k = AV_FORMA[p.forma] || p.forma; L.formas[k] = (L.formas[k] || 0) + Number(p.valor); }
+    const nome = v.vendedora || 'Sem vendedora';
+    L.vend[nome] = (L.vend[nome] || 0) + liquido(v);
+  }
+  const total = LOJAS_AV.reduce((s, l) => s + porLoja[l].total, 0), n = validas.length;
+  const pecas = LOJAS_AV.reduce((s, l) => s + porLoja[l].pecas, 0);
+  document.getElementById('av-total').textContent = fmt(total);
+  document.getElementById('av-total-sub').textContent = `${n} venda${n === 1 ? '' : 's'}`;
+  document.getElementById('av-l1').textContent = fmt(porLoja['Loja Areal'].total);
+  document.getElementById('av-l1-sub').textContent = `${porLoja['Loja Areal'].n} vendas`;
+  document.getElementById('av-l2').textContent = fmt(porLoja['Loja Três Rios'].total);
+  document.getElementById('av-l2-sub').textContent = `${porLoja['Loja Três Rios'].n} vendas`;
+  document.getElementById('av-ticket').textContent = fmt(n ? total / n : 0);
+  document.getElementById('av-pecas').textContent = `${pecas} peças`;
+  document.getElementById('av-atualizado').textContent = 'Atualizado às ' + avHora(new Date());
+
+  // caixa de cada loja: aberto (com dinheiro esperado na gaveta) ou fechado (com a diferença)
+  const blocoLoja = l => {
+    const L = porLoja[l];
+    const cx = (caixas || []).find(c => c.loja === l && !c.fechado_em) || (caixas || []).find(c => c.loja === l);
+    let caixaHtml = '<div class="stat-sub">Caixa ainda não foi aberto hoje</div>';
+    if (cx && !cx.fechado_em) {
+      const ms = (movs || []).filter(m => m.caixa_id === cx.id);
+      const soma = t => ms.filter(m => m.tipo === t).reduce((s, m) => s + Number(m.valor), 0);
+      const vendasDin = validas.filter(v => v.caixa_id === cx.id).reduce((s, v) => s + (v.pagamentos || []).filter(p => p.forma === 'dinheiro').reduce((a, p) => a + Number(p.valor), 0), 0);
+      const credDin = (cred || []).filter(c => c.pago_caixa_id === cx.id && c.pago_forma === 'dinheiro').reduce((s, c) => s + Number(c.pago_valor), 0);
+      const gaveta = Number(cx.troco_inicial) + vendasDin + credDin + soma('suprimento') - soma('sangria') - soma('despesa') - soma('devolucao');
+      caixaHtml = `<div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-top:4px"><span><span class="badge badge-green">Caixa aberto</span> às ${avHora(cx.aberto_em)}${cx.aberto_por ? ' por ' + avEsc(cx.aberto_por) : ''}</span><b>${fmt(gaveta)} na gaveta</b></div>
+        ${soma('sangria') || soma('despesa') ? `<div class="stat-sub">Sangrias ${fmt(soma('sangria'))} · Despesas ${fmt(soma('despesa'))}</div>` : ''}`;
+    } else if (cx) {
+      const dif = Number(cx.diferenca) || 0;
+      caixaHtml = `<div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-top:4px"><span><span class="badge badge-muted">Caixa fechado</span> às ${avHora(cx.fechado_em)}${cx.fechado_por ? ' por ' + avEsc(cx.fechado_por) : ''}</span>
+        <b style="color:${Math.abs(dif) < 0.01 ? 'var(--green)' : 'var(--red)'}">${Math.abs(dif) < 0.01 ? 'bateu' : (dif > 0 ? 'sobrou ' : 'faltou ') + fmt(Math.abs(dif))}</b></div>${cx.obs ? `<div class="stat-sub">Obs.: ${avEsc(cx.obs)}</div>` : ''}`;
+    }
+    const vend = Object.entries(L.vend).sort((a, b) => b[1] - a[1]);
+    const formas = Object.entries(L.formas).sort((a, b) => b[1] - a[1]);
+    return `<div class="card"><div class="card-title">${l}</div>${caixaHtml}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px">
+        <div><div class="stat-label">Vendedoras</div>${vend.length ? vend.map(([nm, vl]) => `<div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:3px 0"><span>${avEsc(nm)}</span><b>${fmt(vl)}</b></div>`).join('') : '<div class="stat-sub">Nenhuma venda</div>'}</div>
+        <div><div class="stat-label">Formas de pagamento</div>${formas.length ? formas.map(([k, vl]) => `<div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:3px 0"><span>${k}</span><b>${fmt(vl)}</b></div>`).join('') : '<div class="stat-sub">—</div>'}</div>
+      </div></div>`;
+  };
+  document.getElementById('av-lojas').innerHTML = LOJAS_AV.map(blocoLoja).join('');
+
+  document.getElementById('av-ultimas').innerHTML = (vendas || []).slice(0, 25).map(v => {
+    const canc = v.status === 'cancelada' || v.status === 'cancelar';
+    const st = canc ? '<span class="badge badge-red">Cancelada</span>' : v.status === 'enviada' ? '<span class="badge badge-green">Bling</span>' : v.status === 'erro' ? '<span class="badge badge-red">Erro Bling</span>' : '<span class="badge badge-muted">Enviando</span>';
+    const formas = (v.pagamentos || []).map(p => AV_FORMA[p.forma] || p.forma).join(' + ');
+    return `<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--surface2);font-size:0.85rem;${canc ? 'opacity:.55;text-decoration:line-through' : ''}">
+      <span style="color:var(--text-muted);min-width:42px">${avHora(v.criado_em)}</span>${avBadge(v.loja)}
+      <span style="flex:1">${avEsc(v.vendedora || '—')} · ${(v.itens || []).reduce((s, i) => s + Number(i.qtd), 0)} peça(s) · ${formas}</span><b>${fmt(v.total)}</b>${st}</div>`;
+  }).join('') || '<div class="stat-sub">Nenhuma venda hoje ainda</div>';
+
+  const totalVales = (vales || []).reduce((s, v) => s + Number(v.saldo), 0);
+  document.getElementById('av-trocas').innerHTML = ((trocas || []).map(t => `<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--surface2);font-size:0.85rem">
+      <span style="color:var(--text-muted);min-width:42px">${avHora(t.criado_em)}</span>${avBadge(t.loja)}
+      <span style="flex:1">${{ troca: 'Troca na hora', vale: 'Vale-troca', dinheiro: 'Devolução de dinheiro' }[t.destino]}${t.motivo ? ' · ' + avEsc(t.motivo) : ''}</span><b>${fmt(t.valor)}</b></div>`).join('') || '<div class="stat-sub">Nenhuma troca hoje</div>')
+    + `<div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-top:12px"><span>Vales com saldo (crédito das clientes)</span><b>${(vales || []).length} · ${fmt(totalVales)}</b></div>`;
+
+  // alertas: o que precisa de atenção hoje
+  const alertas = [];
+  const erros = (vendas || []).filter(v => v.status === 'erro').length + (trocas || []).filter(t => t.status === 'erro').length;
+  if (erros) alertas.push(`<b>${erros}</b> lançamento(s) com erro no Bling — veja em Vendas no caixa da loja`);
+  const canc = (vendas || []).filter(v => v.status === 'cancelada' || v.status === 'cancelar');
+  if (canc.length) alertas.push(`<b>${canc.length}</b> venda(s) cancelada(s) hoje: ${canc.map(v => `${avHora(v.criado_em)} ${fmt(v.total)}${v.cancelamento?.motivo ? ' (' + avEsc(v.cancelamento.motivo) + ')' : ''}`).join('; ')}`);
+  const devDin = (trocas || []).filter(t => t.destino === 'dinheiro');
+  if (devDin.length) alertas.push(`<b>${devDin.length}</b> devolução(ões) de dinheiro: ${fmt(devDin.reduce((s, t) => s + Number(t.valor), 0))}`);
+  const difCaixa = (caixas || []).filter(c => c.fechado_em && Math.abs(Number(c.diferenca) || 0) >= 0.01);
+  if (difCaixa.length) alertas.push(difCaixa.map(c => `Caixa da ${c.loja.replace('Loja ', '')} fechou com diferença de <b>${fmt(c.diferenca)}</b>`).join('; '));
+  document.getElementById('av-alertas').innerHTML = alertas.length ? `<div class="card" style="border-color:color-mix(in srgb, var(--red) 35%, var(--border));background:color-mix(in srgb, var(--red) 5%, var(--surface))">
+    <div class="card-title" style="color:var(--red)">Atenção</div>${alertas.map(a => `<div style="font-size:0.86rem;padding:3px 0">• ${a}</div>`).join('')}</div>` : '';
+}
+
 // ===== TABS =====
 function showTab(name, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -1078,6 +1220,7 @@ function showTab(name, btn) {
   if (!btn) btn = document.querySelector(`.nav-tab[onclick*="'${name}'"]`);
   if (btn) btn.classList.add('active');
   localStorage.setItem('shai-manager-tab', name);
+  if (name === 'aovivo') iniciarAoVivo(); else pararAoVivo();
   if (name === 'dashboard') loadDashboard();
   if (name === 'metas') loadMetasSemanal();
   if (name === 'historico') { initHistFilters(); loadHistDiario(); }
