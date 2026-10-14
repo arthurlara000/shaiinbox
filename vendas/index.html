@@ -220,6 +220,9 @@ h1.titulo { font-family: 'Playfair Display', serif; font-size: 1.45rem; margin-b
 #toast.ok { background: var(--green); }
 
 #print-area { display: none; }
+#faixa-treino { background: #fff3d6; color: #7a4f1d; border-bottom: 1px solid rgba(184,120,48,.35); padding: 8px 20px; font-size: .82rem; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+#faixa-treino span { flex: 1; min-width: 220px; }
+#faixa-treino button { background: #fff; border: 1px solid rgba(184,120,48,.4); color: #7a4f1d; border-radius: 8px; padding: 5px 10px; font-size: .78rem; font-weight: 600; }
 
 /* ---------- celular ---------- */
 @media (max-width: 899px) {
@@ -286,6 +289,7 @@ h1.titulo { font-family: 'Playfair Display', serif; font-size: 1.45rem; margin-b
     <div class="gate-err" id="gate-erro"></div>
     <div style="text-align:center;margin-top:6px"><button class="btn-sair" id="gate-modo" onclick="gateModoEquipe()">Entrar como equipe</button></div>
   </div>
+  <button class="btn btn-ghost" style="margin-top:16px" onclick="entrarTreino()"><i class="ti ti-school"></i>Testar no modo treino (sem senha, nada vai para o Bling)</button>
 </div>
 
 <!-- ================= TOPO ================= -->
@@ -296,6 +300,10 @@ h1.titulo { font-family: 'Playfair Display', serif; font-size: 1.45rem; margin-b
   <span class="pill" id="pill-caixa" onclick="irPara('caixa')" style="cursor:pointer"><i class="ti ti-cash-register"></i><span id="pill-caixa-t">—</span></span>
   <button class="btn-sair" onclick="sair()">sair</button>
 </header>
+<div id="faixa-treino" style="display:none">
+  <i class="ti ti-school"></i><span><b>Modo treino</b> — peças de exemplo, nada vai para o Bling. Senha da gerente: <b>1234</b>. Códigos: 900101 a 900171 ou busque por nome.</span>
+  <button onclick="zerarTreino()">Zerar treino</button><button onclick="sairTreino()">Sair do treino</button>
+</div>
 <nav class="nav">
   <button data-tab="vender" onclick="irPara('vender')"><i class="ti ti-shopping-bag"></i>Vender</button>
   <button data-tab="trocas" onclick="irPara('trocas')"><i class="ti ti-arrows-exchange"></i>Trocas</button>
@@ -421,6 +429,7 @@ h1.titulo { font-family: 'Playfair Display', serif; font-size: 1.45rem; margin-b
 const SB_URL = 'https://ofoljmhfnohxwswskplx.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mb2xqbWhmbm9oeHdzd3NrcGx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTQzMjIsImV4cCI6MjA5NTM5MDMyMn0.IRfqUSxOLuYBlE79gdCdHaMrtuoYwNrprw6FaXj_7K8';
 const sb = supabase.createClient(SB_URL, SB_KEY);
+let db = sb; // no modo treino vira um banco de mentira guardado só no aparelho
 
 const LOJA_EMAIL = { 'Loja Areal': 'lojaareal@shai.local', 'Loja Três Rios': 'lojatresrios@shai.local' };
 const EQUIPE_EMAIL = 'equipe@shai.local';
@@ -519,7 +528,7 @@ async function carregarCatalogo() {
     const desde = cache?.em && cache.linhas?.length ? cache.em : null;
     const novas = [];
     for (let de = 0; ; de += 1000) {
-      let q = sb.from('pdv_catalogo').select('bling_id,codigo,gtin,nome,preco,situacao,saldo_areal,saldo_tres_rios,saldo_cd,atualizado_em').neq('formato', 'V').order('bling_id').range(de, de + 999);
+      let q = db.from('pdv_catalogo').select('bling_id,codigo,gtin,nome,preco,situacao,saldo_areal,saldo_tres_rios,saldo_cd,atualizado_em').neq('formato', 'V').order('bling_id').range(de, de + 999);
       if (desde) q = q.gt('atualizado_em', desde);
       const { data, error } = await q;
       if (error) throw error;
@@ -555,7 +564,7 @@ function codigoDaEtiqueta(lido) {
 async function buscarNoBling(lido) {
   if (!navigator.onLine) return null;
   try {
-    const { data, error } = await sb.functions.invoke('pdv', { body: { acao: 'buscar', codigo: codigoDaEtiqueta(lido) } });
+    const { data, error } = await db.functions.invoke('pdv', { body: { acao: 'buscar', codigo: codigoDaEtiqueta(lido) } });
     if (error || !data?.produtos?.length) return null;
     for (const p of data.produtos) { if (!S.porId.has(p.bling_id)) S.catalogo.push(p); }
     indexarCatalogo();
@@ -635,7 +644,7 @@ async function lerCodigo(lido, destino) {
   if (!p) {
     if (/^\d{6,8}$/.test(lido) && !/^\d{13}$/.test(lido)) {
       // número de vale-troca bipado no caixa: já abre o pagamento com o vale
-      const { data: vale } = navigator.onLine ? await sb.from('pdv_vales').select('codigo').eq('codigo', lido).maybeSingle() : { data: null };
+      const { data: vale } = navigator.onLine ? await db.from('pdv_vales').select('codigo').eq('codigo', lido).maybeSingle() : { data: null };
       if (vale) { if (!cart.itens.length) return toast('Bipe as peças primeiro; o vale entra no pagamento.', 'error'); abrirPagamento(lido); return; }
     }
     toast('Procurando no Bling…');
@@ -841,9 +850,9 @@ function pedirSenhaGerente(motivo) {
 }
 async function conferirSenhaGerente() {
   const senha = $('sg').value;
-  const { data: tem } = await sb.rpc('pdv_tem_senha', { p_loja: S.loja });
+  const { data: tem } = await db.rpc('pdv_tem_senha', { p_loja: S.loja });
   if (!tem) { $('sg-erro').textContent = 'A loja ainda não tem senha da gerente. Cadastre em Caixa → Senha da gerente.'; return; }
-  const { data, error } = await sb.rpc('pdv_conferir_senha', { p_loja: S.loja, p_senha: senha });
+  const { data, error } = await db.rpc('pdv_conferir_senha', { p_loja: S.loja, p_senha: senha });
   if (error || !data) { $('sg-erro').textContent = 'Senha incorreta'; bip(false); return; }
   const r = window._senhaResolve; window._senhaResolve = null; fecharModal(); r?.(true);
 }
@@ -939,7 +948,7 @@ async function addVale(codigo) {
   if (!codigo) return;
   if (!navigator.onLine) return toast('Vale-troca precisa de internet para conferir o saldo', 'error');
   if (pag.linhas.some(l => l.vale === codigo)) { renderPagamento(); return toast('Esse vale já está no pagamento', 'error'); }
-  const { data: v } = await sb.from('pdv_vales').select('*').eq('codigo', codigo).maybeSingle();
+  const { data: v } = await db.from('pdv_vales').select('*').eq('codigo', codigo).maybeSingle();
   if (!v) { bip(false); return toast('Vale não encontrado', 'error'); }
   if (!(v.saldo > 0)) { bip(false); return toast('Esse vale já foi usado (saldo zero)', 'error'); }
   const t = totais();
@@ -999,7 +1008,7 @@ async function finalizarVenda() {
     };
     // vale: baixa o saldo antes de tudo (não pode ser usado duas vezes)
     for (const p of pagamentos.filter(p => p.forma === 'vale')) {
-      const { error } = await sb.rpc('pdv_usar_vale', { p_codigo: p.vale, p_valor: p.valor, p_venda: id });
+      const { error } = await db.rpc('pdv_usar_vale', { p_codigo: p.vale, p_valor: p.valor, p_venda: id });
       if (error) throw new Error('Vale ' + p.vale + ': ' + error.message);
     }
     const fila = ler(K.fila, []); fila.push(venda); gravar(K.fila, fila);
@@ -1032,10 +1041,10 @@ async function enviarFila() {
   try {
     const fila = ler(K.fila, []);
     for (const v of fila) {
-      const { error } = await sb.from('pdv_vendas').upsert(v, { onConflict: 'id', ignoreDuplicates: true });
+      const { error } = await db.from('pdv_vendas').upsert(v, { onConflict: 'id', ignoreDuplicates: true });
       if (error) { console.warn('fila', error); break; }
       gravar(K.fila, ler(K.fila, []).filter(x => x.id !== v.id));
-      sb.functions.invoke('pdv', { body: { acao: 'enviar', venda: v.id } }).then(() => { if (document.querySelector('#tab-vendas.active')) carregarVendas(); atualizarPills(); });
+      db.functions.invoke('pdv', { body: { acao: 'enviar', venda: v.id } }).then(() => { if (document.querySelector('#tab-vendas.active')) carregarVendas(); atualizarPills(); });
     }
   } finally { enviandoFila = false; atualizarPills(); }
 }
@@ -1047,10 +1056,11 @@ async function atualizarPills() {
   const naFila = ler(K.fila, []).length;
   let comErro = 0, pendServ = 0;
   if (navigator.onLine && S.loja) {
-    const { data } = await sb.from('pdv_vendas').select('status').eq('loja', S.loja).in('status', ['pendente', 'enviando', 'erro']).gte('data', ontem());
+    const { data } = await db.from('pdv_vendas').select('status').eq('loja', S.loja).in('status', ['pendente', 'enviando', 'erro']).gte('data', ontem());
     for (const v of data || []) v.status === 'erro' ? comErro++ : pendServ++;
   }
   const p = $('pill-rede');
+  if (S.treino) { p.className = 'pill warn'; $('pill-rede-t').textContent = 'Modo treino'; $('nav-fila').style.display = 'none'; return; }
   if (!navigator.onLine) { p.className = 'pill warn'; $('pill-rede-t').textContent = naFila ? `Sem internet · ${naFila} na fila` : 'Sem internet'; }
   else if (comErro) { p.className = 'pill err'; $('pill-rede-t').textContent = `${comErro} com erro no Bling`; }
   else if (naFila + pendServ) { p.className = 'pill warn'; $('pill-rede-t').textContent = `Enviando ${naFila + pendServ}…`; }
@@ -1065,6 +1075,7 @@ const ontem = () => { const d = new Date(hojeSP() + 'T12:00:00'); d.setDate(d.ge
 // =====================================================================
 const NOME_FORMA = { dinheiro: 'Dinheiro', pix: 'Pix', debito: 'Cartão de débito', credito: 'Cartão de crédito', credito_parcelado: 'Cartão de crédito', crediario: 'Crediário', vale: 'Vale-troca' };
 function imprimir(html) {
+  if (S.treino) html = `<div class="c b">*** TREINO — SEM VALOR ***</div>` + html;
   $('print-area').innerHTML = html;
   if (typeof JsBarcode !== 'undefined') $('print-area').querySelectorAll('svg[data-cod]').forEach(svg => {
     try { JsBarcode(svg, svg.dataset.cod, { format: 'CODE128', width: 1.5, height: 42, fontSize: 12, margin: 0, displayValue: true }); } catch (e) {}
@@ -1128,7 +1139,7 @@ async function trocaLer(lido) {
   if (!lido) return;
   if (/^PDV-/i.test(lido)) {
     if (!navigator.onLine) return toast('Sem internet para buscar a venda', 'error');
-    const { data: v } = await sb.from('pdv_vendas').select('*').eq('codigo', lido.toUpperCase()).maybeSingle();
+    const { data: v } = await db.from('pdv_vendas').select('*').eq('codigo', lido.toUpperCase()).maybeSingle();
     if (!v) { bip(false); return toast('Venda não encontrada (só aparecem vendas desta loja)', 'error'); }
     return trocaComVenda(v);
   }
@@ -1148,7 +1159,7 @@ async function trocaLer(lido) {
 }
 async function trocaComVenda(v) {
   troca = { venda: v, itens: [], destino: null, jaDevolvido: {} };
-  const { data: anteriores } = await sb.from('pdv_trocas').select('itens').eq('venda_origem', v.id);
+  const { data: anteriores } = await db.from('pdv_trocas').select('itens').eq('venda_origem', v.id);
   for (const t of anteriores || []) for (const i of t.itens || []) troca.jaDevolvido[i.bling_id] = (troca.jaDevolvido[i.bling_id] || 0) + (Number(i.qtd) || 1);
   irPara('trocas'); renderTroca();
 }
@@ -1202,18 +1213,18 @@ async function confirmarTroca() {
       itens: troca.itens.map(({ semComprovante, ...i }) => i), valor: total, destino: troca.destino,
       forma_reembolso: troca.destino === 'dinheiro' ? troca.forma : null, motivo,
     };
-    const { error } = await sb.from('pdv_trocas').insert(reg);
+    const { error } = await db.from('pdv_trocas').insert(reg);
     if (error) throw error;
     let vale = null;
     if (troca.destino !== 'dinheiro') {
-      const { data: codigo, error: e2 } = await sb.rpc('pdv_criar_vale', { p_loja: S.loja, p_valor: total, p_cliente: cliente, p_troca: id });
+      const { data: codigo, error: e2 } = await db.rpc('pdv_criar_vale', { p_loja: S.loja, p_valor: total, p_cliente: cliente, p_troca: id });
       if (e2) throw e2;
       vale = codigo;
-      await sb.from('pdv_trocas').update({ vale_codigo: codigo }).eq('id', id);
+      await db.from('pdv_trocas').update({ vale_codigo: codigo }).eq('id', id);
     } else if (troca.forma === 'dinheiro') {
-      await sb.from('pdv_caixa_movs').insert({ caixa_id: S.caixa.id, loja: S.loja, tipo: 'devolucao', valor: total, descricao: motivo || 'Devolução em dinheiro', troca_id: id });
+      await db.from('pdv_caixa_movs').insert({ caixa_id: S.caixa.id, loja: S.loja, tipo: 'devolucao', valor: total, descricao: motivo || 'Devolução em dinheiro', troca_id: id });
     }
-    sb.functions.invoke('pdv', { body: { acao: 'enviar', troca: id } }).then(atualizarPills);
+    db.functions.invoke('pdv', { body: { acao: 'enviar', troca: id } }).then(atualizarPills);
     const destino = troca.destino;
     novaTroca();
     if (destino === 'troca') {
@@ -1235,7 +1246,7 @@ async function confirmarTroca() {
 // =====================================================================
 async function carregarCaixa() {
   if (!navigator.onLine) { S.caixa = ler(K.caixa, null); atualizarCaixaPill(); return; }
-  const { data } = await sb.from('pdv_caixas').select('*').eq('loja', S.loja).is('fechado_em', null).maybeSingle();
+  const { data } = await db.from('pdv_caixas').select('*').eq('loja', S.loja).is('fechado_em', null).maybeSingle();
   S.caixa = data || null; gravar(K.caixa, S.caixa);
   atualizarCaixaPill();
 }
@@ -1247,9 +1258,9 @@ function atualizarCaixaPill() {
 }
 async function resumoCaixa(cx) {
   const [{ data: vendas }, { data: movs }, { data: trocasDin }] = await Promise.all([
-    sb.from('pdv_vendas').select('pagamentos,total,status').eq('caixa_id', cx.id),
-    sb.from('pdv_caixa_movs').select('*').eq('caixa_id', cx.id).order('criado_em'),
-    sb.from('pdv_trocas').select('valor,forma_reembolso,criado_em').eq('loja', cx.loja).eq('destino', 'dinheiro').gte('criado_em', cx.aberto_em),
+    db.from('pdv_vendas').select('pagamentos,total,status').eq('caixa_id', cx.id),
+    db.from('pdv_caixa_movs').select('*').eq('caixa_id', cx.id).order('criado_em'),
+    db.from('pdv_trocas').select('valor,forma_reembolso,criado_em').eq('loja', cx.loja).eq('destino', 'dinheiro').gte('criado_em', cx.aberto_em),
   ]);
   const todas = [...(vendas || []), ...ler(K.fila, []).filter(v => v.caixa_id === cx.id)];
   const formas = { dinheiro: 0, pix: 0, debito: 0, credito: 0, crediario: 0, vale: 0 };
@@ -1305,7 +1316,7 @@ async function abrirCaixa() {
   const troco = r2(num($('cx-troco').value));
   const quem = document.querySelector('#cx-quem .chip.on')?.dataset.n || null;
   if (!quem) return toast('Toque em quem está abrindo', 'error');
-  const { error } = await sb.from('pdv_caixas').insert({ loja: S.loja, troco_inicial: troco, aberto_por: quem });
+  const { error } = await db.from('pdv_caixas').insert({ loja: S.loja, troco_inicial: troco, aberto_por: quem });
   if (error) return toast(error.code === '23505' ? 'O caixa já foi aberto em outro aparelho' : 'Erro: ' + error.message, 'error');
   toast('Caixa aberto', 'ok'); renderCaixa(); irPara('vender');
 }
@@ -1320,7 +1331,7 @@ async function salvarMov(tipo) {
   const valor = r2(num($('mv-valor').value));
   if (!(valor > 0)) return toast('Informe o valor', 'error');
   const quem = document.querySelector('#mv-quem .chip.on')?.dataset.n || null;
-  const { error } = await sb.from('pdv_caixa_movs').insert({ caixa_id: S.caixa.id, loja: S.loja, tipo, valor, descricao: $('mv-obs').value.trim() || null, feito_por: quem });
+  const { error } = await db.from('pdv_caixa_movs').insert({ caixa_id: S.caixa.id, loja: S.loja, tipo, valor, descricao: $('mv-obs').value.trim() || null, feito_por: quem });
   if (error) return toast('Erro: ' + error.message, 'error');
   fecharModal(); toast('Registrado', 'ok'); renderCaixa();
 }
@@ -1347,12 +1358,12 @@ async function salvarDespesa() {
   try {
     const ext = (despFoto.name.split('.').pop() || 'jpg').toLowerCase();
     const caminho = `${S.loja}/${hojeSP()}/${uuid()}.${ext}`;
-    const { error: e1 } = await sb.storage.from('notas-despesas').upload(caminho, despFoto);
+    const { error: e1 } = await db.storage.from('notas-despesas').upload(caminho, despFoto);
     if (e1) throw e1;
-    const foto_url = sb.storage.from('notas-despesas').getPublicUrl(caminho).data.publicUrl;
-    const { data: d, error: e2 } = await sb.from('despesas').insert({ loja: S.loja, data_despesa: hojeSP(), descricao, categoria: despCat, valor, foto_url }).select('id').single();
+    const foto_url = db.storage.from('notas-despesas').getPublicUrl(caminho).data.publicUrl;
+    const { data: d, error: e2 } = await db.from('despesas').insert({ loja: S.loja, data_despesa: hojeSP(), descricao, categoria: despCat, valor, foto_url }).select('id').single();
     if (e2) throw e2;
-    const { error: e3 } = await sb.from('pdv_caixa_movs').insert({ caixa_id: S.caixa.id, loja: S.loja, tipo: 'despesa', valor, descricao, despesa_id: d.id });
+    const { error: e3 } = await db.from('pdv_caixa_movs').insert({ caixa_id: S.caixa.id, loja: S.loja, tipo: 'despesa', valor, descricao, despesa_id: d.id });
     if (e3) throw e3;
     fecharModal(); toast('Despesa registrada', 'ok'); renderCaixa();
   } catch (e) { toast('Erro: ' + (e.message || e), 'error'); $('dp-salvar').disabled = false; }
@@ -1399,7 +1410,7 @@ async function fecharCaixa() {
   const obs = $('fc-obs').value.trim();
   $('fc-ok').disabled = true;
   const cx = S.caixa;
-  const { error } = await sb.from('pdv_caixas').update({
+  const { error } = await db.from('pdv_caixas').update({
     fechado_em: new Date().toISOString(), fechado_por: quem,
     esperado: { gaveta: r.esperado, vendas: r.formas, troco_inicial: Number(cx.troco_inicial), sangria: r.sangria, despesa: r.despesa, devolucao: r.devolucao, suprimento: r.suprimento, n_vendas: r.nVendas },
     contado: { gaveta: contado }, diferenca: dif, obs: obs || null,
@@ -1423,7 +1434,7 @@ async function fecharCaixa() {
   toast(Math.abs(dif) < 0.01 ? 'Caixa fechado — bateu certinho' : `Caixa fechado — diferença de ${brl(dif)}`, Math.abs(dif) < 0.01 ? 'ok' : 'error');
 }
 async function abrirSenhaGerente() {
-  const { data: tem } = await sb.rpc('pdv_tem_senha', { p_loja: S.loja });
+  const { data: tem } = await db.rpc('pdv_tem_senha', { p_loja: S.loja });
   abrirModal('Senha da gerente', `<p style="font-size:.88rem">Usada para autorizar desconto acima do limite e devolução em dinheiro.</p>
     ${tem ? `<div class="lbl">Senha atual</div><input type="password" class="inp" id="sgd-atual" inputmode="numeric" autofocus>` : ''}
     <div class="lbl">Nova senha (mínimo 4 dígitos)</div><input type="password" class="inp" id="sgd-nova" inputmode="numeric" ${tem ? '' : 'autofocus'}>
@@ -1434,7 +1445,7 @@ async function salvarSenhaGerente() {
   const nova = $('sgd-nova').value, nova2 = $('sgd-nova2').value;
   if (nova.length < 4) return toast('A senha precisa ter pelo menos 4 dígitos', 'error');
   if (nova !== nova2) return toast('As senhas não conferem', 'error');
-  const { data, error } = await sb.rpc('pdv_definir_senha', { p_loja: S.loja, p_atual: $('sgd-atual')?.value || '', p_nova: nova });
+  const { data, error } = await db.rpc('pdv_definir_senha', { p_loja: S.loja, p_atual: $('sgd-atual')?.value || '', p_nova: nova });
   if (error) return toast(error.message, 'error');
   if (!data) return toast('Senha atual incorreta', 'error');
   fecharModal(); toast('Senha da gerente salva', 'ok');
@@ -1453,7 +1464,7 @@ async function carregarVendas() {
   $('vd-data').textContent = S.diaVendas === hojeSP() ? 'Hoje' : dataBR(S.diaVendas);
   let servidor = [];
   if (navigator.onLine) {
-    const { data } = await sb.from('pdv_vendas').select('*').eq('loja', S.loja).eq('data', S.diaVendas).order('criado_em', { ascending: false });
+    const { data } = await db.from('pdv_vendas').select('*').eq('loja', S.loja).eq('data', S.diaVendas).order('criado_em', { ascending: false });
     servidor = data || [];
   }
   const locais = ler(K.fila, []).filter(v => v.data === S.diaVendas && !servidor.some(s => s.id === v.id)).map(v => ({ ...v, _local: true }));
@@ -1467,7 +1478,8 @@ async function carregarVendas() {
     <div class="stat"><div class="l">Peças</div><div class="v mono">${pecas}</div></div>
     <div class="stat"><div class="l">Ticket médio</div><div class="v mono">${brl(vs.length ? total / vs.length : 0)}</div></div>`;
   $('vd-lista').innerHTML = S.vendasDia.length ? S.vendasDia.map((v, idx) => {
-    const st = v._local ? '<span class="st fila">No aparelho</span>'
+    const st = S.treino ? '<span class="st fila">Treino</span>'
+      : v._local ? '<span class="st fila">No aparelho</span>'
       : v.status === 'enviada' ? `<span class="st ok">Bling${v.bling_numero ? ' nº ' + v.bling_numero : ''}</span>`
       : v.status === 'erro' ? `<span class="st err" title="${esc(v.erro)}">Erro no Bling</span>`
       : '<span class="st fila">Enviando</span>';
@@ -1484,10 +1496,141 @@ async function carregarVendas() {
 }
 async function reenviar(id) {
   toast('Enviando ao Bling…');
-  const { data, error } = await sb.functions.invoke('pdv', { body: { acao: 'enviar', venda: id } });
+  const { data, error } = await db.functions.invoke('pdv', { body: { acao: 'enviar', venda: id } });
   if (error || data?.ok === false) toast('Ainda com erro: ' + (data?.erro || error?.message || ''), 'error');
   else toast('Venda lançada no Bling', 'ok');
   carregarVendas(); atualizarPills();
+}
+
+// =====================================================================
+// MODO TREINO — para testar e treinar as vendedoras. Peças de exemplo,
+// tudo guardado só neste aparelho; nada vai para o Supabase nem para o Bling.
+// =====================================================================
+const TREINO_FLAG = 'shai-pdv-treino-loja';
+const CATALOGO_TREINO = [
+  ['900101', 'VESTIDO MIDI LINHO - VERÃO 2027 TAMANHO:P', 259.9], ['900102', 'VESTIDO MIDI LINHO - VERÃO 2027 TAMANHO:M', 259.9],
+  ['900103', 'VESTIDO MIDI LINHO - VERÃO 2027 TAMANHO:G', 259.9], ['900111', 'CAMISA BOTÃO LINHO CRU - VERÃO 2027 TAMANHO:M', 189.9],
+  ['900112', 'CAMISA BOTÃO LINHO CRU - VERÃO 2027 TAMANHO:G', 189.9], ['900121', 'CALÇA PANTALONA ALFAIATARIA - VERÃO 2027 TAMANHO:38', 229],
+  ['900122', 'CALÇA PANTALONA ALFAIATARIA - VERÃO 2027 TAMANHO:40', 229], ['900131', 'BLUSA TRICÔ CANELADA - VERÃO 2027 TAMANHO:ÚNICO', 139.9],
+  ['900141', 'SAIA MIDI CETIM - VERÃO 2027 TAMANHO:M', 179.9], ['900151', 'BLAZER ALONGADO - VERÃO 2027 TAMANHO:M', 349],
+  ['900161', 'CINTO COURO FIVELA DOURADA', 79.9], ['900171', 'BOLSA PALHA', 129.9],
+].map(([codigo, nome, preco], i) => ({ bling_id: -(i + 1), codigo, nome, preco, situacao: 'A', saldo_areal: 3 + (i % 4), saldo_tres_rios: 2 + (i % 3), saldo_cd: 5 }));
+const VENDEDORAS_TREINO = {
+  'Loja Areal': [['Joana', 'Gerente', 20, true], ['Joelma', 'Vendedora', 0, true], ['Vanessa', 'Vendedora', null, false]],
+  'Loja Três Rios': [['Grazielly', 'Vendedora', 0, true], ['Helen', 'Gerente', null, false], ['Thaís', 'Vendedora', 0, true]],
+};
+function bancoTreino(loja) {
+  const chave = 'shai-pdv-treino-db-v1|' + loja;
+  const base = ler(chave, null) || { pdv_vendas: [], pdv_trocas: [], pdv_vales: [], pdv_caixas: [], pdv_caixa_movs: [], despesas: [], seq: 100001 };
+  const salvar = () => gravar(chave, base);
+  const fixas = {
+    pdv_catalogo: () => CATALOGO_TREINO,
+    funcionarias: () => VENDEDORAS_TREINO[loja].map(([nome, cargo, lim, bling], i) => ({ id: `treino-${i}`, nome, cargo, loja, ativa: true, desconto_limite: lim, bling_vendedor_id: bling ? 1 : null })),
+  };
+  const erro = message => ({ data: null, error: { message } });
+  function consulta(tabela) {
+    const st = { op: 'select', f: [], payload: null, opts: null, single: false, ordem: null };
+    const executar = () => {
+      if (fixas[tabela]) return { data: st.single ? fixas[tabela]().filter(r => st.f.every(f => f(r)))[0] || null : fixas[tabela]().filter(r => st.f.every(f => f(r))), error: null };
+      const t = base[tabela] ||= [];
+      if (st.op === 'insert' || st.op === 'upsert') {
+        const linhas = (Array.isArray(st.payload) ? st.payload : [st.payload]).map(r => ({ id: r.id || uuid(), criado_em: new Date().toISOString(), ...r }));
+        for (const n of linhas) {
+          if (t.some(x => x.id === n.id)) { if (st.op === 'insert') return erro('duplicado'); continue; }
+          if (tabela === 'pdv_vendas') n.codigo = codigoVenda(n.id);
+          if (tabela === 'pdv_caixas') { if (t.some(c => c.loja === n.loja && !c.fechado_em)) return { data: null, error: { code: '23505', message: 'caixa já aberto' } }; n.aberto_em ||= new Date().toISOString(); }
+          t.push(n);
+        }
+        salvar();
+        return { data: st.single ? linhas[linhas.length - 1] : linhas, error: null };
+      }
+      let linhas = t.filter(r => st.f.every(f => f(r)));
+      if (st.op === 'update') { linhas.forEach(r => Object.assign(r, st.payload)); salvar(); }
+      if (st.op === 'delete') { base[tabela] = t.filter(r => !linhas.includes(r)); salvar(); }
+      if (st.ordem) { const [col, o] = st.ordem; linhas = [...linhas].sort((a, b) => (String(a[col]) < String(b[col]) ? -1 : 1) * (o?.ascending === false ? -1 : 1)); }
+      return { data: st.single ? (linhas[0] || null) : linhas, error: null };
+    };
+    const api = new Proxy({}, { get(_, k) {
+      if (k === 'then') return (ok, ko) => Promise.resolve(executar()).then(ok, ko);
+      return (...a) => {
+        const v = r => r[a[0]];
+        if (['insert', 'upsert', 'update', 'delete'].includes(k)) { st.op = k; st.payload = a[0]; st.opts = a[1]; }
+        else if (k === 'eq') st.f.push(r => String(v(r)) === String(a[1]));
+        else if (k === 'neq') st.f.push(r => String(v(r)) !== String(a[1]));
+        else if (k === 'is') st.f.push(r => v(r) == null);
+        else if (k === 'in') st.f.push(r => a[1].map(String).includes(String(v(r))));
+        else if (k === 'gte') st.f.push(r => String(v(r)) >= String(a[1]));
+        else if (k === 'gt') st.f.push(r => String(v(r)) > String(a[1]));
+        else if (k === 'lt') st.f.push(r => String(v(r)) < String(a[1]));
+        else if (k === 'lte') st.f.push(r => String(v(r)) <= String(a[1]));
+        else if (k === 'single' || k === 'maybeSingle') st.single = true;
+        else if (k === 'order') st.ordem = a;
+        return api;
+      };
+    } });
+    return api;
+  }
+  return {
+    from: consulta,
+    rpc: async (fn, a) => {
+      if (fn === 'pdv_tem_senha') return { data: true, error: null };
+      if (fn === 'pdv_conferir_senha') return { data: a.p_senha === '1234', error: null };
+      if (fn === 'pdv_definir_senha') return { data: true, error: null };
+      if (fn === 'pdv_criar_vale') {
+        const n = String(base.seq++); let s = 0;
+        for (let i = 0; i < n.length; i++) s += +n[i] * ((i + 1) % 2 === 0 ? 3 : 1);
+        const codigo = n + ((10 - s % 10) % 10);
+        base.pdv_vales.push({ codigo, loja: a.p_loja, valor: a.p_valor, saldo: a.p_valor, cliente: a.p_cliente, troca_id: a.p_troca, usos: [] }); salvar();
+        return { data: codigo, error: null };
+      }
+      if (fn === 'pdv_usar_vale') {
+        const vl = base.pdv_vales.find(x => x.codigo === a.p_codigo);
+        if (!vl) return erro('vale não encontrado');
+        if (vl.usos.some(u => u.venda_id === a.p_venda)) return { data: vl.saldo, error: null };
+        if (a.p_valor > vl.saldo + 0.001) return erro('saldo do vale é ' + vl.saldo);
+        vl.saldo = r2(vl.saldo - a.p_valor); vl.usos.push({ venda_id: a.p_venda, valor: a.p_valor }); salvar();
+        return { data: vl.saldo, error: null };
+      }
+      return { data: null, error: null };
+    },
+    functions: { invoke: async (nome, o) => {
+      const b = o?.body || {};
+      if (b.acao === 'enviar' && b.venda) { const v = base.pdv_vendas.find(x => x.id === b.venda); if (v) { v.status = 'enviada'; salvar(); } }
+      if (b.acao === 'enviar' && b.troca) { const t = base.pdv_trocas.find(x => x.id === b.troca); if (t) { t.status = 'enviada'; salvar(); } }
+      return { data: { ok: true, produtos: [] }, error: null };
+    } },
+    storage: { from: () => ({ upload: async () => ({ error: null }), getPublicUrl: () => ({ data: { publicUrl: '' } }) }) },
+  };
+}
+function entrarTreino() {
+  if (!gateLojaSel) { $('gate-erro').textContent = 'Escolha a loja.'; return; }
+  gravar(TREINO_FLAG, gateLojaSel);
+  location.reload();
+}
+async function iniciarTreino(loja) {
+  S.treino = true; S.loja = loja; S.equipe = false;
+  for (const k of Object.keys(K)) K[k] = 'treino|' + loja + '|' + K[k];
+  db = bancoTreino(loja);
+  cart = ler(K.cart, null) || carrinhoVazio();
+  document.body.classList.add('treino');
+  $('h-loja').textContent = loja + ' · treino';
+  $('faixa-treino').style.display = '';
+  irPara('vender');
+  await Promise.all([carregarVendedoras(), carregarCaixa()]);
+  S.catalogo = CATALOGO_TREINO.map(p => ({ ...p })); indexarCatalogo();
+  renderCarrinho(); atualizarPills();
+}
+function zerarTreino() {
+  if (!confirm('Apagar todas as vendas, trocas e caixas do treino neste aparelho?')) return;
+  try {
+    Object.keys(localStorage).filter(k => k.startsWith('treino|' + S.loja) || k === 'shai-pdv-treino-db-v1|' + S.loja).forEach(k => localStorage.removeItem(k));
+  } catch (e) {}
+  location.reload();
+}
+function sairTreino() {
+  if (!confirm('Sair do modo treino? (as vendas de treino continuam guardadas para a próxima vez)')) return;
+  try { localStorage.removeItem(TREINO_FLAG); } catch (e) {}
+  location.reload();
 }
 
 // =====================================================================
@@ -1520,6 +1663,7 @@ async function gateEntrar() {
   iniciar();
 }
 async function sair() {
+  if (S.treino) return sairTreino();
   if (ler(K.fila, []).length && !confirm('Ainda há vendas neste aparelho esperando internet. Se sair agora elas continuam guardadas aqui e saem quando entrar de novo. Sair?')) return;
   if (!confirm('Sair do caixa?')) return;
   await sb.auth.signOut();
@@ -1529,7 +1673,7 @@ async function carregarVendedoras() {
   const cache = ler(K.funcs, null);
   if (cache?.loja === S.loja) S.funcs = cache.lista;
   if (!navigator.onLine) return;
-  const { data } = await sb.from('funcionarias').select('id,nome,cargo,bling_vendedor_id,desconto_limite').eq('loja', S.loja).eq('ativa', true).order('nome');
+  const { data } = await db.from('funcionarias').select('id,nome,cargo,bling_vendedor_id,desconto_limite').eq('loja', S.loja).eq('ativa', true).order('nome');
   if (data) { S.funcs = data; gravar(K.funcs, { loja: S.loja, lista: data }); }
 }
 async function iniciar() {
@@ -1547,6 +1691,8 @@ async function iniciar() {
   setInterval(carregarCatalogo, 10 * 60000);
 }
 (async () => {
+  const lojaTreino = ler(TREINO_FLAG, null);
+  if (lojaTreino && LOJA_EMAIL[lojaTreino]) return iniciarTreino(lojaTreino);
   const { data: { session } } = await sb.auth.getSession();
   if (session) iniciar(); else $('gate').classList.add('show');
 })();
