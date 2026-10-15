@@ -6,7 +6,7 @@
 //  - enviar       : manda ao Bling vendas, trocas, cancelamentos e parcelas de crediário recebidas (um item ou a fila toda)
 //  - cancelar     : desfaz uma venda no Bling (estorna estoque e contas, situação cancelado)
 //  - clientes     : procura clientes já cadastradas no Bling (nome ou CPF)
-// Auth: login da equipe/loja (JWT do app) ou ?key= igual ao sync_secret da bling_config (cron). Por isso verify_jwt off.
+// Auth: login dos donos ou da loja (JWT do app) ou ?key= igual ao sync_secret da bling_config (cron). Por isso verify_jwt off.
 // O Bling limita 3 requisições/s: pausa entre chamadas e nova tentativa quando recusa (429).
 import { createClient, SupabaseClient } from 'jsr:@supabase/supabase-js@2';
 
@@ -628,10 +628,11 @@ Deno.serve(async (req: Request) => {
     const { data } = jwt ? await sb.auth.getUser(jwt) : { data: { user: null } };
     const user = data?.user;
     if (!user?.email?.endsWith('@shai.local')) return resposta({ erro: 'não autorizado' }, 401);
-    const l = user.user_metadata?.loja;
-    if (l !== '*') {
-      if (!LOJAS.includes(l)) return resposta({ erro: 'login sem loja' }, 403);
-      loja = l;
+    // papel e loja no app_metadata: só o servidor altera (o user_metadata a própria conta consegue mudar)
+    const meta = user.app_metadata || {};
+    if (meta.papel !== 'dono') {
+      if (meta.papel !== 'loja' || !LOJAS.includes(meta.loja)) return resposta({ erro: 'login sem acesso ao caixa' }, 403);
+      loja = meta.loja;
     }
   }
 

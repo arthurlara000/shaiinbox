@@ -295,7 +295,7 @@ h1.titulo { font-family: 'Playfair Display', serif; font-size: 1.45rem; margin-b
     <input type="password" class="inp" id="gate-senha" placeholder="Senha da loja" autocomplete="current-password" onkeydown="if(event.key==='Enter')gateEntrar()">
     <button class="btn btn-primary btn-lg btn-block" style="margin-top:14px" onclick="gateEntrar()">Entrar</button>
     <div class="gate-err" id="gate-erro"></div>
-    <div style="text-align:center;margin-top:6px"><button class="btn-sair" id="gate-modo" onclick="gateModoEquipe()">Entrar como equipe</button></div>
+    <div style="text-align:center;margin-top:6px"><button class="btn-sair" id="gate-modo" onclick="gateModoEquipe()">Entrar com a senha dos donos</button></div>
   </div>
   <button class="btn btn-ghost" style="margin-top:16px" onclick="entrarTreino()"><i class="ti ti-school"></i>Testar no modo treino (sem senha, nada vai para o Bling)</button>
 </div>
@@ -456,7 +456,7 @@ const sb = supabase.createClient(SB_URL, SB_KEY);
 let db = sb; // no modo treino vira um banco de mentira guardado só no aparelho
 
 const LOJA_EMAIL = { 'Loja Areal': 'lojaareal@shai.local', 'Loja Três Rios': 'lojatresrios@shai.local' };
-const EQUIPE_EMAIL = 'equipe@shai.local';
+const DONOS_EMAIL = 'donos@shai.local';
 const K = { cat: 'shai-pdv-catalogo-v1', fila: 'shai-pdv-fila-v1', cart: 'shai-pdv-carrinho-v1', funcs: 'shai-pdv-vendedoras-v1', loja: 'shai-pdv-loja', caixa: 'shai-pdv-caixa-v1', trocasFila: 'shai-pdv-trocas-fila-v1', espera: 'shai-pdv-espera-v1', lojaInfo: 'shai-pdv-loja-info-v1' };
 const FORMAS = {
   dinheiro: { nome: 'Dinheiro', icon: 'ti-cash' },
@@ -2132,14 +2132,14 @@ let gateLojaSel = null, gateEquipe = false;
 function gateLoja(el) { gateLojaSel = el.dataset.loja; document.querySelectorAll('.gate-lojas .chip').forEach(c => c.classList.toggle('on', c === el)); $('gate-senha').focus(); }
 function gateModoEquipe() {
   gateEquipe = !gateEquipe;
-  $('gate-modo').textContent = gateEquipe ? 'Entrar com a senha da loja' : 'Entrar como equipe';
-  $('gate-senha').placeholder = gateEquipe ? 'Senha da equipe' : 'Senha da loja';
+  $('gate-modo').textContent = gateEquipe ? 'Entrar com a senha da loja' : 'Entrar com a senha dos donos';
+  $('gate-senha').placeholder = gateEquipe ? 'Senha dos donos' : 'Senha da loja';
 }
 async function gateEntrar() {
   const senha = $('gate-senha').value, err = $('gate-erro'); err.textContent = '';
   if (!gateLojaSel) { err.textContent = 'Escolha a loja.'; return; }
   if (!senha) { err.textContent = 'Digite a senha.'; return; }
-  const { error } = await sb.auth.signInWithPassword({ email: gateEquipe ? EQUIPE_EMAIL : LOJA_EMAIL[gateLojaSel], password: senha });
+  const { error } = await sb.auth.signInWithPassword({ email: gateEquipe ? DONOS_EMAIL : LOJA_EMAIL[gateLojaSel], password: senha });
   if (error) { err.textContent = error.message?.includes('fetch') ? 'Sem internet.' : 'Senha incorreta.'; return; }
   gravar(K.loja, gateLojaSel);
   $('gate').classList.remove('show');
@@ -2171,11 +2171,13 @@ async function carregarConfig() {
 }
 async function iniciar() {
   const { data: { session } } = await sb.auth.getSession();
-  const metaLoja = session?.user?.user_metadata?.loja;
-  S.equipe = metaLoja === '*';
-  S.loja = S.equipe ? ler(K.loja, null) : metaLoja;
-  if (!S.loja || !LOJA_EMAIL[S.loja]) { await sb.auth.signOut(); $('gate').classList.add('show'); return; }
-  $('h-loja').textContent = S.loja + (S.equipe ? ' · equipe' : '');
+  // papel e loja vêm do app_metadata (só o servidor altera); o user_metadata a própria conta consegue mudar
+  const u = session?.user, meta = u?.app_metadata || {};
+  const contaOk = u?.email === DONOS_EMAIL || Object.values(LOJA_EMAIL).includes(u?.email);
+  S.equipe = meta.papel === 'dono';
+  S.loja = S.equipe ? ler(K.loja, null) : meta.papel === 'loja' ? meta.loja : null;
+  if (!contaOk || !S.loja || !LOJA_EMAIL[S.loja]) { await sb.auth.signOut(); $('gate').classList.add('show'); return; }
+  $('h-loja').textContent = S.loja + (S.equipe ? ' · donos' : '');
   renderCarrinho(); atualizarPills(); atualizarCaixaPill();
   irPara('vender');
   await Promise.all([carregarCatalogo(), carregarVendedoras(), carregarCaixa(), carregarConfig()]);

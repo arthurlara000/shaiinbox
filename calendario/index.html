@@ -5882,8 +5882,8 @@ function showToast(msg, type='success') {
   setTimeout(() => t.className='', 3000);
 }
 
-// ===== BOOT (com login da equipe) =====
-const EQUIPE_EMAIL = 'equipe@shai.local';
+// ===== BOOT (login do calendário) =====
+const CONTA_EMAIL = 'calendario@shai.local';
 
 function _bootCalendario() {
   setView('mensal');
@@ -5895,7 +5895,7 @@ async function gateEntrar() {
   const err = document.getElementById('gate-erro');
   err.textContent = '';
   if (!senha) { err.textContent = 'Digite a senha.'; return; }
-  const { error } = await sb.auth.signInWithPassword({ email: EQUIPE_EMAIL, password: senha });
+  const { error } = await sb.auth.signInWithPassword({ email: CONTA_EMAIL, password: senha });
   if (error) { err.textContent = 'Senha incorreta.'; return; }
   document.getElementById('auth-gate').classList.remove('show');
   _bootCalendario();
@@ -5903,8 +5903,9 @@ async function gateEntrar() {
 
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
-  if (session) _bootCalendario();
-  else document.getElementById('auth-gate').classList.add('show');
+  if (session?.user?.email === CONTA_EMAIL) return _bootCalendario();
+  if (session) await sb.auth.signOut(); // sessão antiga de outra conta (ex.: a da equipe, desativada)
+  document.getElementById('auth-gate').classList.add('show');
 })();
 </script>
 </body>

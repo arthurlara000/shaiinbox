@@ -1899,8 +1899,8 @@ async function instalarApp() {
     </ol>`, `<button class="btn btn-primary" onclick="fecharModal()">Entendi</button>`);
 }
 
-// ================= BOOT (com login da equipe) =================
-const EQUIPE_EMAIL = 'equipe@shai.local';
+// ================= BOOT (login do CD) =================
+const CONTA_EMAIL = 'cd@shai.local';
 async function init() {
   carregarDraft();
   try { await carregarCatalogo(); } catch (e) { toast('Erro ao carregar o catálogo: ' + e.message, 'error'); }
@@ -1913,14 +1913,16 @@ async function gateEntrar() {
   const senha = $('gate-senha').value, err = $('gate-erro');
   err.textContent = '';
   if (!senha) { err.textContent = 'Digite a senha.'; return; }
-  const { error } = await sb.auth.signInWithPassword({ email: EQUIPE_EMAIL, password: senha });
+  const { error } = await sb.auth.signInWithPassword({ email: CONTA_EMAIL, password: senha });
   if (error) { err.textContent = 'Senha incorreta.'; return; }
   $('auth-gate').classList.remove('show');
   init();
 }
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
-  if (session) init(); else $('auth-gate').classList.add('show');
+  if (session?.user?.email === CONTA_EMAIL) return init();
+  if (session) await sb.auth.signOut(); // sessão antiga de outra conta (ex.: a da equipe, desativada)
+  $('auth-gate').classList.add('show');
 })();
 </script>
 </body>

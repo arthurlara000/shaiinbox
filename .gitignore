@@ -25,3 +25,6 @@ Thumbs.db
 
 # Netlify
 .netlify/
+
+# senhas e documentos privados (nunca subir)
+_privado/
