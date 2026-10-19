@@ -7,231 +7,257 @@
 <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
 <link rel="apple-touch-icon" href="assets/icon.png">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#f5f1ea">
+<meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Shai Manager">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root {
-  /* Paleta Shai — café com leite (igual ao calendário) */
-  --bg: #f5f1ea;
-  --surface: #fbf8f3;
-  --surface2: #efe8dd;
-  --surface3: #e7dccb;
-  --border: #ddd2c2;
-  --text: #2b2118;
-  --text-muted: #a08b76;
-  --accent: #a5713d;
-  --accent-hover: #8a5a36;
-  --red: #c44848;
-  --green: #3a9a6a;
-  --yellow: #b87830;
-  --purple: #7a6a9a;
-  --loja1: #3d7ab8;
-  --loja2: #c65b3f;
+  /* Base neutra; a cor da marca (chocolate) fica para a ação principal */
+  --bg: #f4f3f1;
+  --surface: #ffffff;
+  --surface2: #f7f6f4;
+  --surface3: #eeece8;
+  --border: #e3e0db;
+  --border-strong: #cfcac2;
+  --text: #1d1915;
+  --text-2: #57504a;
+  --text-muted: #8a827a;
+  --accent: #5c3d28;        /* chocolate Shai */
+  --accent-hover: #452d1d;
+  --caramel: #a5713d;
+  --red: #b23b36;
+  --green: #2e7a55;
+  --yellow: #9a6a1c;
+  --purple: #6a5f86;
+  /* um tom por local, igual em todos os apps */
+  --cd: #7a5236;
+  --loja1: #2f6aa3;   /* Areal */
+  --loja2: #b4553b;   /* Três Rios */
+  --site: #3a7d74;
   /* tiers */
-  --meta-color: #3a9a6a;
-  --super-color: #b87830;
+  --meta-color: #2e7a55;
+  --super-color: #9a6a1c;
   --mega-color: #a5713d;
+  --r: 6px;
+  --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 14px; line-height: 1.45; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+table, .stat-value, .num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--caramel); outline-offset: 1px; }
+button, input, select, textarea { font-family: inherit; }
 .ti { vertical-align: -0.125em; font-size: 1.05em; }
-.nav-tab .ti { font-size: 1.15em; margin-right: 7px; }
-.tab-pill .ti, .btn .ti { margin-right: 5px; }
-.dre-row .ti { margin-right: 8px; width: 1.15em; text-align: center; color: var(--text-muted); }
+.btn .ti { margin-right: 2px; }
+.dre-row .ti { display: none; }
 
-.header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 100; }
-.logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--accent); letter-spacing: 0.05em; }
-.logo span { color: var(--text-muted); font-size: 0.75rem; font-family: 'DM Sans', sans-serif; margin-left: 8px; font-weight: 300; }
+/* ===== casca: marca + abas em cima ===== */
+.header { background: var(--surface); padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 52px; position: sticky; top: 0; z-index: 100; }
+.logo { display: flex; align-items: baseline; gap: 8px; font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--accent); letter-spacing: .02em; }
+.logo span { font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: .8rem; font-weight: 500; color: var(--text-2); letter-spacing: 0; }
+.header-dir { display: flex; align-items: center; gap: 16px; font-size: .8rem; color: var(--text-muted); }
 
-.nav-tabs { display: flex; gap: 4px; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; overflow-x: auto; }
-.nav-tab { padding: 14px 20px; font-size: 0.875rem; font-weight: 500; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; background: none; border-top: none; border-left: none; border-right: none; }
+.nav-tabs { display: flex; gap: 2px; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; overflow-x: auto; position: sticky; top: 52px; z-index: 99; scrollbar-width: none; }
+.nav-tabs::-webkit-scrollbar { display: none; }
+/* menu centralizado; com margem automática ele continua rolando certo no celular */
+.nav-tab:first-child { margin-left: auto; }
+.nav-tab:last-child { margin-right: auto; }
+.nav-tab { display: inline-flex; align-items: center; gap: 7px; padding: 10px 10px 9px; font-size: .85rem; font-weight: 500; color: var(--text-2); cursor: pointer; border: none; border-bottom: 2px solid transparent; background: none; white-space: nowrap; }
+.nav-tab .ti { display: none; }
 .nav-tab:hover { color: var(--text); }
-.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.nav-tab.active { color: var(--text); border-bottom-color: var(--accent); }
 
-.content { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+.content { max-width: 1180px; margin: 0 auto; padding: 24px 32px 48px; }
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
-.card-title { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; }
+/* cabeçalho da tela: título à esquerda, controles à direita */
+.ph { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 36px; margin-bottom: 16px; flex-wrap: wrap; }
+.page-title { font-size: 1.25rem; font-weight: 600; letter-spacing: -.01em; }
+.ph-dir { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.ph-meta { font-size: .8rem; color: var(--text-muted); }
 
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+.card-title { font-size: .8rem; font-weight: 600; color: var(--text); margin-bottom: 10px; }
+.sec-title { display: flex; align-items: baseline; justify-content: space-between; font-size: .8rem; font-weight: 600; margin: 18px 0 8px; }
+.sec-title span { font-weight: 400; color: var(--text-muted); font-size: .75rem; }
 
-.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
-.stat-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; }
-.stat-value { font-size: 1.75rem; font-weight: 600; }
-.stat-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+/* números em faixa única (no lugar de cartões soltos) */
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; }
+.stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; }
+.stat-strip > .stat-card { border: none; border-left: 1px solid var(--border); border-radius: 0; background: none; min-width: 0; }
+.stat-strip > .stat-card:first-child { border-left: none; }
+.stat-label { display: flex; align-items: center; gap: 6px; font-size: .75rem; color: var(--text-2); }
+.stat-value { display: block; font-size: 1.25rem; font-weight: 600; letter-spacing: -.01em; margin-top: 2px; color: var(--text) !important; white-space: nowrap; }
+.stat-sub { font-size: .75rem; color: var(--text-muted); margin-top: 2px; min-height: 1.1em; }
+.dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.dot.ar { background: var(--loja1); } .dot.tr { background: var(--loja2); } .dot.cd { background: var(--cd); } .dot.st { background: var(--site); }
 
 /* TIER BADGES */
-.tier-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 99px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; }
-.tier-none   { background: color-mix(in srgb, var(--text-muted) 14%, transparent); color: var(--text-muted); }
-.tier-meta   { background: color-mix(in srgb, var(--meta-color) 14%, transparent); color: var(--meta-color); }
-.tier-super  { background: color-mix(in srgb, var(--super-color) 14%, transparent); color: var(--super-color); }
-.tier-mega   { background: color-mix(in srgb, var(--mega-color) 16%, transparent); color: var(--mega-color); }
+.tier-badge { display: inline-flex; align-items: center; gap: 4px; padding: 1px 7px; border-radius: 4px; font-size: .72rem; font-weight: 500; white-space: nowrap; }
+.tier-badge .ti { display: none; }
+.tier-none   { background: var(--surface3); color: var(--text-muted); }
+.tier-meta   { background: color-mix(in srgb, var(--meta-color) 12%, transparent); color: var(--meta-color); }
+.tier-super  { background: color-mix(in srgb, var(--super-color) 13%, transparent); color: var(--super-color); }
+.tier-mega   { background: color-mix(in srgb, var(--mega-color) 15%, transparent); color: var(--mega-color); }
 
-/* PROGRESS 3 TIERS */
-.tier-progress { margin-top: 8px; }
-.tier-bar-wrap { position: relative; height: 8px; background: var(--surface3); border-radius: 99px; overflow: visible; margin-bottom: 4px; }
-.tier-bar-fill { height: 100%; border-radius: 99px; transition: width 0.5s; position: relative; }
+/* PROGRESSO DA META (3 faixas) */
+.tier-progress { margin-top: 6px; }
+.tier-bar-wrap { position: relative; height: 6px; background: var(--surface3); border-radius: 3px; overflow: visible; margin-bottom: 4px; }
+.tier-bar-fill { height: 100%; border-radius: 3px; transition: width .5s; position: relative; }
 .tier-bar-fill.meta-fill  { background: var(--meta-color); }
 .tier-bar-fill.super-fill { background: var(--super-color); }
 .tier-bar-fill.mega-fill  { background: var(--mega-color); }
-/* tier markers */
-.tier-marker { position: absolute; top: -4px; width: 2px; height: 16px; background: var(--border); border-radius: 1px; }
-.tier-labels { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-muted); margin-top: 6px; }
-.tier-label-item { display: flex; flex-direction: column; align-items: center; gap: 1px; }
-.tier-label-name { font-weight: 600; }
+.tier-marker { position: absolute; top: -3px; width: 1px; height: 12px; background: var(--border-strong); }
+.tier-labels { display: flex; justify-content: space-between; font-size: .72rem; color: var(--text-muted); margin-top: 6px; }
+.tier-label-item { display: flex; flex-direction: column; align-items: center; gap: 0; }
+.tier-label-item:first-child { align-items: flex-start; } .tier-label-item:last-child { align-items: flex-end; }
+.tier-label-name { font-weight: 500; color: var(--text-2) !important; }
+.tier-label-name .ti { display: none; }
 
-.badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 0.7rem; font-weight: 600; }
-.badge-loja1 { background: color-mix(in srgb, var(--loja1) 14%, transparent); color: var(--loja1); }
-.badge-loja2 { background: color-mix(in srgb, var(--loja2) 14%, transparent); color: var(--loja2); }
-.badge-green { background: color-mix(in srgb, var(--green) 14%, transparent); color: var(--green); }
-.badge-red   { background: color-mix(in srgb, var(--red) 14%, transparent); color: var(--red); }
+.badge { display: inline-block; padding: 1px 7px; border-radius: 4px; font-size: .72rem; font-weight: 500; }
+.badge-loja1 { background: color-mix(in srgb, var(--loja1) 12%, transparent); color: var(--loja1); }
+.badge-loja2 { background: color-mix(in srgb, var(--loja2) 12%, transparent); color: var(--loja2); }
+.badge-green { background: color-mix(in srgb, var(--green) 12%, transparent); color: var(--green); }
+.badge-red   { background: color-mix(in srgb, var(--red) 10%, transparent); color: var(--red); }
 .badge-muted { background: var(--surface3); color: var(--text-muted); }
 
-.form-group { margin-bottom: 14px; }
-.form-label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
-.form-input, .form-select { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: var(--text); font-size: 0.875rem; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.2s; }
-.form-input:focus, .form-select:focus { border-color: var(--accent); }
-.form-select option { background: var(--surface2); }
+/* formulários */
+.form-group { margin-bottom: 12px; }
+.form-label { display: block; font-size: .75rem; color: var(--text-2); margin-bottom: 4px; font-weight: 500; }
+.form-input, .form-select { width: 100%; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--r); padding: 6px 10px; color: var(--text); font-size: .875rem; outline: none; transition: border-color .15s, box-shadow .15s; min-height: 34px; }
+textarea.form-input { min-height: 0; }
+.form-input:focus, .form-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
 
-.btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
+/* botões */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 34px; padding: 0 14px; border-radius: var(--r); font-size: .85rem; font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: background .15s, border-color .15s, color .15s; white-space: nowrap; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
 .btn-primary { background: var(--accent); color: #fff; }
-.btn-primary:hover { background: var(--accent-hover); }
-.btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
-.btn-ghost:hover { color: var(--text); border-color: var(--text-muted); }
-.btn-danger { background: color-mix(in srgb, var(--red) 10%, transparent); color: var(--red); border: 1px solid color-mix(in srgb, var(--red) 25%, transparent); }
-.btn-danger:hover { background: color-mix(in srgb, var(--red) 20%, transparent); }
-.btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+.btn-ghost { background: var(--surface); color: var(--text); border-color: var(--border-strong); }
+.btn-ghost:hover { background: var(--surface2); }
+.btn-danger { background: var(--surface); color: var(--red); border-color: color-mix(in srgb, var(--red) 35%, var(--border)); }
+.btn-danger:hover { background: color-mix(in srgb, var(--red) 6%, var(--surface)); }
+.btn-sm { height: 28px; padding: 0 10px; font-size: .8rem; }
+.link { background: none; border: none; color: var(--text-2); font-size: .8rem; cursor: pointer; padding: 0; text-decoration: underline; text-underline-offset: 2px; text-decoration-color: var(--border-strong); }
+.link:hover { color: var(--text); text-decoration-color: currentColor; }
 
+/* tabelas de linha fina */
 .table-wrap { overflow-x: auto; }
-.btn-share-msg { background:none; border:none; color:var(--green); cursor:pointer; font-size:1rem; padding:2px 4px; vertical-align:middle; opacity:0.75; }
-.btn-share-msg:hover { opacity:1; }
-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-th { text-align: left; padding: 10px 12px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
-td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text); }
+.card > .table-wrap { margin: 0 -16px -16px; }
+.card > .table-wrap table th:first-child, .card > .table-wrap table td:first-child { padding-left: 16px; }
+.card > .table-wrap table th:last-child, .card > .table-wrap table td:last-child { padding-right: 16px; }
+.btn-share-msg { background: none; border: none; color: var(--green); cursor: pointer; font-size: 1rem; padding: 2px 4px; vertical-align: middle; opacity: .75; }
+.btn-share-msg:hover { opacity: 1; }
+table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+th { text-align: left; padding: 8px 12px; font-size: .72rem; font-weight: 500; color: var(--text-2); background: var(--surface2); border-bottom: 1px solid var(--border); white-space: nowrap; }
+td { padding: 7px 12px; border-bottom: 1px solid var(--surface3); color: var(--text); vertical-align: middle; }
 tr:last-child td { border-bottom: none; }
-tr:hover td { background: var(--surface2); }
+tbody tr:hover td { background: var(--surface2); }
 
-.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
-.section-title { font-size: 1.1rem; font-weight: 600; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; min-height: 36px; }
+.section-title { font-size: 1.25rem; font-weight: 600; letter-spacing: -.01em; }
 
-.ranking-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+/* ranking: uma linha por pessoa */
+.ranking-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--surface3); font-size: .875rem; }
 .ranking-item:last-child { border-bottom: none; }
-.ranking-pos { width: 24px; height: 24px; border-radius: 50%; background: var(--surface3); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); flex-shrink: 0; }
-.ranking-pos.gold   { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); }
-.ranking-pos.silver { background: rgba(150,140,125,0.18); color: #8d8579; }
-.ranking-pos.bronze { background: rgba(180,120,60,0.15); color: #a06b3e; }
+.ranking-pos { width: 18px; flex-shrink: 0; font-size: .78rem; font-weight: 500; color: var(--text-muted); text-align: right; font-variant-numeric: tabular-nums; }
+.ranking-nome { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ranking-nome b { font-weight: 500; }
+.ranking-loja { display: inline-flex; align-items: center; gap: 5px; font-size: .75rem; color: var(--text-muted); }
+.ranking-val { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-.check-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--surface2); border-radius: 8px; margin-bottom: 8px; }
-.check-item.done { opacity: 0.45; }
+.check-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--surface2); border-radius: var(--r); margin-bottom: 6px; }
+.check-item.done { opacity: .45; }
 .check-item.done .check-text { text-decoration: line-through; color: var(--text-muted); }
-.check-box { width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--border); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.check-box { width: 18px; height: 18px; border-radius: 3px; border: 1.5px solid var(--border-strong); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
 .check-box.checked { background: var(--accent); border-color: var(--accent); }
-.check-box.checked::after { content: '✓'; font-size: 12px; color: #fff; font-weight: 700; }
-.check-text { flex: 1; font-size: 0.875rem; }
-.check-qty { font-size: 0.75rem; color: var(--text-muted); }
-.check-del { cursor: pointer; color: var(--red); font-size: 16px; opacity: 0; transition: opacity 0.2s; background: none; border: none; }
+.check-box.checked::after { content: '✓'; font-size: 11px; color: #fff; font-weight: 700; }
+.check-text { flex: 1; font-size: .875rem; }
+.check-qty { font-size: .75rem; color: var(--text-muted); }
+.check-del { cursor: pointer; color: var(--red); font-size: 16px; opacity: 0; background: none; border: none; }
 .check-item:hover .check-del { opacity: 1; }
 
-.modal-overlay { position: fixed; inset: 0; background: rgba(43,33,24,0.45); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 24px; }
+/* janelas */
+.modal-overlay { position: fixed; inset: 0; background: rgba(29,25,21,.4); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 16px; }
 .modal-overlay.open { display: flex; }
-.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
-.modal-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; }
-.modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+.modal { background: var(--surface); border-radius: 10px; padding: 20px; width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+.modal-title { font-size: 1rem; font-weight: 600; margin-bottom: 16px; }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); flex-wrap: wrap; }
 
-#toast { position: fixed; bottom: 28px; right: 28px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; font-size: 0.875rem; z-index: 9999; transform: translateY(80px); opacity: 0; transition: all 0.3s; pointer-events: none; }
-#toast.show { transform: translateY(0); opacity: 1; }
-#toast.success { border-color: var(--green); color: var(--green); }
-#toast.error { border-color: var(--red); color: var(--red); }
+/* aviso escuro e discreto */
+#toast { position: fixed; bottom: 24px; left: 50%; transform: translate(-50%, 16px); background: var(--text); color: #fff; border-radius: var(--r); padding: 10px 16px; font-size: .85rem; z-index: 9999; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; max-width: 90vw; box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+#toast.show { transform: translate(-50%, 0); opacity: 1; }
+#toast.error { background: var(--red); }
 
-.week-nav { display: flex; align-items: center; gap: 10px; }
-.week-nav button { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 1rem; }
-.week-nav button:hover { border-color: var(--accent); }
-.week-label { font-size: 0.875rem; color: var(--text-muted); min-width: 180px; text-align: center; }
+/* navegação de período: ‹ 13/10 – 19/10 › */
+.week-nav { display: inline-flex; align-items: center; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--r); height: 34px; }
+.week-nav button { background: none; border: none; color: var(--text-2); width: 32px; height: 100%; cursor: pointer; font-size: 1.05rem; }
+.week-nav button:hover { background: var(--surface2); color: var(--text); }
+.week-nav button:first-child { border-right: 1px solid var(--border); border-radius: var(--r) 0 0 var(--r); }
+.week-nav button:last-child { border-left: 1px solid var(--border); border-radius: 0 var(--r) var(--r) 0; }
+.week-label { font-size: .85rem; color: var(--text); min-width: 168px; text-align: center; padding: 0 10px; font-variant-numeric: tabular-nums; }
 
-.tab-pills { display: flex; gap: 6px; margin-bottom: 20px; }
-.tab-pill { padding: 6px 16px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text-muted); transition: all 0.2s; }
-.tab-pill.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+/* abas segmentadas */
+.tab-pills { display: inline-flex; background: var(--surface3); border-radius: var(--r); padding: 2px; margin-bottom: 16px; gap: 0; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.tab-pills::-webkit-scrollbar { display: none; }
+.tab-pill { border: none; background: none; padding: 5px 12px; font-size: .82rem; font-weight: 400; color: var(--text-2); border-radius: 4px; cursor: pointer; white-space: nowrap; }
+.tab-pill .ti { display: none; }
+.tab-pill:hover { color: var(--text); }
+.tab-pill.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(29,25,21,.08); }
+.ph .tab-pills { margin-bottom: 0; }
 
-.divider { height: 1px; background: var(--border); margin: 24px 0; }
-.empty { text-align: center; padding: 32px; color: var(--text-muted); font-size: 0.875rem; }
-.info-box { background: color-mix(in srgb, var(--accent) 8%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent); border-radius: 8px; padding: 12px 16px; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; }
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+.empty { text-align: center; padding: 28px 16px; color: var(--text-muted); font-size: .85rem; }
+.info-box { background: var(--surface2); border: 1px solid var(--border); border-left: 3px solid var(--caramel); border-radius: 4px; padding: 8px 12px; font-size: .8rem; color: var(--text-2); margin-bottom: 14px; }
+.warn, .errbox { background: var(--surface2); border: 1px solid var(--border); border-left-width: 3px; border-radius: 4px; color: var(--text); padding: 7px 10px; font-size: .8rem; }
+.warn { border-left-color: var(--yellow); }
+.errbox { border-left-color: var(--red); }
 
 /* DRE */
-.dre-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; font-size:0.88rem; }
-.dre-sub { display:flex; justify-content:space-between; align-items:center; padding:3px 0 3px 16px; font-size:0.78rem; color:var(--text-muted); }
-.dre-divider { border-top:1px solid var(--border); margin:8px 0; }
-.dre-total { padding:10px 0 4px; }
+.dre-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: .875rem; }
+.dre-sub { display: flex; justify-content: space-between; align-items: center; padding: 2px 0 2px 14px; font-size: .78rem; color: var(--text-muted); }
+.dre-divider { border-top: 1px solid var(--border); margin: 8px 0; }
+.dre-total { padding: 10px 0 4px; }
 
+@media (max-width: 900px) {
+  .grid-4 { grid-template-columns: 1fr 1fr; }
+  .stat-strip { grid-template-columns: 1fr 1fr; }
+  .stat-strip > .stat-card:nth-child(odd) { border-left: none; }
+  .stat-strip > .stat-card:nth-child(n+3) { border-top: 1px solid var(--border); }
+}
 @media (max-width: 700px) {
-  /* Layout base */
-  .content { padding: 12px; }
-  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .content { padding: 16px 16px 40px; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
   .form-row, .form-row-3 { grid-template-columns: 1fr; }
-
-  /* Header */
-  .header { padding: 0 12px; height: 52px; }
-  .logo { font-size: 1.1rem; }
-
-  /* Nav tabs: scroll horizontal com indicador visual */
-  .nav-tabs {
-    padding: 0;
-    gap: 0;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .nav-tabs::-webkit-scrollbar { display: none; }
-  .nav-tab { padding: 10px 12px; font-size: 0.72rem; flex-shrink: 0; }
-
-  /* Cards */
+  .header { padding: 0 16px; height: 48px; }
+  .nav-tabs { top: 48px; padding: 0 8px; }
+  .nav-tab { padding: 9px 8px 8px; font-size: .8rem; flex-shrink: 0; }
+  .header-dir #header-semana { display: none; }
   .card { padding: 14px; }
-  .card-title { font-size: 0.85rem; }
-
-  /* Tabelas: scroll horizontal */
-  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .card > .table-wrap { margin: 0 -14px -14px; }
   table { min-width: 480px; }
-
-  /* Section header empilha */
-  .section-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-  .section-title { font-size: 1rem; }
-
-  /* Formulário de custos fixos: empilha tudo */
-  #tab-custos .card > div[style*="grid-template-columns"] {
-    grid-template-columns: 1fr !important;
-  }
+  .section-header, .ph { gap: 10px; }
+  .ph-dir { width: 100%; justify-content: space-between; }
+  .week-label { min-width: 0; flex: 1; }
+  .week-nav { flex: 1; }
+  #tab-custos .card > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
   #cf-valor { width: 100% !important; }
-
-  /* Tab pills: scroll horizontal */
-  .tab-pills { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: 4px; }
-  .tab-pills::-webkit-scrollbar { display: none; }
-  .tab-pill { flex-shrink: 0; }
-
-  /* Botões de ação não ficam cortados */
-  .btn { white-space: nowrap; }
-
-  /* Check items: compacta */
-  .check-item { padding: 10px 12px; font-size: 0.85rem; }
-
-  /* Total bar */
+  .check-item { padding: 10px 12px; font-size: .85rem; }
   #custos-total { font-size: 1.1rem; }
-
-  /* Histórico accordion */
-  .hist-header { font-size: 0.82rem; }
-
-  /* Modal ocupa tela toda no mobile */
-  .modal { width: calc(100vw - 32px); max-height: 85vh; overflow-y: auto; }
+  .hist-header { font-size: .82rem; }
+  .modal { width: calc(100vw - 32px); max-height: 85vh; }
 }
 </style>
 </head>
@@ -245,24 +271,14 @@ tr:hover td { background: var(--surface2); }
   gap: 6px; padding: 24px; text-align: center;
 }
 #auth-gate.show { display: flex; }
-.auth-gate-logo { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--accent); }
+.auth-gate-logo { font-family: 'Playfair Display', serif; font-size: 1.9rem; color: var(--accent); }
 .auth-gate-sub { font-size: .85rem; color: var(--text-muted); margin-bottom: 18px; }
-.auth-gate-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 20px; padding: 24px; width: 100%; max-width: 340px;
-}
-#auth-gate input {
-  width: 100%; background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 10px; padding: 12px 14px; color: var(--text);
-  font-size: 1rem; font-family: 'DM Sans', sans-serif; outline: none; box-sizing: border-box;
-}
-#auth-gate input:focus { border-color: var(--accent); }
-#auth-gate button {
-  width: 100%; margin-top: 12px; background: var(--accent); color: #fff;
-  border: none; border-radius: 10px; padding: 12px; font-size: .95rem;
-  font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer;
-}
-.auth-gate-err { font-size: .8rem; color: var(--red, #e05252); margin-top: 10px; min-height: 18px; text-align: center; }
+.auth-gate-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; width: 100%; max-width: 320px; }
+#auth-gate input { width: 100%; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--r); padding: 9px 12px; color: var(--text); font-size: .95rem; outline: none; font-family: inherit; }
+#auth-gate input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent); }
+#auth-gate button { width: 100%; margin-top: 10px; background: var(--accent); color: #fff; border: none; border-radius: var(--r); height: 38px; font-size: .9rem; font-weight: 500; cursor: pointer; font-family: inherit; }
+.auth-gate-err { font-size: .8rem; color: var(--red); margin-top: 10px; min-height: 18px; text-align: center; }
+.auth-gate-err:empty { display: none; }
 </style>
 <div id="auth-gate">
   <div class="auth-gate-logo">Shai</div>
@@ -277,7 +293,7 @@ tr:hover td { background: var(--surface2); }
 
 <div class="header">
   <div class="logo">Shai <span>Manager</span></div>
-  <div id="header-semana" style="font-size:0.8rem;color:var(--text-muted)"></div>
+  <div class="header-dir"><span id="header-semana"></span></div>
 </div>
 
 <div class="nav-tabs">
@@ -318,153 +334,146 @@ tr:hover td { background: var(--surface2); }
 
   <!-- ===== DASHBOARD ===== -->
   <div class="tab-panel active" id="tab-dashboard">
-    <div class="tab-pills">
-      <button class="tab-pill active" onclick="setDashView('semanal',this)">Semanal</button>
-      <button class="tab-pill" onclick="setDashView('mensal',this)">Mensal</button>
-      <button class="tab-pill" onclick="setDashView('anual',this)">Anual</button>
+    <div class="ph">
+      <h1 class="page-title">Dashboard</h1>
+      <div class="ph-dir">
+        <div class="tab-pills">
+          <button class="tab-pill active" onclick="setDashView('semanal',this)">Semana</button>
+          <button class="tab-pill" onclick="setDashView('mensal',this)">Mês</button>
+          <button class="tab-pill" onclick="setDashView('anual',this)">Ano</button>
+        </div>
+        <div class="week-nav" id="dash-nav-semanal">
+          <button onclick="dashWeek(-1)" aria-label="Semana anterior">‹</button>
+          <span class="week-label" id="dash-week-label">—</span>
+          <button onclick="dashWeek(1)" aria-label="Próxima semana">›</button>
+        </div>
+        <div class="week-nav" id="dash-nav-mensal" style="display:none">
+          <button onclick="dashMonth(-1)" aria-label="Mês anterior">‹</button>
+          <span class="week-label" id="dash-month-label">—</span>
+          <button onclick="dashMonth(1)" aria-label="Próximo mês">›</button>
+        </div>
+        <div class="week-nav" id="dash-nav-anual" style="display:none">
+          <button onclick="dashYear(-1)" aria-label="Ano anterior">‹</button>
+          <span class="week-label" id="dash-year-label">—</span>
+          <button onclick="dashYear(1)" aria-label="Próximo ano">›</button>
+        </div>
+      </div>
     </div>
 
     <div id="dash-semanal">
-      <div class="section-header">
-        <div class="section-title">Dashboard Semanal</div>
-        <div class="week-nav">
-          <button onclick="dashWeek(-1)">‹</button>
-          <span class="week-label" id="dash-week-label">—</span>
-          <button onclick="dashWeek(1)">›</button>
-        </div>
-      </div>
-
-      <div class="grid-4" style="margin-bottom:16px">
+      <div class="stat-strip">
         <div class="stat-card">
-          <div class="stat-label">Total da Semana</div>
-          <div class="stat-value" id="d-total" style="color:var(--accent)">R$ 0</div>
+          <div class="stat-label">Total da semana</div>
+          <div class="stat-value" id="d-total">R$ 0</div>
           <div class="stat-sub" id="d-count">0 vendas</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Loja Areal</div>
-          <div class="stat-value" id="d-l1" style="color:var(--loja1)">R$ 0</div>
+          <div class="stat-label"><span class="dot ar"></span>Loja Areal</div>
+          <div class="stat-value" id="d-l1">R$ 0</div>
           <div class="stat-sub" id="d-l1-tier"></div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Loja Três Rios</div>
-          <div class="stat-value" id="d-l2" style="color:var(--loja2)">R$ 0</div>
+          <div class="stat-label"><span class="dot tr"></span>Loja Três Rios</div>
+          <div class="stat-value" id="d-l2">R$ 0</div>
           <div class="stat-sub" id="d-l2-tier"></div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Ticket Médio</div>
-          <div class="stat-value" id="d-ticket" style="color:var(--text)">R$ 0</div>
+          <div class="stat-label">Ticket médio</div>
+          <div class="stat-value" id="d-ticket">R$ 0</div>
           <div class="stat-sub">por venda</div>
         </div>
       </div>
 
-      <div class="grid-2" style="margin-bottom:16px">
+      <div class="grid-2" style="margin-bottom:12px">
         <div class="card">
-          <div class="card-title">Progresso da Meta — Loja Areal</div>
-          <div id="meta-prog-l1"><div class="empty" style="padding:12px">Sem meta definida</div></div>
+          <div class="card-title">Meta da semana · Areal</div>
+          <div id="meta-prog-l1"><div class="empty">Sem meta definida</div></div>
         </div>
         <div class="card">
-          <div class="card-title">Progresso da Meta — Loja Três Rios</div>
-          <div id="meta-prog-l2"><div class="empty" style="padding:12px">Sem meta definida</div></div>
+          <div class="card-title">Meta da semana · Três Rios</div>
+          <div id="meta-prog-l2"><div class="empty">Sem meta definida</div></div>
         </div>
       </div>
 
       <div class="grid-2">
         <div class="card">
-          <div class="card-title">Ranking da Semana</div>
+          <div class="card-title">Ranking da semana</div>
           <div id="ranking-list"><div class="empty">Nenhuma venda registrada</div></div>
         </div>
         <div class="card">
-          <div class="card-title">Vendas por Dia</div>
+          <div class="card-title">Vendas por dia</div>
           <div style="position:relative;height:230px"><canvas id="chart-dias"></canvas></div>
         </div>
       </div>
     </div>
 
     <div id="dash-mensal" style="display:none">
-      <div class="section-header">
-        <div class="section-title">Dashboard Mensal</div>
-        <div class="week-nav">
-          <button onclick="dashMonth(-1)">‹</button>
-          <span class="week-label" id="dash-month-label">—</span>
-          <button onclick="dashMonth(1)">›</button>
-        </div>
-      </div>
-
-      <div class="grid-4" style="margin-bottom:16px">
+      <div class="stat-strip">
         <div class="stat-card">
-          <div class="stat-label">Total do Mês</div>
-          <div class="stat-value" id="dm-total" style="color:var(--accent)">R$ 0</div>
+          <div class="stat-label">Total do mês</div>
+          <div class="stat-value" id="dm-total">R$ 0</div>
           <div class="stat-sub" id="dm-count">0 vendas</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Loja Areal</div>
-          <div class="stat-value" id="dm-l1" style="color:var(--loja1)">R$ 0</div>
+          <div class="stat-label"><span class="dot ar"></span>Loja Areal</div>
+          <div class="stat-value" id="dm-l1">R$ 0</div>
           <div class="stat-sub" id="dm-l1-tier"></div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Loja Três Rios</div>
-          <div class="stat-value" id="dm-l2" style="color:var(--loja2)">R$ 0</div>
+          <div class="stat-label"><span class="dot tr"></span>Loja Três Rios</div>
+          <div class="stat-value" id="dm-l2">R$ 0</div>
           <div class="stat-sub" id="dm-l2-tier"></div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Ticket Médio</div>
-          <div class="stat-value" id="dm-ticket" style="color:var(--text)">R$ 0</div>
+          <div class="stat-label">Ticket médio</div>
+          <div class="stat-value" id="dm-ticket">R$ 0</div>
           <div class="stat-sub">por venda</div>
         </div>
       </div>
 
       <div class="grid-2">
         <div class="card">
-          <div class="card-title">Progresso da Meta — Loja Areal</div>
-          <div id="meta-prog-mensal-l1"><div class="empty" style="padding:12px">Sem meta definida</div></div>
+          <div class="card-title">Meta do mês · Areal</div>
+          <div id="meta-prog-mensal-l1"><div class="empty">Sem meta definida</div></div>
         </div>
         <div class="card">
-          <div class="card-title">Progresso da Meta — Loja Três Rios</div>
-          <div id="meta-prog-mensal-l2"><div class="empty" style="padding:12px">Sem meta definida</div></div>
+          <div class="card-title">Meta do mês · Três Rios</div>
+          <div id="meta-prog-mensal-l2"><div class="empty">Sem meta definida</div></div>
         </div>
       </div>
     </div>
 
     <div id="dash-anual" style="display:none">
-      <div class="section-header">
-        <div class="section-title">Dashboard Anual</div>
-        <div class="week-nav">
-          <button onclick="dashYear(-1)">‹</button>
-          <span class="week-label" id="dash-year-label">—</span>
-          <button onclick="dashYear(1)">›</button>
-        </div>
-      </div>
-
-      <div class="grid-4" style="margin-bottom:16px">
+      <div class="stat-strip">
         <div class="stat-card">
-          <div class="stat-label">Total do Ano</div>
-          <div class="stat-value" id="da-total" style="color:var(--accent)">R$ 0</div>
+          <div class="stat-label">Total do ano</div>
+          <div class="stat-value" id="da-total">R$ 0</div>
           <div class="stat-sub" id="da-media">média de R$ 0/mês</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Loja Areal</div>
-          <div class="stat-value" id="da-l1" style="color:var(--loja1)">R$ 0</div>
+          <div class="stat-label"><span class="dot ar"></span>Loja Areal</div>
+          <div class="stat-value" id="da-l1">R$ 0</div>
           <div class="stat-sub" id="da-l1-pct"></div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Loja Três Rios</div>
-          <div class="stat-value" id="da-l2" style="color:var(--loja2)">R$ 0</div>
+          <div class="stat-label"><span class="dot tr"></span>Loja Três Rios</div>
+          <div class="stat-value" id="da-l2">R$ 0</div>
           <div class="stat-sub" id="da-l2-pct"></div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Melhor Mês</div>
-          <div class="stat-value" id="da-melhor" style="color:var(--text)">—</div>
+          <div class="stat-label">Melhor mês</div>
+          <div class="stat-value" id="da-melhor">—</div>
           <div class="stat-sub" id="da-melhor-valor"></div>
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:16px">
-        <div class="card-title">Vendas por Mês</div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-title">Vendas por mês</div>
         <div style="position:relative;height:260px"><canvas id="chart-meses"></canvas></div>
       </div>
 
       <div class="card">
-        <div class="card-title">Ranking do Ano</div>
+        <div class="card-title">Ranking do ano</div>
         <div id="ranking-anual"><div class="empty">Nenhuma venda registrada</div></div>
       </div>
     </div>
@@ -1240,6 +1249,7 @@ function setDashView(v, btn) {
   document.getElementById('dash-semanal').style.display = v === 'semanal' ? '' : 'none';
   document.getElementById('dash-mensal').style.display  = v === 'mensal'  ? '' : 'none';
   document.getElementById('dash-anual').style.display   = v === 'anual'   ? '' : 'none';
+  ['semanal','mensal','anual'].forEach(k => document.getElementById('dash-nav-' + k).style.display = v === k ? '' : 'none');
   loadDashboard();
 }
 
@@ -1281,7 +1291,7 @@ function dashYear(d) { dashYearOffset += d; saveOff('dashYear', dashYearOffset);
 
 // ===== TIER PROGRESS BLOCK =====
 function renderTierProgress(realizado, meta, lojaColor) {
-  if (!meta) return '<div class="empty" style="padding:12px">Sem meta definida</div>';
+  if (!meta) return '<div class="empty">Sem meta definida</div>';
   const top = meta.valor_mega * 1.05;
   const pctMeta  = Math.min((realizado / top) * 100, 100);
   const mPct = (meta.valor_meta / top * 100).toFixed(1);
@@ -1294,14 +1304,16 @@ function renderTierProgress(realizado, meta, lojaColor) {
   const faltaMeta  = realizado < meta.valor_meta  ? fmt(meta.valor_meta  - realizado) + ' p/ Meta'  : null;
   const faltaSuper = realizado < meta.valor_super ? fmt(meta.valor_super - realizado) + ' p/ Super' : null;
   const faltaMega  = realizado < meta.valor_mega  ? fmt(meta.valor_mega  - realizado) + ' p/ Mega'  : null;
-  const falta = faltaMega || faltaSuper || faltaMeta || '<i class="ti ti-trophy"></i> Mega atingida!';
+  const falta = faltaMeta || faltaSuper || faltaMega || 'Mega atingida';
 
   return `
-    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px">
-      <div style="font-size:1.5rem;font-weight:700;color:${lojaColor}">${fmt(realizado)}</div>
-      ${tierBadgeHtml(tier)}
+    <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:4px 10px;margin-bottom:10px">
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <span style="font-size:1.15rem;font-weight:600;font-variant-numeric:tabular-nums">${fmt(realizado)}</span>
+        ${tierBadgeHtml(tier)}
+      </div>
+      <span style="font-size:.78rem;color:var(--text-muted)">${falta}</span>
     </div>
-    <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:10px">${falta}</div>
     <div class="tier-progress">
       <div class="tier-bar-wrap">
         <div class="tier-bar-fill ${fillClass}" style="width:${pctMeta}%;background:${fillColor}"></div>
@@ -1316,8 +1328,19 @@ function renderTierProgress(realizado, meta, lojaColor) {
     </div>`;
 }
 
+// Uma linha por pessoa: posição, nome, loja em cinza e valor à direita
+function rankingLinha(r, i) {
+  const loja = r.loja === 'Loja Areal' ? ['ar', 'Areal'] : ['tr', 'Três Rios'];
+  return `<div class="ranking-item">
+    <span class="ranking-pos">${i + 1}</span>
+    <span class="ranking-nome"><b>${r.nome}</b><span class="ranking-loja"><span class="dot ${loja[0]}"></span>${loja[1]}</span></span>
+    <span class="ranking-val">${fmt(r.total)}</span>
+  </div>`;
+}
+
 // ===== DASHBOARD =====
 let chartDias = null, chartMeses = null;
+if (window.Chart) Chart.defaults.font.family = "'IBM Plex Sans', system-ui, sans-serif";
 async function loadDashboard() {
   if (dashView === 'semanal') await loadDashSemanal();
   else if (dashView === 'anual') await loadDashAnual();
@@ -1401,14 +1424,7 @@ async function loadDashSemanal() {
   else {
     const medals = ['gold','silver','bronze'];
     rankEl.innerHTML = rank.map((r,i) => `
-      <div class="ranking-item">
-        <div class="ranking-pos ${medals[i]||''}">${i+1}</div>
-        <div style="flex:1">
-          <div style="font-weight:500">${r.nome}</div>
-          <span class="badge badge-${r.loja==='Loja Areal'?'loja1':'loja2'}" style="margin-top:2px">${r.loja}</span>
-        </div>
-        <div style="font-weight:600;color:var(--accent)">${fmt(r.total)}</div>
-      </div>`).join('');
+      ${rankingLinha(r, i)}`).join('');
   }
 
   // Chart
@@ -1425,17 +1441,17 @@ async function loadDashSemanal() {
   chartDias = new Chart(document.getElementById('chart-dias').getContext('2d'), {
     type: 'bar',
     data: { labels, datasets:[
-      { label:'Loja Areal',     data:valsAreal, backgroundColor:'#3d7ab8', borderRadius:5, barPercentage:1.5, categoryPercentage:0.5, borderColor:'#fbf8f3', borderWidth:2 },
-      { label:'Loja Três Rios', data:valsTres,  backgroundColor:'#c65b3f', borderRadius:5, barPercentage:1.5, categoryPercentage:0.5, borderColor:'#fbf8f3', borderWidth:2 },
+      { label:'Loja Areal',     data:valsAreal, backgroundColor:'#2f6aa3', borderRadius:3, barPercentage:1.5, categoryPercentage:0.5, borderColor:'#ffffff', borderWidth:2 },
+      { label:'Loja Três Rios', data:valsTres,  backgroundColor:'#b4553b', borderRadius:3, barPercentage:1.5, categoryPercentage:0.5, borderColor:'#ffffff', borderWidth:2 },
     ] },
     options: {
       maintainAspectRatio:false,
       layout:{padding:{top:6}},
       plugins:{
-        legend:{display:true,position:'top',align:'end',labels:{color:'#8a7359',font:{size:11.5,weight:'500'},boxWidth:8,boxHeight:8,usePointStyle:true,pointStyle:'circle',padding:16}},
+        legend:{display:true,position:'top',align:'end',labels:{color:'#57504a',font:{size:12,weight:'400'},boxWidth:8,boxHeight:8,usePointStyle:true,pointStyle:'circle',padding:16}},
         tooltip:{
-          backgroundColor:'#fbf8f3', titleColor:'#2b2118', bodyColor:'#5c4a38', footerColor:'#2b2118',
-          borderColor:'#ddd2c2', borderWidth:1, cornerRadius:8, padding:11, boxPadding:5, usePointStyle:true,
+          backgroundColor:'#1d1915', titleColor:'#ffffff', bodyColor:'#e3e0db', footerColor:'#ffffff',
+          borderColor:'#1d1915', borderWidth:0, cornerRadius:6, padding:11, boxPadding:5, usePointStyle:true,
           titleFont:{size:12,weight:'500'}, bodyFont:{size:12}, footerFont:{size:12,weight:'500'},
           callbacks:{
             label:c=>'  '+c.dataset.label+': '+fmt(c.parsed.y),
@@ -1444,8 +1460,8 @@ async function loadDashSemanal() {
         }
       },
       scales: {
-        x:{border:{display:false}, ticks:{color:'#a08b76',font:{size:11}}, grid:{display:false}},
-        y:{border:{display:false}, ticks:{color:'#b3a48f',font:{size:10.5},maxTicksLimit:5,callback:v=>'R$'+(v>=1000?(v/1000)+'k':v)}, grid:{color:'#ebe3d6',drawTicks:false}, grace:'8%'}
+        x:{border:{display:false}, ticks:{color:'#8a827a',font:{size:11}}, grid:{display:false}},
+        y:{border:{display:false}, ticks:{color:'#8a827a',font:{size:11},maxTicksLimit:5,callback:v=>'R$'+(v>=1000?(v/1000)+'k':v)}, grid:{color:'#eeece8',drawTicks:false}, grace:'8%'}
       },
       animation:{duration:600,easing:'easeOutQuart'}
     }
@@ -1531,14 +1547,7 @@ async function loadDashAnual() {
   const rankEl = document.getElementById('ranking-anual');
   const medals = ['gold','silver','bronze'];
   rankEl.innerHTML = !rank.length ? '<div class="empty">Nenhuma venda registrada</div>' : rank.map((r,i) => `
-    <div class="ranking-item">
-      <div class="ranking-pos ${medals[i]||''}">${i+1}</div>
-      <div style="flex:1">
-        <div style="font-weight:500">${r.nome}</div>
-        <span class="badge badge-${r.loja==='Loja Areal'?'loja1':'loja2'}" style="margin-top:2px">${r.loja}</span>
-      </div>
-      <div style="font-weight:600;color:var(--accent)">${fmt(r.total)}</div>
-    </div>`).join('');
+      ${rankingLinha(r, i)}`).join('');
 
   // Gráfico mês a mês, mesmo estilo do semanal
   const labels = Array.from({length:12}, (_,i) => new Date(ano, i, 1).toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''));
@@ -1546,17 +1555,17 @@ async function loadDashAnual() {
   chartMeses = new Chart(document.getElementById('chart-meses').getContext('2d'), {
     type: 'bar',
     data: { labels, datasets:[
-      { label:'Loja Areal',     data:valsAreal, backgroundColor:'#3d7ab8', borderRadius:5, barPercentage:1.5, categoryPercentage:0.5, borderColor:'#fbf8f3', borderWidth:2 },
-      { label:'Loja Três Rios', data:valsTres,  backgroundColor:'#c65b3f', borderRadius:5, barPercentage:1.5, categoryPercentage:0.5, borderColor:'#fbf8f3', borderWidth:2 },
+      { label:'Loja Areal',     data:valsAreal, backgroundColor:'#2f6aa3', borderRadius:3, barPercentage:1.5, categoryPercentage:0.5, borderColor:'#ffffff', borderWidth:2 },
+      { label:'Loja Três Rios', data:valsTres,  backgroundColor:'#b4553b', borderRadius:3, barPercentage:1.5, categoryPercentage:0.5, borderColor:'#ffffff', borderWidth:2 },
     ] },
     options: {
       maintainAspectRatio:false,
       layout:{padding:{top:6}},
       plugins:{
-        legend:{display:true,position:'top',align:'end',labels:{color:'#8a7359',font:{size:11.5,weight:'500'},boxWidth:8,boxHeight:8,usePointStyle:true,pointStyle:'circle',padding:16}},
+        legend:{display:true,position:'top',align:'end',labels:{color:'#57504a',font:{size:12,weight:'400'},boxWidth:8,boxHeight:8,usePointStyle:true,pointStyle:'circle',padding:16}},
         tooltip:{
-          backgroundColor:'#fbf8f3', titleColor:'#2b2118', bodyColor:'#5c4a38', footerColor:'#2b2118',
-          borderColor:'#ddd2c2', borderWidth:1, cornerRadius:8, padding:11, boxPadding:5, usePointStyle:true,
+          backgroundColor:'#1d1915', titleColor:'#ffffff', bodyColor:'#e3e0db', footerColor:'#ffffff',
+          borderColor:'#1d1915', borderWidth:0, cornerRadius:6, padding:11, boxPadding:5, usePointStyle:true,
           titleFont:{size:12,weight:'500'}, bodyFont:{size:12}, footerFont:{size:12,weight:'500'},
           callbacks:{
             title:items=>nomeMes(items[0].dataIndex).replace(/^./, c => c.toUpperCase()) + ' ' + ano,
@@ -1566,8 +1575,8 @@ async function loadDashAnual() {
         }
       },
       scales: {
-        x:{border:{display:false}, ticks:{color:'#a08b76',font:{size:11}}, grid:{display:false}},
-        y:{border:{display:false}, ticks:{color:'#b3a48f',font:{size:10.5},maxTicksLimit:5,callback:v=>'R$'+(v>=1000?(v/1000)+'k':v)}, grid:{color:'#ebe3d6',drawTicks:false}, grace:'8%'}
+        x:{border:{display:false}, ticks:{color:'#8a827a',font:{size:11}}, grid:{display:false}},
+        y:{border:{display:false}, ticks:{color:'#8a827a',font:{size:11},maxTicksLimit:5,callback:v=>'R$'+(v>=1000?(v/1000)+'k':v)}, grid:{color:'#eeece8',drawTicks:false}, grace:'8%'}
       },
       animation:{duration:600,easing:'easeOutQuart'}
     }
