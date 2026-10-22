@@ -1029,8 +1029,6 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
 /* aba Planejar: a grade do Instagram */
 .grade-wrap { max-width: 480px; margin: 0 auto; padding: 16px 0 28px; }
 .grade-ph { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-.feed-trocar.feed-quadro { display: inline-flex; align-items: center; gap: 6px; background: var(--accent); color: #fff; border-color: var(--accent); }
-.feed-trocar.feed-quadro:hover { background: var(--accent-hover); }
 .feed-top-info { flex: 1; min-width: 0; }
 .feed-titulo { font-size: 1rem; font-weight: 600; }
 .feed-sub { font-size: .75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
@@ -2024,8 +2022,6 @@ textarea.form-input { resize: none; height: 76px; }
         <div class="feed-sub" id="feed-sub"></div>
       </div>
       <button class="feed-trocar" id="feed-trocar" onclick="toggleFeedTrocar()">Trocar ordem</button>
-      <button class="feed-trocar feed-quadro" onclick="abrirQuadroSemana()" title="Abrir o quadro da semana">
-        <i class="ti ti-layout-board-split" aria-hidden="true"></i> Quadro da semana</button>
     </div>
     <div class="feed-col">
       <div class="feed-perfil">
@@ -5386,7 +5382,6 @@ function abrirPlanejamentoSemanal(base) {
 let _feedLista = [];
 let _feedTrocando = false;
 let _feedSel = null;
-let _feedVoltar = null; // semana do quadro que estava aberto (volta pra ele ao fechar)
 
 const _attr = s => _esc(s).replace(/"/g, '&quot;');
 
@@ -5561,7 +5556,6 @@ async function abrirFeed() {
     if (document.activeElement) document.activeElement.blur();
     clearTimeout(edCanvasSaveTimer);
     if (edEvent.id || !_quadroPristino(edEvent)) await _saveCanvas();
-    _feedVoltar = edEvent.data;
     closeEventDetail();
   }
   setView('grade');
@@ -5682,16 +5676,6 @@ function _ehTplElSemanal(e) {
   return t === 'planejamento semanal' || DIAS_TPL.some(n => n.toLowerCase() === t);
 }
 
-// volta para a semana que estava aberta (ou a de hoje)
-function abrirQuadroSemana() {
-  if (_feedVoltar) {
-    const [y, m, d] = _feedVoltar.split('-').map(Number);
-    abrirPlanejamentoSemanal(new Date(y, m - 1, d));
-  } else {
-    abrirPlanejamentoSemanal();
-  }
-}
-
 function toggleFeedTrocar() {
   _feedTrocando = !_feedTrocando;
   _feedSel = null;
@@ -5719,7 +5703,6 @@ function feedToque(i) {
   if (p.real) { if (!_feedTrocando && p.link) window.open(p.link, '_blank', 'noopener'); return; }
   if (!_feedTrocando) {
     // abre o quadro na semana e no dia do post
-    _feedVoltar = p.board.data;
     const [y, m, d] = p.board.data.split('-').map(Number);
     abrirPlanejamentoSemanal(new Date(y, m - 1, d));
     if (_planMobile()) irParaDia(p.col, false);
