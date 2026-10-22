@@ -1026,18 +1026,11 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
 .plan-feed i { color: var(--choco); }
 
 /* ── PRÉVIA DO FEED (grade do perfil do Instagram) ── */
-#feed-view { position: fixed; inset: 0; z-index: 320; background: var(--bg); display: none; flex-direction: column; }
-#feed-view.open { display: flex; }
-.feed-top {
-  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
-  padding: calc(10px + env(safe-area-inset-top, 0px)) 14px 10px;
-  background: var(--surface); border-bottom: 1px solid var(--border);
-}
-.feed-back {
-  border: none; background: none; color: var(--text-2); font-size: 1.2rem; cursor: pointer;
-  padding: 6px; border-radius: var(--r); display: flex;
-}
-.feed-back:hover { background: var(--surface3); }
+/* aba Planejar: a grade do Instagram */
+.grade-wrap { max-width: 480px; margin: 0 auto; padding: 16px 0 28px; }
+.grade-ph { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.feed-trocar.feed-quadro { display: inline-flex; align-items: center; gap: 6px; background: var(--accent); color: #fff; border-color: var(--accent); }
+.feed-trocar.feed-quadro:hover { background: var(--accent-hover); }
 .feed-top-info { flex: 1; min-width: 0; }
 .feed-titulo { font-size: 1rem; font-weight: 600; }
 .feed-sub { font-size: .75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
@@ -1048,14 +1041,15 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
 }
 .feed-trocar:hover { background: var(--surface2); }
 .feed-trocar.on { background: var(--accent); color: #fff; border-color: var(--accent); }
-.feed-body { flex: 1; overflow-y: auto; padding: 16px 0 32px; }
 .feed-col {
-  max-width: 480px; margin: 0 auto; background: var(--surface);
-  border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
 }
 @media (max-width: 520px) {
-  .feed-body { padding: 0 0 24px; }
-  .feed-col { border-radius: 0; border-left: none; border-right: none; border-top: none; }
+  .grade-wrap { padding: 12px 0 20px; }
+  .grade-ph { padding: 0 14px; flex-wrap: wrap; }
+  .grade-ph .feed-top-info { flex-basis: 100%; }
+  .grade-ph .feed-trocar { flex: 1; justify-content: center; }
+  .feed-col { border-radius: 0; border-left: none; border-right: none; }
 }
 .feed-perfil { display: flex; align-items: center; gap: 14px; padding: 16px; }
 .feed-avatar {
@@ -1992,6 +1986,38 @@ textarea.form-input { resize: none; height: 76px; }
   </div>
 </div>
 
+<!-- VIEW: PLANEJAR = GRADE DO INSTAGRAM (o que vai ao ar em cima, o que já está no ar embaixo) -->
+<div id="view-grade" style="display:none">
+  <div class="grade-wrap">
+    <div class="grade-ph">
+      <div class="feed-top-info">
+        <div class="feed-titulo">Grade do Instagram</div>
+        <div class="feed-sub" id="feed-sub"></div>
+      </div>
+      <button class="feed-trocar" id="feed-trocar" onclick="toggleFeedTrocar()">Trocar ordem</button>
+      <button class="feed-trocar feed-quadro" onclick="abrirQuadroSemana()" title="Abrir o quadro da semana">
+        <i class="ti ti-layout-board-split" aria-hidden="true"></i> Quadro da semana</button>
+    </div>
+    <div class="feed-col">
+      <div class="feed-perfil">
+        <div class="feed-avatar">S</div>
+        <div>
+          <div class="feed-user">@loja.shai</div>
+          <div class="feed-stats" id="feed-stats"></div>
+        </div>
+      </div>
+      <div class="feed-aviso" id="feed-aviso">Toque em dois posts para trocar um pelo outro.</div>
+      <div class="feed-grid" id="feed-grid"></div>
+      <div class="feed-legenda">
+        <span><span class="feed-leg" style="background:var(--green)"></span>postado</span>
+        <span><span class="feed-leg" style="background:var(--choco)"></span>pronto</span>
+        <span><span class="feed-leg gravar"></span>a gravar</span>
+        <span id="feed-leg-ig" style="display:none"><i class="ti ti-brand-instagram" aria-hidden="true"></i>já no Instagram (toque para abrir)</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- VIEW: SEMANA (agenda com horários) -->
 <div id="view-semana" style="display:none">
   <div id="sem-wrap"></div>
@@ -2378,40 +2404,9 @@ textarea.form-input { resize: none; height: 76px; }
 <div class="cal-tooltip" id="cal-tooltip"></div>
 <div id="print-camp"></div>
 
-<!-- PRÉVIA DO FEED -->
-<div id="feed-view">
-  <div class="feed-top">
-    <button class="feed-back" onclick="fecharFeed()" aria-label="Voltar"><i class="ti ti-arrow-left"></i></button>
-    <div class="feed-top-info">
-      <div class="feed-titulo">Prévia do feed</div>
-      <div class="feed-sub" id="feed-sub"></div>
-    </div>
-    <button class="feed-trocar" id="feed-trocar" onclick="toggleFeedTrocar()">Trocar ordem</button>
-  </div>
-  <div class="feed-body">
-    <div class="feed-col">
-      <div class="feed-perfil">
-        <div class="feed-avatar">S</div>
-        <div>
-          <div class="feed-user">@loja.shai</div>
-          <div class="feed-stats" id="feed-stats"></div>
-        </div>
-      </div>
-      <div class="feed-aviso" id="feed-aviso">Toque em dois posts para trocar um pelo outro.</div>
-      <div class="feed-grid" id="feed-grid"></div>
-      <div class="feed-legenda">
-        <span><span class="feed-leg" style="background:var(--green)"></span>postado</span>
-        <span><span class="feed-leg" style="background:var(--choco)"></span>pronto</span>
-        <span><span class="feed-leg gravar"></span>a gravar</span>
-        <span id="feed-leg-ig" style="display:none"><i class="ti ti-brand-instagram" aria-hidden="true"></i>já no Instagram (toque para abrir)</span>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
-  <button class="nav-item" id="nav-planejar" onclick="abrirPlanejamentoSemanal()">
+  <button class="nav-item" id="nav-planejar" onclick="setView('grade')">
     <span class="nav-icon"><i class="ti ti-layout-board-split"></i></span>Planejar
   </button>
   <button class="nav-item active" id="nav-mensal" onclick="setView('mensal')">
@@ -3156,12 +3151,14 @@ function setView(v) {
   currentView = v;
   document.getElementById('view-mensal').style.display    = v==='mensal'    ? 'block' : 'none';
   document.getElementById('view-semana').style.display    = v==='semana'    ? 'block' : 'none';
+  document.getElementById('view-grade').style.display     = v==='grade'     ? 'block' : 'none';
+  document.getElementById('nav-planejar').classList.toggle('active', v==='grade');
   document.getElementById('vt-semana').classList.toggle('active', v==='semana');
   document.getElementById('view-anual').style.display     = v==='anual'     ? 'block' : 'none';
   document.getElementById('view-campanhas').style.display = v==='campanhas' ? 'block' : 'none';
   document.getElementById('view-tarefas').style.display   = v==='tarefas'   ? 'block' : 'none';
   document.getElementById('view-metricas').style.display  = v==='metricas'  ? 'block' : 'none';
-  document.getElementById('period-nav').style.display     = (v==='campanhas' || v==='tarefas' || v==='metricas') ? 'none' : 'flex';
+  document.getElementById('period-nav').style.display     = (v==='campanhas' || v==='tarefas' || v==='metricas' || v==='grade') ? 'none' : 'flex';
   document.getElementById('nav-metricas').classList.toggle('active', v==='metricas');
   document.getElementById('vt-mensal').classList.toggle('active', v==='mensal');
   document.getElementById('vt-anual').classList.toggle('active', v==='anual');
@@ -3174,6 +3171,7 @@ function setView(v) {
 function renderView() {
   if (currentView === 'mensal') renderMensal();
   else if (currentView === 'semana') renderSemana();
+  else if (currentView === 'grade') renderGrade();
   else if (currentView === 'anual') renderAnual();
   else if (currentView === 'tarefas') renderTarefas();
   else if (currentView === 'metricas') renderMetricas();
@@ -3955,6 +3953,7 @@ function closeEventDetail() {
   _showFmtbar(null);
   _setHash('');
   edEvent = null;
+  if (currentView === 'grade') renderGrade(); // voltou do quadro para a grade: mostra o que mudou
 }
 
 // atualiza o hash da URL com fallback (file:// bloqueia replaceState)
@@ -5465,33 +5464,35 @@ function renderFeed() {
     : '<div class="feed-vazio">Nenhuma foto ou vídeo planejado ainda. Adicione caixas de foto ou vídeo no Planejar.</div>';
 }
 
+// botão de grade dentro do quadro: salva o quadro aberto e vai para a aba Planejar (grade)
 async function abrirFeed() {
-  // a prévia lê o que está gravado: salva o quadro aberto antes
   if (edEvent && _modoPlanejamento() && !_modoCampanha()) {
     if (document.activeElement) document.activeElement.blur();
     clearTimeout(edCanvasSaveTimer);
     if (edEvent.id || !_quadroPristino(edEvent)) await _saveCanvas();
     _feedVoltar = edEvent.data;
     closeEventDetail();
-  } else {
-    _feedVoltar = null;
   }
+  setView('grade');
+}
+
+// aba Planejar: a grade lê o que está gravado nos quadros + os posts reais do Instagram
+async function renderGrade() {
+  document.getElementById('header-sub').textContent = 'Planejar';
   _feedTrocando = false;
   _feedSel = null;
   _feedAtualizarModo();
-  await _feedCarregaReais();
   renderFeed();
-  document.getElementById('feed-view').classList.add('open');
+  if (feedReais === null) { await _feedCarregaReais(); if (currentView === 'grade') renderFeed(); }
 }
 
-function fecharFeed() {
-  document.getElementById('feed-view').classList.remove('open');
+// volta para a semana que estava aberta (ou a de hoje)
+function abrirQuadroSemana() {
   if (_feedVoltar) {
     const [y, m, d] = _feedVoltar.split('-').map(Number);
-    _feedVoltar = null;
     abrirPlanejamentoSemanal(new Date(y, m - 1, d));
   } else {
-    renderView();
+    abrirPlanejamentoSemanal();
   }
 }
 
@@ -5520,8 +5521,7 @@ function feedToque(i) {
   if (p.real) { if (!_feedTrocando && p.link) window.open(p.link, '_blank', 'noopener'); return; }
   if (!_feedTrocando) {
     // abre o quadro na semana e no dia do post
-    document.getElementById('feed-view').classList.remove('open');
-    _feedVoltar = null;
+    _feedVoltar = p.board.data;
     const [y, m, d] = p.board.data.split('-').map(Number);
     abrirPlanejamentoSemanal(new Date(y, m - 1, d));
     if (_planMobile()) irParaDia(p.col, false);
@@ -5558,9 +5558,6 @@ async function _feedTrocar(a, b) {
   renderFeed();
 }
 
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && document.getElementById('feed-view').classList.contains('open')) fecharFeed();
-});
 
 // ── MÉTRICAS DO INSTAGRAM ─────────────────────────────
 // lê o que a sincronização diária grava no banco (ig_conta_dia / ig_posts)
