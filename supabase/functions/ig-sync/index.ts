@@ -155,6 +155,8 @@ Deno.serve(async (req) => {
       posts.push({
         id: m.id, legenda: m.caption || null, tipo: m.media_type, formato: m.media_product_type,
         capa_url: m.thumbnail_url || m.media_url || null, link: m.permalink, publicado_em: m.timestamp,
+        // arquivo do vídeo para tocar no app (a Meta omite em alguns vídeos com música protegida)
+        video_url: m.media_type === "VIDEO" ? (m.media_url || null) : null,
         visualizacoes: n.views ?? null, alcance: n.reach ?? null, curtidas: m.like_count ?? null,
         comentarios: m.comments_count ?? null, salvos: n.saved ?? null, compartilhamentos: n.shares ?? null,
         atualizado_em: new Date().toISOString(),

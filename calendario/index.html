@@ -1135,7 +1135,13 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
   font-size: .8rem; color: var(--text-muted);
 }
 .ver-player iframe { position: relative; display: block; width: 100%; height: min(72vh, 640px); border: 0; background: transparent; }
+.ver-player video { display: block; width: 100%; max-height: min(72vh, 640px); background: #000; }
 .ver-sem { padding: 40px 16px; text-align: center; font-size: .82rem; color: var(--text-muted); }
+.ver-aviso {
+  display: flex; gap: 8px; align-items: flex-start; margin: 10px 2px 0; padding: 8px 10px;
+  border-left: 3px solid var(--caramel); background: var(--surface2); font-size: .76rem; color: var(--text-2); line-height: 1.4;
+}
+.ver-aviso .ti { color: var(--caramel); margin-top: 1px; }
 .ver-frase { display: flex; align-items: center; gap: 8px; margin: 12px 2px 8px; font-size: .85rem; font-weight: 500; }
 .ver-nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
 .ver-nums div { background: var(--surface); padding: 8px 6px; text-align: center; display: flex; flex-direction: column; gap: 1px; }
@@ -5505,7 +5511,7 @@ let feedReais = null;
 async function _feedCarregaReais() {
   if (feedReais !== null) return;
   const { data, error } = await sb.from('ig_posts')
-    .select('id, legenda, tipo, formato, capa_url, link, publicado_em, alcance, visualizacoes, curtidas, comentarios, salvos, compartilhamentos')
+    .select('id, legenda, tipo, formato, capa_url, video_url, link, publicado_em, alcance, visualizacoes, curtidas, comentarios, salvos, compartilhamentos')
     .order('publicado_em', { ascending: false }).limit(60);
   feedReais = error ? [] : (data || []);
 }
@@ -5626,12 +5632,16 @@ function _igEmbed(link) {
   return `https://www.instagram.com/${m[1] === 'p' ? 'p' : 'reel'}/${m[2]}/embed/`;
 }
 
-function abrirPlayerIG(link, titulo, infoHTML = '', acoesHTML = '') {
+// videoArquivo: vídeo da própria Shai vindo da API — toca no player do app (o do Instagram bloqueia Reels com música
+// de catálogo); sem ele, usa o player de incorporação do Instagram
+function abrirPlayerIG(link, titulo, infoHTML = '', acoesHTML = '', videoArquivo = null, capa = null) {
   const emb = _igEmbed(link);
   document.getElementById('ver-titulo').innerHTML = titulo;
-  document.getElementById('ver-player').innerHTML = emb
-    ? `<iframe src="${emb}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy" title="Post do Instagram"></iframe>`
-    : '<div class="ver-sem">Esse link não é de um post do Instagram.</div>';
+  document.getElementById('ver-player').innerHTML = videoArquivo
+    ? `<video src="${_attr(videoArquivo)}" ${capa ? `poster="${_attr(capa)}"` : ''} controls playsinline autoplay preload="metadata"></video>`
+    : emb
+      ? `<iframe src="${emb}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy" title="Post do Instagram"></iframe>`
+      : '<div class="ver-sem">Esse link não é de um post do Instagram.</div>';
   document.getElementById('ver-info').innerHTML = infoHTML;
   document.getElementById('ver-acoes').innerHTML = acoesHTML
     + `<a class="btn btn-ghost ver-ig" href="${_attr(link)}" target="_blank" rel="noopener"><i class="ti ti-brand-instagram"></i> Abrir no Instagram</a>`;
@@ -5663,7 +5673,11 @@ function _verPostReal(p) {
     else frase = `Ficou na média dos seus ${nome}`;
   }
   const n = v => v == null ? '—' : _fmtN(v);
-  const info = (frase ? `<div class="ver-frase"><span class="mq-dot ${cor}"></span>${frase}</div>` : '')
+  // a Meta não entrega o arquivo de vídeos com música protegida: esses só tocam dentro do Instagram
+  const aviso = r.tipo === 'VIDEO' && !r.video_url
+    ? `<div class="ver-aviso"><i class="ti ti-music"></i> Esse vídeo usa música do catálogo do Instagram. Por regra deles, ele só toca dentro do Instagram — toque em "Abrir no Instagram".</div>`
+    : '';
+  const info = aviso + (frase ? `<div class="ver-frase"><span class="mq-dot ${cor}"></span>${frase}</div>` : '')
     + `<div class="ver-nums">
       <div><b>${n(r.alcance)}</b><span>pessoas viram</span></div>
       <div><b>${n(r.visualizacoes)}</b><span>visualizações</span></div>
@@ -5672,7 +5686,8 @@ function _verPostReal(p) {
       <div><b>${n(r.salvos)}</b><span>guardaram</span></div>
       <div><b>${n(r.compartilhamentos)}</b><span>mandaram pra amigas</span></div>
     </div>`;
-  abrirPlayerIG(p.link, `${_ROT_DIA(p.data)} · ${r.formato === 'REELS' ? 'Reel' : r.tipo === 'CAROUSEL_ALBUM' ? 'Carrossel' : 'Foto'}`, info);
+  abrirPlayerIG(p.link, `${_ROT_DIA(p.data)} · ${r.formato === 'REELS' ? 'Reel' : r.tipo === 'CAROUSEL_ALBUM' ? 'Carrossel' : 'Foto'}`, info,
+    '', r.video_url || null, r.capa_url || null);
 }
 
 // referência planejada: vídeo + a ideia anotada + atalho para o quadro
