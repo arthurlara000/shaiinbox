@@ -1057,6 +1057,19 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
   font-family: 'Playfair Display', serif; font-size: 1.5rem;
 }
 .feed-user { font-weight: 600; font-size: .95rem; }
+/* placar da semana (últimos 7 dias x 7 anteriores) */
+.feed-placar { padding: 0 16px 14px; }
+.feed-placar:empty { display: none; }
+.placar-tit { font-size: .68rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-bottom: 6px; }
+.placar-tit span { font-weight: 500; text-transform: none; letter-spacing: 0; margin-left: 4px; font-variant-numeric: tabular-nums; }
+.placar { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.placar-item { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 9px 4px; text-align: center; }
+.placar-item + .placar-item { border-left: 1px solid var(--border); }
+.placar-item b { font-size: 1.1rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.placar-item > span { font-size: .7rem; color: var(--text-2); }
+.placar-item .placar-ant { font-size: .62rem; color: var(--text-muted); margin-top: 2px; }
+.placar-ant.sobe { color: var(--green); }
+.placar-ant.desce { color: var(--red); }
 .feed-stats {
   display: flex; gap: 14px; margin-top: 4px; flex-wrap: wrap;
   font-size: .78rem; color: var(--text-2); font-variant-numeric: tabular-nums;
@@ -2065,11 +2078,12 @@ textarea.form-input { resize: none; height: 76px; }
     <div class="feed-col">
       <div class="feed-perfil">
         <div class="feed-avatar">S</div>
-        <div>
+        <div class="feed-perfil-info">
           <div class="feed-user">@loja.shai</div>
           <div class="feed-stats" id="feed-stats"></div>
         </div>
       </div>
+      <div class="feed-placar" id="feed-placar"></div>
       <div class="feed-aviso" id="feed-aviso">Toque em dois posts para trocar um pelo outro.</div>
       <div class="feed-grid" id="feed-grid"></div>
       <div class="feed-legenda">
@@ -5506,6 +5520,44 @@ function _feedPosts() {
   return plan.concat(reais);
 }
 
+// placar da semana no topo da grade: últimos 7 dias com dado (até ontem) x os 7 anteriores
+let gradeConta = null;
+async function _gradeCarregaConta() {
+  if (gradeConta !== null) return;
+  const desde = iso(new Date(todayY, todayM - 1, todayD - 16));
+  const { data, error } = await sb.from('ig_conta_dia').select('dia, seguidores, novos, perdidos, visualizacoes, alcance')
+    .gte('dia', desde).order('dia');
+  gradeConta = error ? [] : (data || []);
+}
+
+function _placarHTML() {
+  if (!gradeConta || !gradeConta.length) return '';
+  const fim = gradeConta[gradeConta.length - 1].dia;
+  const [fy, fm, fd] = fim.split('-').map(Number);
+  const corte = k => iso(new Date(fy, fm - 1, fd - k));
+  const ini = corte(6), iniAnt = corte(13), fimAnt = corte(7);
+  const semana = gradeConta.filter(r => r.dia >= ini);
+  const antes = gradeConta.filter(r => r.dia >= iniAnt && r.dia <= fimAnt);
+  const soma = (rs, f) => rs.reduce((s, r) => s + (f(r) || 0), 0);
+  const saldo = rs => soma(rs, r => (r.novos || 0) - (r.perdidos || 0));
+  const posts = (a, b) => (feedReais || []).filter(p => { const d = iso(new Date(p.publicado_em)); return d >= a && d <= b; }).length;
+  const num = v => Math.abs(v) >= 10000 ? _fmtMil(v) : _fmtN(v);
+  const sinal = v => (v > 0 ? '+' : '') + num(v);
+  // comparação: verde se melhorou, vermelho se piorou (só quando há a semana anterior completa)
+  const item = (valor, rotulo, ant, fmt) => {
+    const cmp = antes.length >= 7
+      ? `<span class="placar-ant ${valor > ant ? 'sobe' : valor < ant ? 'desce' : ''}">${valor > ant ? '↑' : valor < ant ? '↓' : '='} sem. passada ${fmt(ant)}</span>` : '';
+    return `<div class="placar-item"><b>${fmt(valor)}</b><span>${rotulo}</span>${cmp}</div>`;
+  };
+  const [, im, id] = ini.split('-').map(Number);
+  return `<div class="placar-tit">Placar da semana <span>${pad(id)}/${pad(im)} a ${pad(fd)}/${pad(fm)}</span></div>
+    <div class="placar">
+      ${item(saldo(semana), 'seguidores', saldo(antes), sinal)}
+      ${item(soma(semana, r => r.visualizacoes), 'visualizações', soma(antes, r => r.visualizacoes), num)}
+      ${item(posts(ini, fim), 'posts', posts(iniAnt, fimAnt), num)}
+    </div>`;
+}
+
 // posts que já estão no Instagram (gravados pela sincronização diária)
 let feedReais = null;
 async function _feedCarregaReais() {
@@ -5592,9 +5644,12 @@ function renderFeed() {
   const prontos = planejados.filter(p => _feedStatus(p.midia) === 'pronto').length;
   const gravar = planejados.filter(p => _feedStatus(p.midia) === 'gravar').length;
   const noIg = _feedLista.filter(p => p.real).length;
-  document.getElementById('feed-stats').innerHTML = (noIg ? `<span><b>${noIg}</b> no Instagram</span>` : `<span><b>${planejados.length}</b> posts</span>`)
+  const segTotal = gradeConta && gradeConta.length ? gradeConta[gradeConta.length - 1].seguidores : null;
+  document.getElementById('feed-stats').innerHTML = (segTotal ? `<span><b>${_fmtN(segTotal)}</b> seguidores</span>`
+      : noIg ? `<span><b>${noIg}</b> no Instagram</span>` : `<span><b>${planejados.length}</b> posts</span>`)
     + `<span><b>${prontos}</b> prontos</span><span><b>${gravar}</b> a gravar</span>`;
   document.getElementById('feed-leg-ig').style.display = noIg ? '' : 'none';
+  document.getElementById('feed-placar').innerHTML = _placarHTML();
   const fmt = ds => { const [, m, d] = ds.split('-').map(Number); return `${pad(d)}/${pad(m)}`; };
   document.getElementById('feed-sub').textContent = n
     ? `${fmt(_feedLista[n - 1].data)} – ${fmt(_feedLista[0].data)}` : '';
@@ -5621,7 +5676,10 @@ async function renderGrade() {
   _feedSel = null;
   _feedAtualizarModo();
   renderFeed();
-  if (feedReais === null) { await _feedCarregaReais(); if (currentView === 'grade') renderFeed(); }
+  if (feedReais === null || gradeConta === null) {
+    await Promise.all([_feedCarregaReais(), _gradeCarregaConta()]);
+    if (currentView === 'grade') renderFeed();
+  }
 }
 
 // ── PLAYER DO INSTAGRAM DENTRO DO APP ─────────────────
