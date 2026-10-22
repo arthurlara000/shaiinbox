@@ -1101,7 +1101,36 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
 .feed-cell.gravar .ti { font-size: 1.3rem; }
 .feed-cell.gravar .feed-gravar-txt { font-size: .7rem; font-weight: 600; }
 .feed-cell.gravar .feed-data { color: var(--text-2); background: var(--surface3); }
+/* quadrado vazio: dia sem post, toque para planejar */
+.feed-cell.vazio {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  background: var(--surface); color: var(--text-muted);
+  outline: 1.5px dashed var(--border-strong); outline-offset: -6px;
+}
+.feed-cell.vazio .ti { font-size: 1.4rem; }
+.feed-vazio-dia { font-size: .72rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.feed-cell.vazio:hover { color: var(--choco); outline-color: var(--caramel); background: var(--surface2); }
+/* referência de outro perfil: capa esmaecida + etiqueta */
+.feed-cell.referencia img { opacity: .55; filter: saturate(.6); }
+.feed-cell.referencia { outline: 1.5px dashed var(--caramel); outline-offset: -6px; }
+.feed-ref-tag {
+  position: absolute; top: 8px; left: 8px; padding: 1px 6px; border-radius: 3px;
+  font-size: .6rem; font-weight: 600; color: #fff; background: var(--caramel);
+}
 .feed-cell.sel { outline: 3px solid var(--accent); outline-offset: -3px; }
+/* janela "Planejar post" */
+.sl-formatos { display: flex; }
+.sl-formatos button { flex: 1; }
+.sl-ref { display: flex; gap: 6px; }
+.sl-ref .form-input { flex: 1; min-width: 0; }
+.sl-ref .btn-sm-choco { flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; }
+.sl-ajuda { font-size: .7rem; color: var(--text-muted); margin-top: 5px; }
+.sl-prev { margin-top: 8px; display: flex; align-items: center; gap: 10px; font-size: .78rem; color: var(--text-2); }
+.sl-prev:empty { display: none; }
+.sl-prev img { width: 54px; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 4px; }
+.sl-erro { color: var(--red); }
+.sl-buscando .ti { display: inline-block; animation: girar 1s linear infinite; }
+@keyframes girar { to { transform: rotate(360deg); } }
 .feed-cell.sel::after { content: ''; position: absolute; inset: 0; background: rgba(92,61,40,.2); }
 .feed-legenda {
   display: flex; justify-content: center; gap: 16px; padding: 12px; flex-wrap: wrap;
@@ -2081,6 +2110,43 @@ textarea.form-input { resize: none; height: 76px; }
     <div class="btn-row">
       <button class="btn btn-ghost" onclick="closeModal('modal-camp-tf')">Cancelar</button>
       <button class="btn btn-primary" id="ctf-enviar" onclick="enviarCampTarefas()">Mandar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PLANEJAR UM POST (quadrado vazio da grade) -->
+<div class="modal-overlay center" id="modal-slot">
+  <div class="modal slot-modal">
+    <div class="modal-title" style="margin-bottom:12px">Planejar post</div>
+    <div class="form-group">
+      <label class="form-label">Dia</label>
+      <input type="date" class="form-input" id="sl-data">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Formato</label>
+      <div class="seg sl-formatos" id="sl-formatos">
+        <button data-f="reel" class="on" onclick="setSlotFormato(this)">Reel</button>
+        <button data-f="carrossel" onclick="setSlotFormato(this)">Carrossel</button>
+        <button data-f="foto" onclick="setSlotFormato(this)">Foto</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Referência do Instagram <span style="font-weight:400">(opcional)</span></label>
+      <div class="sl-ref">
+        <input type="url" class="form-input" id="sl-ref" placeholder="Cole o link do vídeo que você viu"
+          onchange="_slotBuscarCapa()" onpaste="setTimeout(_slotBuscarCapa, 0)">
+        <button class="btn-sm-choco" onclick="slotColar()" title="Colar o link copiado no Instagram"><i class="ti ti-clipboard"></i> Colar</button>
+      </div>
+      <div class="sl-ajuda">No Instagram: toque em <b>Compartilhar</b> → <b>Copiar link</b>, volte aqui e toque em Colar.</div>
+      <div class="sl-prev" id="sl-prev"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ideia / legenda <span style="font-weight:400">(opcional)</span></label>
+      <textarea class="form-input" id="sl-ideia" placeholder="Ex: arrume-se comigo com o vestido de linho"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal('modal-slot')">Cancelar</button>
+      <button class="btn btn-primary" id="sl-salvar" onclick="salvarSlot()">Salvar no quadro</button>
     </div>
   </div>
 </div>
@@ -4440,17 +4506,14 @@ function _videoFrameHTML(el) {
         }).catch(() => {});
     }, 0);
   } else if (el.url.includes('instagram.com') || el.url.includes('instagr.am')) {
-    tag = 'Instagram';
+    tag = el.ref ? 'Referência' : 'Instagram';
     inner = `<div id="${pid}" style="width:100%;height:100%;background:linear-gradient(135deg,#f09433,#dc2743,#bc1888);display:flex;align-items:center;justify-content:center;">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="white" opacity=".7"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 3.25.15 4.77 1.69 4.92 4.92.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.15 3.23-1.66 4.77-4.92 4.92-1.27.06-1.64.07-4.85.07s-3.58-.01-4.85-.07c-3.26-.15-4.77-1.7-4.92-4.92C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85C2.38 3.92 3.9 2.38 7.15 2.23 8.42 2.17 8.8 2.16 12 2.16zM12 0C8.74 0 8.33.01 7.05.07 2.7.27.27 2.69.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.2 4.36 2.62 6.78 6.98 6.98 1.28.06 1.69.07 4.95.07s3.67-.01 4.95-.07c4.35-.2 6.78-2.62 6.98-6.98.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95C23.73 2.7 21.31.27 16.95.07 15.67.01 15.26 0 12 0zm0 5.84A6.16 6.16 0 1 0 18.16 12 6.16 6.16 0 0 0 12 5.84zm0 10.15A3.99 3.99 0 1 1 16 12a3.99 3.99 0 0 1-4 3.99zm6.41-11.85a1.44 1.44 0 1 0 1.43 1.44 1.44 1.44 0 0 0-1.43-1.44z"/></svg></div>`;
-    setTimeout(() => {
-      fetch('https://noembed.com/embed?url=' + encodeURIComponent(el.url))
-        .then(r => r.json())
-        .then(d => {
-          const box = document.getElementById(pid);
-          if (box && d.thumbnail_url) box.innerHTML = `<img src="${d.thumbnail_url}" style="width:100%;height:100%;object-fit:cover;display:block;">`;
-        }).catch(() => {});
-    }, 0);
+    // sem capa ainda: o servidor busca a prévia pública do post e ela fica salva no módulo
+    if (!el.capa && !_capaPedida[el.url]) {
+      _capaPedida[el.url] = true;
+      _buscarCapaIG(el.url).then(c => { el.capa = c; _renderCanvas(); _scheduleCanvasSave(); }).catch(() => {});
+    }
   } else {
     let host = '';
     try { host = new URL(el.url).hostname.replace('www.', ''); } catch (e) { host = 'Link'; }
@@ -4463,6 +4526,8 @@ function _videoFrameHTML(el) {
   const capaBtn = `<button class="cn-video-capa" title="${el.capa ? 'Trocar a capa' : 'Definir capa (print do vídeo)'}" onclick="event.stopPropagation();pickCapa('${el.id}')" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><i class="ti ti-camera"></i></button>`;
   return `<div class="cn-video-frame">${inner}${play}<div class="cn-video-tag">${tag}</div>${capaBtn}${edit}</div>`;
 }
+
+const _capaPedida = {}; // links do Instagram cuja capa já foi pedida nesta sessão
 
 // ── MOLDURA DE FOTO ──────────────────────────────────
 function _photoFrameHTML(el) {
@@ -4543,7 +4608,7 @@ function saveVideoUrl(id, input) {
   const el = edEvent.canvas.find(x => x.id === id);
   if (!el) return;
   const novo = input.value.trim();
-  if (novo !== el.url) delete el.capa; // link trocou: a capa antiga não vale mais
+  if (novo !== el.url) { delete el.capa; delete el.ref; } // link trocou: capa e "referência" antigas não valem mais
   el.url = novo;
   delete el._edit;
   _renderCanvas();
@@ -5373,13 +5438,25 @@ function _feedPosts() {
     });
   });
   // mais novo primeiro (no mesmo dia, o último da coluna vem antes)
-  posts.sort((a, b) => b.data.localeCompare(a.data) || b.ordem - a.ordem);
-  if (!feedReais || !feedReais.length) return posts;
+  const conectado = feedReais && feedReais.length;
   // com o Instagram conectado: o planejado de hoje em diante que ainda não foi ao ar fica em cima, e embaixo o feed
   // de verdade (o passado e o que o quadro marca como postado já aparecem pelo Instagram; os quadros não mudam)
+  const plan = conectado ? posts.filter(p => p.midia.st !== 'postado' && p.data >= today) : posts;
+  // quadrados vazios para planejar: dias de hoje até o sábado da semana que vem sem post (o quadro vai de seg a sáb)
+  const comPost = new Set(posts.map(p => p.data));
+  const [ty, tm, td] = today.split('-').map(Number);
+  const dowSeg = (new Date(ty, tm - 1, td).getDay() + 6) % 7; // segunda = 0 … domingo = 6
+  for (let i = 0; i <= 5 - dowSeg + 7; i++) {
+    const dt = new Date(ty, tm - 1, td + i);
+    if (dt.getDay() === 0) continue;
+    const ds = iso(dt);
+    if (!comPost.has(ds)) plan.push({ vazio: true, data: ds, ordem: 0 });
+  }
+  plan.sort((a, b) => b.data.localeCompare(a.data) || b.ordem - a.ordem);
+  if (!conectado) return plan;
   const reais = feedReais.map(r => ({ real: true, data: iso(new Date(r.publicado_em)), legenda: (r.legenda || '').split('\n')[0],
     capa: r.capa_url, link: r.link, formato: r.formato, tipo: r.tipo }));
-  return posts.filter(p => p.midia.st !== 'postado' && p.data >= today).concat(reais);
+  return plan.concat(reais);
 }
 
 // posts que já estão no Instagram (gravados pela sincronização diária)
@@ -5393,6 +5470,7 @@ async function _feedCarregaReais() {
 
 function _feedStatus(m) {
   if (m.st === 'postado') return 'postado';
+  if (m.ref) return 'gravar'; // vídeo de referência de outro perfil: ainda falta gravar o da Shai
   return (m.url && m.url.trim()) ? 'pronto' : 'gravar';
 }
 
@@ -5419,7 +5497,20 @@ function _feedCapa(m, pid) {
   return '';
 }
 
+const _ROT_DIA = ds => { const [y, m, d] = ds.split('-').map(Number); return `${DOWS[new Date(y, m - 1, d).getDay()]} ${d}/${m}`; };
+
 function _feedCellHTML(p, i) {
+  if (p.vazio) {
+    return `<button class="feed-cell vazio" onclick="feedToque(${i})" title="Planejar um post para ${_ROT_DIA(p.data)}">
+      <i class="ti ti-plus" aria-hidden="true"></i><span class="feed-vazio-dia">${_ROT_DIA(p.data)}</span></button>`;
+  }
+  // referência de outro perfil: mostra a capa dela, marcada como "referência" (falta gravar o da Shai)
+  if (!p.real && p.midia.ref && p.midia.capa) {
+    const [, mm, dd] = p.data.split('-').map(Number);
+    return `<button class="feed-cell referencia${_feedSel === i ? ' sel' : ''}" onclick="feedToque(${i})" title="${_attr(p.legenda || 'Referência')}">
+      <img src="${String(p.midia.capa).replace(/"/g, '%22')}" alt="" loading="lazy">
+      <span class="feed-ref-tag">referência</span><span class="feed-data">${pad(dd)}/${pad(mm)}</span></button>`;
+  }
   if (p.real) {
     const [, rm, rd] = p.data.split('-').map(Number);
     const ico = p.formato === 'REELS' ? 'ti-movie' : p.tipo === 'CAROUSEL_ALBUM' ? 'ti-copy' : '';
@@ -5449,11 +5540,11 @@ function _feedCellHTML(p, i) {
 function renderFeed() {
   _feedLista = _feedPosts();
   const n = _feedLista.length;
-  const planejados = _feedLista.filter(p => !p.real);
+  const planejados = _feedLista.filter(p => !p.real && !p.vazio);
   const prontos = planejados.filter(p => _feedStatus(p.midia) === 'pronto').length;
   const gravar = planejados.filter(p => _feedStatus(p.midia) === 'gravar').length;
-  const noIg = n - planejados.length;
-  document.getElementById('feed-stats').innerHTML = (noIg ? `<span><b>${noIg}</b> no Instagram</span>` : `<span><b>${n}</b> posts</span>`)
+  const noIg = _feedLista.filter(p => p.real).length;
+  document.getElementById('feed-stats').innerHTML = (noIg ? `<span><b>${noIg}</b> no Instagram</span>` : `<span><b>${planejados.length}</b> posts</span>`)
     + `<span><b>${prontos}</b> prontos</span><span><b>${gravar}</b> a gravar</span>`;
   document.getElementById('feed-leg-ig').style.display = noIg ? '' : 'none';
   const fmt = ds => { const [, m, d] = ds.split('-').map(Number); return `${pad(d)}/${pad(m)}`; };
@@ -5484,6 +5575,111 @@ async function renderGrade() {
   _feedAtualizarModo();
   renderFeed();
   if (feedReais === null) { await _feedCarregaReais(); if (currentView === 'grade') renderFeed(); }
+}
+
+// ── PLANEJAR UM POST PELA GRADE ───────────────────────
+let _slotFormato = 'reel', _slotCapa = null, _slotBuscando = null;
+
+function abrirSlot(ds) {
+  document.getElementById('sl-data').value = ds;
+  document.getElementById('sl-ref').value = '';
+  document.getElementById('sl-ideia').value = '';
+  document.getElementById('sl-prev').innerHTML = '';
+  _slotCapa = null;
+  setSlotFormato(document.querySelector('#sl-formatos [data-f="reel"]'));
+  openModal('modal-slot');
+}
+
+function setSlotFormato(btn) {
+  _slotFormato = btn.dataset.f;
+  document.querySelectorAll('#sl-formatos button').forEach(b => b.classList.toggle('on', b === btn));
+}
+
+// cola o link que a pessoa copiou no Instagram (o celular pede permissão na primeira vez)
+async function slotColar() {
+  try {
+    const txt = (await navigator.clipboard.readText() || '').trim();
+    if (!txt) { showToast('Nada copiado — no Instagram toque em Compartilhar → Copiar link'); return; }
+    document.getElementById('sl-ref').value = txt;
+    _slotBuscarCapa();
+  } catch (e) {
+    showToast('Toque e segure no campo do link e escolha Colar');
+    document.getElementById('sl-ref').focus();
+  }
+}
+
+// capa do vídeo de referência: o servidor lê a prévia pública do post e guarda uma cópia
+async function _buscarCapaIG(url) {
+  const { data, error } = await sb.functions.invoke('ig-capa', { body: { url } });
+  if (error || !data || !data.capa) {
+    let msg = data && data.erro;
+    try { if (!msg && error && error.context) msg = (await error.context.json()).erro; } catch (e) { /* sem corpo */ }
+    throw new Error(msg || 'não consegui buscar a capa');
+  }
+  return data.capa;
+}
+
+async function _slotBuscarCapa() {
+  const url = document.getElementById('sl-ref').value.trim();
+  const prev = document.getElementById('sl-prev');
+  _slotCapa = null;
+  if (!url) { prev.innerHTML = ''; return; }
+  if (!/instagram\.com|instagr\.am/.test(url)) { prev.innerHTML = '<span class="sl-erro">Esse não parece um link do Instagram</span>'; return; }
+  prev.innerHTML = '<span class="sl-buscando"><i class="ti ti-loader-2"></i> Buscando a capa…</span>';
+  const pedido = _slotBuscando = url;
+  try {
+    const capa = await _buscarCapaIG(url);
+    if (_slotBuscando !== pedido) return; // trocaram o link no meio do caminho
+    _slotCapa = capa;
+    prev.innerHTML = `<img src="${capa}" alt=""><span>Referência encontrada</span>`;
+    if (/\/reels?\//.test(url)) setSlotFormato(document.querySelector('#sl-formatos [data-f="reel"]'));
+  } catch (e) {
+    if (_slotBuscando === pedido) prev.innerHTML = `<span class="sl-erro">${_esc(e.message)} — o link fica salvo mesmo assim</span>`;
+  }
+}
+
+async function salvarSlot() {
+  const ds = document.getElementById('sl-data').value;
+  const ref = document.getElementById('sl-ref').value.trim();
+  const ideia = document.getElementById('sl-ideia').value.trim();
+  if (!ds) { showToast('Escolha o dia', 'error'); return; }
+  const [y, m, d] = ds.split('-').map(Number);
+  if (new Date(y, m - 1, d).getDay() === 0) { showToast('O quadro vai de segunda a sábado — escolha outro dia', 'error'); return; }
+  const btn = document.getElementById('sl-salvar');
+  btn.disabled = true;
+  try {
+    const b = await _quadroSemanaDe(ds);
+    const col = (new Date(y, m - 1, d).getDay() + 6) % 7;
+    const x = PLAN_X0 + col * PLAN_COLW;
+    // entra embaixo do que já existe na coluna (o quadro reorganiza ao abrir)
+    const daCol = (b.canvas || []).filter(e => e.type !== 'add' && Math.round(((e.x || 0) - PLAN_X0) / PLAN_COLW) === col && !_ehTplElSemanal(e));
+    let yBase = daCol.length ? Math.max(...daCol.map(e => (e.y || 0) + (e.h || 170))) + 14 : 150;
+    const novos = [];
+    if (ideia) { novos.push({ id: _uid(), type: 'text', x, y: yBase, w: 190, h: 60, content: ideia, color: '' }); yBase += 74; }
+    const midia = ref
+      ? { id: _uid(), type: 'video', x, y: yBase, w: 190, h: 250, url: ref, ref: true, formato: _slotFormato, st: 'ideia' }
+      : { id: _uid(), type: _slotFormato === 'reel' ? 'video' : 'photo', x, y: yBase, w: 190, h: 250, url: '', formato: _slotFormato, st: 'ideia' };
+    if (ref && _slotCapa) midia.capa = _slotCapa;
+    novos.push(midia);
+    const canvas = (b.canvas || []).concat(novos);
+    const { error } = await sb.from('eventos_loja').update({ canvas }).eq('id', b.id);
+    if (error) throw error;
+    b.canvas = canvas;
+    closeModal('modal-slot');
+    showToast(`Post planejado para ${_ROT_DIA(ds)}`);
+    renderFeed();
+  } catch (e) {
+    showToast('Erro ao salvar: ' + (e.message || e), 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// nome do dia ou título do modelo semanal (não conta como conteúdo da coluna)
+function _ehTplElSemanal(e) {
+  if (e.type !== 'text') return false;
+  const t = (e.content || '').trim().toLowerCase();
+  return t === 'planejamento semanal' || DIAS_TPL.some(n => n.toLowerCase() === t);
 }
 
 // volta para a semana que estava aberta (ou a de hoje)
@@ -5517,6 +5713,8 @@ function _feedMarcaSel() {
 function feedToque(i) {
   const p = _feedLista[i];
   if (!p) return;
+  // quadrado vazio: planeja um post para aquele dia
+  if (p.vazio) { if (!_feedTrocando) abrirSlot(p.data); return; }
   // post que já está no Instagram: abre no Instagram (não entra na troca de ordem)
   if (p.real) { if (!_feedTrocando && p.link) window.open(p.link, '_blank', 'noopener'); return; }
   if (!_feedTrocando) {
@@ -5821,8 +6019,8 @@ function _metModoHTML() {
   if (!metMeses.length || (!metConta.length && !metPosts.length)) return '';
   const nome = _nomeMes(metMeses[metMeses.length - 1]);
   return `<div class="seg met-modo">
-    <button class="${metModo === 'dia' ? 'active' : ''}" onclick="metModo='dia';renderMetricas()">Dia a dia</button>
-    <button class="${metModo === 'mes' ? 'active' : ''}" onclick="metModo='mes';renderMetricas()">Relatório de ${nome}</button>
+    <button class="${metModo === 'dia' ? 'on' : ''}" onclick="metModo='dia';renderMetricas()">Dia a dia</button>
+    <button class="${metModo === 'mes' ? 'on' : ''}" onclick="metModo='mes';renderMetricas()">Relatório de ${nome}</button>
   </div>`;
 }
 function toggleMetDetalhes() {
@@ -6529,17 +6727,8 @@ async function mudarSemana(delta) {
   abrirPlanejamentoSemanal(new Date(y, m - 1, d + delta * 7));
 }
 
-function inserirTemplateSemanal() {
-  if (!edEvent) return;
-  if (!edEvent.canvas) edEvent.canvas = [];
-  // evita empilhar modelos sem querer
-  if (edEvent.canvas.some(e => (e.content || '').trim().toLowerCase() === 'planejamento semanal')) {
-    if (!confirm('Este quadro já tem o modelo da semana. Adicionar outro modelo embaixo?')) return;
-  }
-  // se o canvas já tem conteúdo, monta o modelo abaixo do que existe
-  const baseY = edEvent.canvas.length
-    ? Math.max(...edEvent.canvas.map(e => (e.y || 0) + (e.h || 200))) + 80
-    : 20;
+// estrutura do quadro semanal: título + nome de cada dia + botão + por coluna
+function _modeloSemanal(baseY = 20) {
   const DIAS = DIAS_TPL;
   const COL_W = 240, X0 = 40;
   const els = [];
@@ -6553,7 +6742,34 @@ function inserirTemplateSemanal() {
       hl: true, hlc: '110,225,120', color: '' });
     els.push({ id: _uid(), type: 'add', x, y: baseY + 130, w: 190, h: 40 });
   });
-  edEvent.canvas.push(...els);
+  return els;
+}
+
+// quadro da semana de um dia (cria e grava no banco se ainda não existe) — usado pela grade
+async function _quadroSemanaDe(ds) {
+  const seg = _segundaDe(ds);
+  let b = eventosLoja.find(e => e.titulo === 'Planejamento semanal' && e.data === seg);
+  if (b) return b;
+  const { data: row, error } = await sb.from('eventos_loja')
+    .insert({ data: seg, titulo: 'Planejamento semanal', cor: '#a5713d', canvas: _modeloSemanal() }).select().single();
+  if (error) throw error;
+  b = { ...row, tipo: 'loja' };
+  eventosLoja.push(b);
+  return b;
+}
+
+function inserirTemplateSemanal() {
+  if (!edEvent) return;
+  if (!edEvent.canvas) edEvent.canvas = [];
+  // evita empilhar modelos sem querer
+  if (edEvent.canvas.some(e => (e.content || '').trim().toLowerCase() === 'planejamento semanal')) {
+    if (!confirm('Este quadro já tem o modelo da semana. Adicionar outro modelo embaixo?')) return;
+  }
+  // se o canvas já tem conteúdo, monta o modelo abaixo do que existe
+  const baseY = edEvent.canvas.length
+    ? Math.max(...edEvent.canvas.map(e => (e.y || 0) + (e.h || 200))) + 80
+    : 20;
+  edEvent.canvas.push(..._modeloSemanal(baseY));
   _renderCanvas();
   // só persiste se o quadro já existe no banco — visitar uma semana nova não cria registro
   if (edEvent.id) _scheduleCanvasSave();
