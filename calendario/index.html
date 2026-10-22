@@ -1127,6 +1127,7 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
 .met-titulo { font-size: 1.15rem; font-weight: 600; letter-spacing: -.01em; }
 .met-meta { font-size: .78rem; color: var(--text-muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
 .seg { display: inline-flex; background: var(--surface3); border-radius: var(--r); padding: 2px; }
+.met-modo { margin-bottom: 12px; }
 .seg button {
   border: none; background: none; padding: 5px 12px; font: inherit; font-size: .82rem;
   color: var(--text-2); border-radius: 4px; cursor: pointer;
@@ -2402,6 +2403,7 @@ textarea.form-input { resize: none; height: 76px; }
         <span><span class="feed-leg" style="background:var(--green)"></span>postado</span>
         <span><span class="feed-leg" style="background:var(--choco)"></span>pronto</span>
         <span><span class="feed-leg gravar"></span>a gravar</span>
+        <span id="feed-leg-ig" style="display:none"><i class="ti ti-brand-instagram" aria-hidden="true"></i>já no Instagram (toque para abrir)</span>
       </div>
     </div>
   </div>
@@ -5373,7 +5375,21 @@ function _feedPosts() {
   });
   // mais novo primeiro (no mesmo dia, o último da coluna vem antes)
   posts.sort((a, b) => b.data.localeCompare(a.data) || b.ordem - a.ordem);
-  return posts;
+  if (!feedReais || !feedReais.length) return posts;
+  // com o Instagram conectado: o planejado que ainda não foi ao ar fica em cima, e embaixo o feed de verdade
+  // (o que o quadro marca como postado já aparece pelo Instagram, então sai do planejado)
+  const reais = feedReais.map(r => ({ real: true, data: iso(new Date(r.publicado_em)), legenda: (r.legenda || '').split('\n')[0],
+    capa: r.capa_url, link: r.link, formato: r.formato, tipo: r.tipo }));
+  return posts.filter(p => p.midia.st !== 'postado').concat(reais);
+}
+
+// posts que já estão no Instagram (gravados pela sincronização diária)
+let feedReais = null;
+async function _feedCarregaReais() {
+  if (feedReais !== null) return;
+  const { data, error } = await sb.from('ig_posts').select('id, legenda, tipo, formato, capa_url, link, publicado_em')
+    .order('publicado_em', { ascending: false }).limit(60);
+  feedReais = error ? [] : (data || []);
 }
 
 function _feedStatus(m) {
@@ -5405,6 +5421,13 @@ function _feedCapa(m, pid) {
 }
 
 function _feedCellHTML(p, i) {
+  if (p.real) {
+    const [, rm, rd] = p.data.split('-').map(Number);
+    const ico = p.formato === 'REELS' ? 'ti-movie' : p.tipo === 'CAROUSEL_ALBUM' ? 'ti-copy' : '';
+    return `<button class="feed-cell real${p.capa ? '' : ' sem-capa'}" onclick="feedToque(${i})" title="${_attr(p.legenda || 'Post')}">
+      ${p.capa ? `<img src="${String(p.capa).replace(/"/g, '%22')}" alt="" loading="lazy">` : ''}
+      ${ico ? `<i class="ti ${ico} feed-ico" aria-hidden="true"></i>` : ''}<span class="feed-data">${pad(rd)}/${pad(rm)}</span></button>`;
+  }
   const st = _feedStatus(p.midia);
   const [, mm, dd] = p.data.split('-').map(Number);
   const dataTxt = `${pad(dd)}/${pad(mm)}`;
@@ -5427,10 +5450,13 @@ function _feedCellHTML(p, i) {
 function renderFeed() {
   _feedLista = _feedPosts();
   const n = _feedLista.length;
-  const prontos = _feedLista.filter(p => _feedStatus(p.midia) === 'pronto').length;
-  const gravar = _feedLista.filter(p => _feedStatus(p.midia) === 'gravar').length;
-  document.getElementById('feed-stats').innerHTML =
-    `<span><b>${n}</b> posts</span><span><b>${prontos}</b> prontos</span><span><b>${gravar}</b> a gravar</span>`;
+  const planejados = _feedLista.filter(p => !p.real);
+  const prontos = planejados.filter(p => _feedStatus(p.midia) === 'pronto').length;
+  const gravar = planejados.filter(p => _feedStatus(p.midia) === 'gravar').length;
+  const noIg = n - planejados.length;
+  document.getElementById('feed-stats').innerHTML = (noIg ? `<span><b>${noIg}</b> no Instagram</span>` : `<span><b>${n}</b> posts</span>`)
+    + `<span><b>${prontos}</b> prontos</span><span><b>${gravar}</b> a gravar</span>`;
+  document.getElementById('feed-leg-ig').style.display = noIg ? '' : 'none';
   const fmt = ds => { const [, m, d] = ds.split('-').map(Number); return `${pad(d)}/${pad(m)}`; };
   document.getElementById('feed-sub').textContent = n
     ? `${fmt(_feedLista[n - 1].data)} – ${fmt(_feedLista[0].data)}` : '';
@@ -5453,6 +5479,7 @@ async function abrirFeed() {
   _feedTrocando = false;
   _feedSel = null;
   _feedAtualizarModo();
+  await _feedCarregaReais();
   renderFeed();
   document.getElementById('feed-view').classList.add('open');
 }
@@ -5489,6 +5516,8 @@ function _feedMarcaSel() {
 function feedToque(i) {
   const p = _feedLista[i];
   if (!p) return;
+  // post que já está no Instagram: abre no Instagram (não entra na troca de ordem)
+  if (p.real) { if (!_feedTrocando && p.link) window.open(p.link, '_blank', 'noopener'); return; }
   if (!_feedTrocando) {
     // abre o quadro na semana e no dia do post
     document.getElementById('feed-view').classList.remove('open');
@@ -5633,7 +5662,7 @@ async function renderMetricas() {
     await _loadMetricas();
   }
   // sem dados diários, mas com relatório do mês: mostra os números reais do relatório
-  if (!metConta.length && !metPosts.length && metMeses.length) return _renderMetricasMes();
+  if (metMeses.length && (metModo === 'mes' || (!metConta.length && !metPosts.length))) return _renderMetricasMes();
   document.getElementById('met-seg').style.display = '';
   // sem Instagram conectado ainda: mostra números fictícios, com aviso, só pra ver como fica
   let conta = metConta, posts = metPosts, exemplo = false;
@@ -5777,7 +5806,7 @@ async function renderMetricas() {
     : '';
   const mais = `<button class="met-mais" onclick="toggleMetDetalhes()">${metDetalhes ? 'Esconder números completos' : 'Ver números completos'} <i class="ti ti-chevron-${metDetalhes ? 'up' : 'down'}" aria-hidden="true"></i></button>`;
 
-  corpo.innerHTML = aviso
+  corpo.innerHTML = aviso + _metModoHTML()
     + `<div class="mq-grid">${cards.join('')}</div>`
     + topHTML
     + _metMetaCard(md)
@@ -5787,6 +5816,18 @@ async function renderMetricas() {
 }
 
 let metDetalhes = false;
+
+// com o Instagram conectado e relatório do mês carregado: alterna entre os números do dia a dia (API)
+// e o relatório do Business Suite (que traz o que a API não dá: post destaque, horários, público, direct)
+let metModo = 'dia';
+function _metModoHTML() {
+  if (!metMeses.length || (!metConta.length && !metPosts.length)) return '';
+  const nome = _nomeMes(metMeses[metMeses.length - 1]);
+  return `<div class="seg met-modo">
+    <button class="${metModo === 'dia' ? 'active' : ''}" onclick="metModo='dia';renderMetricas()">Dia a dia</button>
+    <button class="${metModo === 'mes' ? 'active' : ''}" onclick="metModo='mes';renderMetricas()">Relatório de ${nome}</button>
+  </div>`;
+}
 function toggleMetDetalhes() {
   metDetalhes = !metDetalhes;
   renderMetricas();
@@ -6264,7 +6305,8 @@ function _renderMetricasMes() {
 
   const mais = `<button class="met-mais" onclick="toggleMetDetalhes()">${metDetalhes ? 'Esconder números completos' : 'Ver números completos'} <i class="ti ti-chevron-${metDetalhes ? 'up' : 'down'}" aria-hidden="true"></i></button>`;
 
-  corpo.innerHTML = `<div class="mq-grid">${cards.join('')}</div>`
+  corpo.innerHTML = _metModoHTML()
+    + `<div class="mq-grid">${cards.join('')}</div>`
     + _metMetaCard(md)
     + extras
     + acoesHTML
