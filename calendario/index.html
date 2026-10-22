@@ -5376,11 +5376,11 @@ function _feedPosts() {
   // mais novo primeiro (no mesmo dia, o último da coluna vem antes)
   posts.sort((a, b) => b.data.localeCompare(a.data) || b.ordem - a.ordem);
   if (!feedReais || !feedReais.length) return posts;
-  // com o Instagram conectado: o planejado que ainda não foi ao ar fica em cima, e embaixo o feed de verdade
-  // (o que o quadro marca como postado já aparece pelo Instagram, então sai do planejado)
+  // com o Instagram conectado: o planejado de hoje em diante que ainda não foi ao ar fica em cima, e embaixo o feed
+  // de verdade (o passado e o que o quadro marca como postado já aparecem pelo Instagram; os quadros não mudam)
   const reais = feedReais.map(r => ({ real: true, data: iso(new Date(r.publicado_em)), legenda: (r.legenda || '').split('\n')[0],
     capa: r.capa_url, link: r.link, formato: r.formato, tipo: r.tipo }));
-  return posts.filter(p => p.midia.st !== 'postado').concat(reais);
+  return posts.filter(p => p.midia.st !== 'postado' && p.data >= today).concat(reais);
 }
 
 // posts que já estão no Instagram (gravados pela sincronização diária)
