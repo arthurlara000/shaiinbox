@@ -2537,11 +2537,12 @@ textarea.form-input { resize: none; height: 76px; }
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
-  <button class="nav-item" id="nav-planejar" onclick="setView('grade')">
-    <span class="nav-icon"><i class="ti ti-layout-board-split"></i></span>Planejar
-  </button>
+  <!-- Calendário é a aba principal: vem primeiro, é onde o app abre e para onde o Esc volta -->
   <button class="nav-item active" id="nav-mensal" onclick="setView('mensal')">
     <span class="nav-icon"><i class="ti ti-calendar-month"></i></span>Calendário
+  </button>
+  <button class="nav-item" id="nav-planejar" onclick="setView('grade')">
+    <span class="nav-icon"><i class="ti ti-layout-board-split"></i></span>Planejar
   </button>
   <button class="nav-item" id="nav-tarefas" onclick="setView('tarefas')">
     <span class="nav-icon"><i class="ti ti-circle-check"></i></span>Tarefas
@@ -8389,6 +8390,19 @@ function _bootCalendario() {
   setView('mensal');
   loadEventosLoja();
 }
+
+// Esc volta para a aba principal (Calendário · Mês). Antes disso, fecha o que estiver por cima:
+// campo em edição → janela aberta → quadro (salvando) → só então troca de aba
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape' || e.defaultPrevented) return;
+  const ae = document.activeElement;
+  if (ae && (ae.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName))) { ae.blur(); return; }
+  if (document.getElementById('modal-ver').classList.contains('open')) { fecharPlayer(); return; }
+  const janela = document.querySelector('.modal-overlay.open');
+  if (janela) { janela.classList.remove('open'); return; }
+  if (document.getElementById('event-detail').classList.contains('open')) { salvarESair(); return; }
+  if (currentView !== 'mensal') setView('mensal');
+});
 
 async function gateEntrar() {
   const senha = document.getElementById('gate-senha').value;
