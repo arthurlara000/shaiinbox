@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Shai Calendário</title>
 <link rel="icon" type="image/svg+xml" href="assets/icon-calendario.svg">
-<link rel="apple-touch-icon" href="assets/icon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#f4f3f1">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1052,6 +1052,8 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
   .grade-ph { padding: 0 14px; flex-wrap: wrap; }
   .grade-ph .feed-top-info { flex-basis: 100%; }
   .grade-ph .feed-trocar { flex: 1; justify-content: center; }
+  .plan-modo, .ideias-add { margin-left: 14px; margin-right: 14px; }
+  .ideias-usadas-btn { margin-bottom: 8px; }
   .feed-col { border-radius: 0; border-left: none; border-right: none; }
 }
 .feed-perfil { display: flex; align-items: center; gap: 14px; padding: 16px; }
@@ -1173,6 +1175,49 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
   .modal-overlay.center:has(.ver-modal) { padding: 0 8px; }
   .ver-player iframe { height: min(64vh, 600px); }
 }
+/* Planejar: chave Grade | Ideias */
+.plan-modo { display: flex; margin-bottom: 12px; }
+.plan-modo button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.plan-modo-n:not(:empty) {
+  min-width: 18px; padding: 0 5px; border-radius: 9px; background: var(--caramel); color: #fff;
+  font-size: .66rem; font-weight: 600; line-height: 18px;
+}
+/* aba Ideias */
+.ideias-add { display: flex; gap: 6px; margin-bottom: 12px; }
+.ideias-add .form-input { flex: 1; min-width: 0; padding: 9px 12px; font-size: .88rem; }
+.ideias-add .btn-sm-choco { flex-shrink: 0; }
+.ideias-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; }
+.ideia-card {
+  position: relative; aspect-ratio: 3 / 4; border: none; padding: 0; cursor: pointer; overflow: hidden;
+  background: #2b2420; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+}
+.ideia-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ideia-card.usada img { opacity: .45; filter: grayscale(.6); }
+.ideia-sub {
+  position: absolute; left: 5px; bottom: 6px; max-width: calc(100% - 10px); padding: 1px 5px; border-radius: 3px;
+  font-size: .6rem; font-weight: 600; background: rgba(29,25,21,.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ideia-usada { position: absolute; top: 6px; left: 6px; padding: 1px 5px; border-radius: 3px; font-size: .6rem; font-weight: 600; background: var(--green); }
+.ideias-vazio { grid-column: 1 / -1; padding: 36px 16px; text-align: center; font-size: .85rem; color: var(--text-muted); line-height: 1.6; background: var(--surface); border: 1px dashed var(--border-strong); border-radius: 8px; }
+.ideias-vazio .met-link { display: block; margin: 8px auto 0; }
+.ideias-usadas-btn { margin: 12px auto 0; display: flex; align-items: center; gap: 5px; background: none; border: none; cursor: pointer; font-family: inherit; font-size: .78rem; color: var(--text-2); }
+/* janela "Como mandar" */
+.modal-overlay.center .modal.ajuda-modal { max-width: 520px; max-height: 90vh; overflow-y: auto; }
+.ajuda-sub { font-size: .8rem; color: var(--text-2); margin-bottom: 14px; }
+.ajuda-bloco { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; }
+.ajuda-tit { font-weight: 600; font-size: .86rem; display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.ajuda-bloco ol { padding-left: 18px; font-size: .8rem; line-height: 1.5; color: var(--text-2); }
+.ajuda-bloco li { margin-bottom: 5px; }
+.ajuda-link { display: flex; gap: 6px; margin: 6px 0 4px; }
+.ajuda-link .form-input { flex: 1; min-width: 0; font-size: .7rem; padding: 7px 8px; font-family: var(--mono); }
+.ajuda-link .btn-sm-choco { flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; }
+.ajuda-obs { font-size: .68rem; color: var(--text-muted); }
+/* "Ou escolha uma ideia salva" dentro do Planejar post */
+.sl-ideias-tit { font-size: .7rem; font-weight: 600; color: var(--text-muted); margin: 12px 0 6px; text-transform: uppercase; letter-spacing: .05em; }
+.sl-ideias { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+.sl-ideias button { flex: 0 0 auto; width: 58px; aspect-ratio: 3 / 4; border: 2px solid transparent; border-radius: 5px; padding: 0; overflow: hidden; cursor: pointer; background: #2b2420; color: #fff; }
+.sl-ideias button:hover { border-color: var(--caramel); }
+.sl-ideias img { width: 100%; height: 100%; object-fit: cover; display: block; }
 /* janela "Planejar post" */
 .sl-formatos { display: flex; }
 .sl-formatos button { flex: 1; }
@@ -2073,6 +2118,28 @@ textarea.form-input { resize: none; height: 76px; }
 <!-- VIEW: PLANEJAR = GRADE DO INSTAGRAM (o que vai ao ar em cima, o que já está no ar embaixo) -->
 <div id="view-grade" style="display:none">
   <div class="grade-wrap">
+    <div class="seg plan-modo" id="plan-modo">
+      <button data-m="grade" class="on" onclick="setPlanModo('grade')"><i class="ti ti-layout-grid"></i> Grade</button>
+      <button data-m="ideias" onclick="setPlanModo('ideias')"><i class="ti ti-bulb"></i> Ideias <span class="plan-modo-n" id="ideias-n"></span></button>
+    </div>
+    <!-- IDEIAS: vídeos mandados pelo botão Compartilhar do Instagram -->
+    <div id="ideias-conteudo" style="display:none">
+      <div class="grade-ph">
+        <div class="feed-top-info">
+          <div class="feed-titulo">Ideias salvas</div>
+          <div class="feed-sub">Vídeos mandados pelo Compartilhar do Instagram</div>
+        </div>
+        <button class="feed-trocar" onclick="openModal('modal-ideias-ajuda');_ideiasAjuda()"><i class="ti ti-help-circle"></i> Como mandar</button>
+      </div>
+      <div class="ideias-add">
+        <input type="url" class="form-input" id="ideia-link" placeholder="Ou cole um link do Instagram aqui"
+          onkeydown="if(event.key==='Enter')guardarIdeiaLink()">
+        <button class="btn-sm-choco" onclick="guardarIdeiaLink()">Guardar</button>
+      </div>
+      <div class="ideias-grid" id="ideias-grid"></div>
+      <button class="ideias-usadas-btn" id="ideias-usadas-btn" onclick="ideiasVerUsadas=!ideiasVerUsadas;renderIdeias()"></button>
+    </div>
+    <div id="grade-conteudo">
     <div class="grade-ph">
       <div class="feed-top-info">
         <div class="feed-titulo">Grade do Instagram</div>
@@ -2098,6 +2165,7 @@ textarea.form-input { resize: none; height: 76px; }
         <span id="feed-leg-ig" style="display:none"><i class="ti ti-brand-instagram" aria-hidden="true"></i>já no Instagram (toque para abrir)</span>
       </div>
     </div>
+    </div><!-- /grade-conteudo -->
   </div>
 </div>
 
@@ -2181,6 +2249,42 @@ textarea.form-input { resize: none; height: 76px; }
   </div>
 </div>
 
+<!-- MODAL: COMO MANDAR IDEIAS (Android e iPhone) -->
+<div class="modal-overlay center" id="modal-ideias-ajuda">
+  <div class="modal ajuda-modal">
+    <div class="modal-title" style="margin-bottom:6px">Mandar ideias do Instagram</div>
+    <div class="ajuda-sub">Viu um vídeo bom? Dois toques e ele cai nas Ideias, sem copiar link.</div>
+    <div class="form-group">
+      <label class="form-label">Seu nome neste aparelho</label>
+      <input type="text" class="form-input" id="ideia-autor" placeholder="Ex: Arthur" oninput="_salvarAutor(this.value);_ideiasAjuda()">
+    </div>
+    <div class="ajuda-bloco">
+      <div class="ajuda-tit"><i class="ti ti-brand-android"></i> Android</div>
+      <ol>
+        <li>No Chrome, abra o app e toque em <b>⋮ → Instalar app</b> (ou "Adicionar à tela inicial"). Só uma vez.</li>
+        <li>No Instagram, no vídeo: <b>Compartilhar</b> (o aviãozinho) → role a lista de apps → <b>Calendário</b>.</li>
+        <li>Pronto: aparece "Salvo nas ideias do Shai".</li>
+      </ol>
+    </div>
+    <div class="ajuda-bloco">
+      <div class="ajuda-tit"><i class="ti ti-brand-apple"></i> iPhone (Atalho, uma vez por aparelho)</div>
+      <ol>
+        <li>Toque em <b>Copiar endereço</b> aqui embaixo.
+          <div class="ajuda-link"><input type="text" class="form-input" id="ideia-endereco" readonly>
+            <button class="btn-sm-choco" onclick="_copiarEnderecoIdeias()"><i class="ti ti-copy"></i> Copiar endereço</button></div>
+          <div class="ajuda-obs">Esse endereço deixa mandar ideias para o app: não publique nem mande para quem é de fora.</div></li>
+        <li>Abra o app <b>Atalhos</b> → <b>+</b>. Toque no nome lá em cima e chame de <b>Mandar pro Shai</b>.</li>
+        <li>Toque em <b>ⓘ</b> (ou no "v" do nome) e ligue <b>Mostrar na Folha de Compartilhamento</b>. Em tipos, deixe <b>URLs</b> e <b>Texto</b>.</li>
+        <li>Busque a ação <b>Obter Conteúdo da URL</b>. Em URL, cole o endereço copiado.</li>
+        <li>Toque em <b>Mostrar Mais</b>: Método <b>POST</b>, Corpo da Solicitação <b>JSON</b>. Toque em <b>Adicionar campo novo → Texto</b>: chave <b>url</b>, valor <b>Entrada do Atalho</b> (escolha nas variáveis).</li>
+        <li>Adicione a ação <b>Mostrar Notificação</b> com o texto <b>Salvo no Shai ✓</b>. Toque em <b>OK</b>.</li>
+        <li>Para usar: no Instagram, <b>Compartilhar → Mais (…) → Mandar pro Shai</b>. Dica: deixe ele nos favoritos da lista.</li>
+      </ol>
+    </div>
+    <div class="btn-row"><button class="btn btn-primary" onclick="closeModal('modal-ideias-ajuda')">Entendi</button></div>
+  </div>
+</div>
+
 <!-- MODAL: PLANEJAR UM POST (quadrado vazio da grade) -->
 <div class="modal-overlay center" id="modal-slot">
   <div class="modal slot-modal">
@@ -2206,6 +2310,7 @@ textarea.form-input { resize: none; height: 76px; }
       </div>
       <div class="sl-ajuda">No Instagram: toque em <b>Compartilhar</b> → <b>Copiar link</b>, volte aqui e toque em Colar.</div>
       <div class="sl-prev" id="sl-prev"></div>
+      <div id="sl-ideias"></div>
     </div>
     <div class="form-group">
       <label class="form-label">Ideia / legenda <span style="font-weight:400">(opcional)</span></label>
@@ -5734,10 +5839,11 @@ async function renderGrade() {
   _feedSel = null;
   _feedAtualizarModo();
   renderFeed();
-  if (feedReais === null || gradeConta === null) {
-    await Promise.all([_feedCarregaReais(), _gradeCarregaConta()]);
+  if (feedReais === null || gradeConta === null || ideiasLista === null) {
+    await Promise.all([_feedCarregaReais(), _gradeCarregaConta(), _ideiasCarrega()]);
     if (currentView === 'grade') renderFeed();
   }
+  _ideiasContador();
 }
 
 // ── PLAYER DO INSTAGRAM DENTRO DO APP ─────────────────
@@ -5813,17 +5919,163 @@ function _verReferencia(p, i) {
   abrirPlayerIG(p.midia.url, `Referência · ${_ROT_DIA(p.data)}`, info, acoes);
 }
 
-// ── PLANEJAR UM POST PELA GRADE ───────────────────────
-let _slotFormato = 'reel', _slotCapa = null, _slotBuscando = null;
+// ── IDEIAS (vídeos mandados pelo Compartilhar do Instagram) ─────────
+let ideiasLista = null, ideiasVerUsadas = false, planModo = 'grade';
 
-function abrirSlot(ds) {
+async function _ideiasCarrega(forcar) {
+  if (ideiasLista !== null && !forcar) return;
+  const { data, error } = await sb.from('ideias').select('*').order('criado_em', { ascending: false }).limit(300);
+  ideiasLista = error ? [] : (data || []);
+}
+
+function setPlanModo(m) {
+  planModo = m;
+  document.querySelectorAll('#plan-modo button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+  document.getElementById('grade-conteudo').style.display = m === 'grade' ? '' : 'none';
+  document.getElementById('ideias-conteudo').style.display = m === 'ideias' ? '' : 'none';
+  if (m === 'ideias') { renderIdeias(); _ideiasCarrega(true).then(() => { if (planModo === 'ideias') renderIdeias(); }); }
+}
+
+function _ideiasContador() {
+  const n = (ideiasLista || []).filter(x => x.status === 'nova').length;
+  document.getElementById('ideias-n').textContent = n ? n : '';
+}
+
+function renderIdeias() {
+  _ideiasContador();
+  const lista = (ideiasLista || []).filter(x => x.status === 'nova');
+  const usadas = (ideiasLista || []).filter(x => x.status === 'usada');
+  const card = x => {
+    const quando = new Date(x.criado_em);
+    const sub = [x.autor, `${quando.getDate()}/${quando.getMonth() + 1}`].filter(Boolean).join(' · ');
+    return `<button class="ideia-card${x.status === 'usada' ? ' usada' : ''}" onclick="verIdeia('${x.id}')" title="${_attr(x.nota || 'Ideia')}">
+      ${x.capa ? `<img src="${_attr(x.capa)}" alt="" loading="lazy">` : '<i class="ti ti-movie"></i>'}
+      <span class="ideia-sub">${_esc(sub)}</span>
+      ${x.status === 'usada' && x.usada_em ? `<span class="ideia-usada">usada ${x.usada_em.slice(8)}/${x.usada_em.slice(5, 7)}</span>` : ''}</button>`;
+  };
+  document.getElementById('ideias-grid').innerHTML = ideiasLista === null
+    ? '<div class="ideias-vazio">Carregando…</div>'
+    : (lista.length ? lista.map(card).join('') : `<div class="ideias-vazio">Nenhuma ideia guardada ainda.<br>
+        No Instagram, toque em <b>Compartilhar</b> num vídeo e mande para o Shai.
+        <button class="met-link" onclick="openModal('modal-ideias-ajuda');_ideiasAjuda()">Ver como</button></div>`)
+      + (ideiasVerUsadas ? usadas.map(card).join('') : '');
+  const b = document.getElementById('ideias-usadas-btn');
+  b.style.display = usadas.length ? '' : 'none';
+  b.innerHTML = `<i class="ti ti-chevron-${ideiasVerUsadas ? 'up' : 'down'}"></i> ${ideiasVerUsadas ? 'Esconder' : 'Ver'} as já usadas (${usadas.length})`;
+}
+
+// toque numa ideia: vídeo no player + usar num dia ou arquivar
+function verIdeia(id) {
+  const x = (ideiasLista || []).find(i => i.id === id); if (!x) return;
+  const info = (x.nota ? `<div class="ver-ideia"><span>Nota</span>${_esc(x.nota)}</div>` : '')
+    + `<div class="ver-ideia"><span>Guardada</span>${_esc([x.autor, new Date(x.criado_em).toLocaleDateString('pt-BR')].filter(Boolean).join(' · '))}</div>`;
+  const acoes = x.status === 'nova'
+    ? `<button class="btn btn-primary" onclick="fecharPlayer();abrirSlot(today, '${x.id}')"><i class="ti ti-calendar-plus"></i> Usar num dia</button>
+       <button class="btn btn-ghost" onclick="arquivarIdeia('${x.id}')"><i class="ti ti-archive"></i> Arquivar</button>`
+    : '';
+  abrirPlayerIG(x.link, 'Ideia', info, acoes);
+}
+
+async function arquivarIdeia(id) {
+  const { error } = await sb.from('ideias').update({ status: 'arquivada' }).eq('id', id);
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  const x = ideiasLista.find(i => i.id === id); if (x) x.status = 'arquivada';
+  fecharPlayer(); renderIdeias(); showToast('Ideia arquivada');
+}
+
+// manda um link para as ideias pelo servidor (que busca a capa); usado pelo campo de colar e pelo Compartilhar do Android
+async function _mandarIdeia(texto, origem) {
+  const autor = _lerAutor();
+  const { data, error } = await sb.functions.invoke('ideia-salvar', { body: { texto, origem, autor } });
+  let msg = data && data.mensagem;
+  try { if (!msg && error && error.context) msg = (await error.context.json()).mensagem; } catch (e) { /* sem corpo */ }
+  const ok = !error && data && data.ok;
+  showToast(msg || (ok ? 'Salvo nas ideias do Shai ✓' : 'Não consegui salvar a ideia'), ok ? undefined : 'error');
+  if (ok) { await _ideiasCarrega(true); _ideiasContador(); if (planModo === 'ideias') renderIdeias(); }
+  return ok;
+}
+
+async function guardarIdeiaLink() {
+  const inp = document.getElementById('ideia-link');
+  if (!inp.value.trim()) return;
+  if (await _mandarIdeia(inp.value.trim(), 'app')) inp.value = '';
+}
+
+// quem está mandando (fica guardado só neste aparelho)
+function _lerAutor() { try { return localStorage.getItem('shai_autor') || ''; } catch (e) { return ''; } }
+function _salvarAutor(v) { try { localStorage.setItem('shai_autor', v.trim()); } catch (e) { /* navegador sem armazenamento */ } }
+
+// janela de ajuda: nome deste aparelho + endereço do Atalho do iPhone (com a chave, só para quem está logado)
+// o endereço leva o nome do aparelho, para a ideia chegar dizendo quem mandou (Mariana, Loja…)
+let _ideiasChave = null;
+async function _ideiasAjuda() {
+  document.getElementById('ideia-autor').value = _lerAutor();
+  const campo = document.getElementById('ideia-endereco');
+  if (!_ideiasChave) {
+    campo.value = 'carregando…';
+    const { data } = await sb.from('ideias_config').select('chave').eq('id', 1).maybeSingle();
+    _ideiasChave = data && data.chave;
+  }
+  const autor = _lerAutor();
+  campo.value = _ideiasChave
+    ? `${SB_URL}/functions/v1/ideia-salvar?origem=iphone${autor ? '&autor=' + encodeURIComponent(autor) : ''}&key=${_ideiasChave}`
+    : 'Entre no app para ver o endereço';
+}
+async function _copiarEnderecoIdeias() {
+  const campo = document.getElementById('ideia-endereco');
+  try { await navigator.clipboard.writeText(campo.value); showToast('Endereço copiado'); }
+  catch (e) { campo.select(); showToast('Toque e segure no endereço para copiar'); }
+}
+
+// Android: o app instalado recebe o que foi compartilhado no Instagram (?text=…&url=…) e guarda como ideia
+async function _receberCompartilhado() {
+  const q = new URLSearchParams(location.search);
+  const texto = [q.get('url'), q.get('text'), q.get('title')].filter(Boolean).join(' ');
+  if (!texto) return;
+  try { history.replaceState(null, '', location.pathname); } catch (e) { /* file:// */ }
+  setView('grade');
+  setPlanModo('ideias');
+  await _mandarIdeia(texto, 'android');
+}
+
+// ── PLANEJAR UM POST PELA GRADE ───────────────────────
+let _slotFormato = 'reel', _slotCapa = null, _slotBuscando = null, _slotIdeia = null;
+
+// ideiaId: veio do "Usar num dia" de uma ideia salva — já entra com a referência preenchida
+function abrirSlot(ds, ideiaId) {
   document.getElementById('sl-data').value = ds;
   document.getElementById('sl-ref').value = '';
   document.getElementById('sl-ideia').value = '';
   document.getElementById('sl-prev').innerHTML = '';
   _slotCapa = null;
+  _slotIdeia = null;
   setSlotFormato(document.querySelector('#sl-formatos [data-f="reel"]'));
+  if (ideiaId) _slotEscolherIdeia(ideiaId);
+  _slotIdeiasHTML();
   openModal('modal-slot');
+  if (ideiasLista === null) _ideiasCarrega().then(_slotIdeiasHTML);
+}
+
+// fileira de ideias salvas dentro da janela: um toque escolhe a referência do post
+function _slotIdeiasHTML() {
+  const box = document.getElementById('sl-ideias');
+  const novas = (ideiasLista || []).filter(x => x.status === 'nova');
+  box.innerHTML = novas.length && !_slotIdeia
+    ? `<div class="sl-ideias-tit">Ou escolha uma ideia salva</div><div class="sl-ideias">${novas.slice(0, 20).map(x =>
+        `<button onclick="_slotEscolherIdeia('${x.id}')" title="${_attr(x.autor || 'Ideia')}">${x.capa ? `<img src="${_attr(x.capa)}" alt="">` : '<i class="ti ti-movie"></i>'}</button>`).join('')}</div>`
+    : '';
+}
+
+function _slotEscolherIdeia(id) {
+  const x = (ideiasLista || []).find(i => i.id === id); if (!x) return;
+  _slotIdeia = x.id;
+  _slotCapa = x.capa || null;
+  _slotBuscando = null;
+  document.getElementById('sl-ref').value = x.link;
+  if (x.nota && !document.getElementById('sl-ideia').value) document.getElementById('sl-ideia').value = x.nota;
+  document.getElementById('sl-prev').innerHTML = (x.capa ? `<img src="${_attr(x.capa)}" alt="">` : '') + '<span>Ideia salva escolhida</span>';
+  if (/\/reels?\//.test(x.link)) setSlotFormato(document.querySelector('#sl-formatos [data-f="reel"]'));
+  _slotIdeiasHTML();
 }
 
 function setSlotFormato(btn) {
@@ -5858,8 +6110,11 @@ async function _buscarCapaIG(url) {
 async function _slotBuscarCapa() {
   const url = document.getElementById('sl-ref').value.trim();
   const prev = document.getElementById('sl-prev');
+  const escolhida = _slotIdeia && (ideiasLista || []).find(i => i.id === _slotIdeia);
+  if (escolhida && escolhida.link === url) return; // é a própria ideia escolhida: capa já veio dela
+  _slotIdeia = null;
   _slotCapa = null;
-  if (!url) { prev.innerHTML = ''; return; }
+  if (!url) { prev.innerHTML = ''; _slotIdeiasHTML(); return; }
   if (!/instagram\.com|instagr\.am/.test(url)) { prev.innerHTML = '<span class="sl-erro">Esse não parece um link do Instagram</span>'; return; }
   prev.innerHTML = '<span class="sl-buscando"><i class="ti ti-loader-2"></i> Buscando a capa…</span>';
   const pedido = _slotBuscando = url;
@@ -5901,6 +6156,14 @@ async function salvarSlot() {
     const { error } = await sb.from('eventos_loja').update({ canvas }).eq('id', b.id);
     if (error) throw error;
     b.canvas = canvas;
+    // veio de uma ideia salva: ela sai da lista de novas e fica marcada com o dia em que foi usada
+    if (_slotIdeia && ref) {
+      await sb.from('ideias').update({ status: 'usada', usada_em: ds }).eq('id', _slotIdeia);
+      const x = (ideiasLista || []).find(i => i.id === _slotIdeia);
+      if (x) { x.status = 'usada'; x.usada_em = ds; }
+      _ideiasContador();
+      if (planModo === 'ideias') renderIdeias();
+    }
     closeModal('modal-slot');
     showToast(`Post planejado para ${_ROT_DIA(ds)}`);
     renderFeed();
@@ -8434,6 +8697,7 @@ const CONTA_EMAIL = 'calendario@shai.local';
 function _bootCalendario() {
   setView('mensal');
   loadEventosLoja();
+  _receberCompartilhado(); // aberto pelo Compartilhar do Android: guarda a ideia e mostra a aba Ideias
 }
 
 // Esc volta para a aba principal (Calendário · Mês). Antes disso, fecha o que estiver por cima:

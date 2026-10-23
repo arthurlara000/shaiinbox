@@ -5,10 +5,17 @@
   "start_url": "/index.html",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
+  "background_color": "#f4f3f1",
+  "theme_color": "#f4f3f1",
   "icons": [
-    { "src": "assets/icon-calendario.svg", "type": "image/svg+xml", "sizes": "any" },
-    { "src": "assets/icon.png", "type": "image/png", "sizes": "512x512", "purpose": "any maskable" }
-  ]
+    { "src": "assets/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any" },
+    { "src": "assets/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any" },
+    { "src": "assets/icon-maskable-512.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" },
+    { "src": "assets/icon-calendario.svg", "type": "image/svg+xml", "sizes": "any" }
+  ],
+  "share_target": {
+    "action": "/index.html",
+    "method": "GET",
+    "params": { "title": "title", "text": "text", "url": "url" }
+  }
 }
