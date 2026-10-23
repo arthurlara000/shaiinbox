@@ -49,6 +49,8 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
 /* tela grande (TV, monitor 2K/4K): o app cresce junto com a tela. --escala vem do _ajustarEscala()
    (1 até 1440×810; acima disso, proporcional). O quadro do Planejar (#event-detail) tem ajuste próprio. */
 .header, .app-body, .bottom-nav, .modal-overlay .modal, #toast { zoom: var(--escala, 1); }
+/* janelas que ficam dentro do .app-body já herdam o zoom dele — sem isso cresceriam duas vezes */
+.app-body .modal-overlay .modal { zoom: 1; }
 .header {
   background: var(--surface); border-bottom: 1px solid var(--border);
   padding: 14px 20px; display: flex; align-items: center; justify-content: space-between;
@@ -5864,7 +5866,11 @@ function abrirPlayerIG(link, titulo, infoHTML = '', acoesHTML = '', videoArquivo
     : emb
       ? `<iframe src="${emb}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy" title="Post do Instagram"></iframe>`
       : '<div class="ver-sem">Esse link não é de um post do Instagram.</div>';
-  document.getElementById('ver-info').innerHTML = infoHTML;
+  // player do Instagram: vídeo com música do catálogo não toca fora dele — avisa antes de parecer defeito
+  const avisoMusica = !videoArquivo && emb && !infoHTML.includes('ver-aviso')
+    ? `<div class="ver-aviso"><i class="ti ti-music"></i> Se aparecer "Assistir no Instagram", o vídeo usa música do catálogo e, por regra do Instagram, só toca lá — use o botão "Abrir no Instagram".</div>`
+    : '';
+  document.getElementById('ver-info').innerHTML = avisoMusica + infoHTML;
   document.getElementById('ver-acoes').innerHTML = acoesHTML
     + `<a class="btn btn-ghost ver-ig" href="${_attr(link)}" target="_blank" rel="noopener"><i class="ti ti-brand-instagram"></i> Abrir no Instagram</a>`;
   openModal('modal-ver');
