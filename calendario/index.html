@@ -3429,10 +3429,11 @@ function renderMensal() {
   }
   grid.style.gridTemplateRows = ''; // celular usa a altura natural; no PC/TV o ajuste abaixo recalcula
   if (mobile) renderPainelDia(diaSelecionado);
-  else _mesCabeNaTela();
 
-  // barras de campanha atravessando os dias (preparação → dia D)
+  // barras de campanha atravessando os dias (preparação → dia D); no PC/TV, depois de ajustar a altura das
+  // semanas ao tamanho da tela, as barras são redesenhadas nas posições novas
   _renderCampBars();
+  if (!mobile) { _mesCabeNaTela(); _renderCampBars(); }
 
   // agenda mostra só o dia selecionado
   renderAgendaDia(diaSelecionado);
@@ -3652,18 +3653,43 @@ function renderAgendaDia(ds) {
 
 // ── BARRAS DE CAMPANHA NA GRADE (preparação → dia D) ──
 // PC/TV: as semanas do mês dividem a altura que sobra entre o topo da grade e a barra de baixo — o mês inteiro
-// aparece sem rolar (a agenda do dia fica logo abaixo). Em tela muito baixa, mantém a altura mínima e rola.
+// aparece sem rolar (a agenda do dia fica logo abaixo). A semana com o dia mais cheio estica até mostrar tudo,
+// e as mais vazias cedem espaço; só rola se nem assim couber.
 function _mesCabeNaTela() {
   const grid = document.getElementById('cal-grid');
   grid.style.gridTemplateRows = '';
-  const semanas = Math.ceil((grid.children.length - 7) / 7);
   const z = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--escala')) || 1;
   const nav = document.querySelector('.bottom-nav').getBoundingClientRect();
   const dow = grid.children[0].getBoundingClientRect();
   // posição na tela (já com zoom, contando a rolagem) → px de CSS dentro da área com zoom; 30px ficam pra legenda
   const sobra = (nav.top - (dow.bottom + window.scrollY) - 14) / z - 30;
-  const linha = Math.floor(sobra / semanas);
-  if (linha >= 70) grid.style.gridTemplateRows = `auto repeat(${semanas}, ${linha}px)`;
+  const cells = [...grid.children].slice(7).filter(c => c.classList.contains('cal-day'));
+  const semanas = Math.ceil(cells.length / 7);
+  // quanto cada semana precisa: o dia mais cheio (conteúdo + espaço das barras de campanha), no mínimo 70px
+  const precisa = [];
+  for (let w = 0; w < semanas; w++) {
+    let maior = 70;
+    cells.slice(w * 7, w * 7 + 7).forEach(c => {
+      const topo = c.getBoundingClientRect().top;
+      const fundo = Math.max(topo, ...[...c.children].map(ch => ch.getBoundingClientRect().bottom));
+      maior = Math.max(maior, Math.ceil((fundo - topo) / z + parseFloat(getComputedStyle(c).paddingBottom)));
+    });
+    precisa.push(maior);
+  }
+  // divide por igual; quem precisa de mais que a parte igual fica com o que precisa e o resto se divide entre os outros
+  const alturas = new Array(semanas).fill(0);
+  let livres = [...precisa.keys()], resto = sobra, mudou = true;
+  while (mudou && livres.length) {
+    mudou = false;
+    const parte = resto / livres.length;
+    livres = livres.filter(w => {
+      if (precisa[w] > parte) { alturas[w] = precisa[w]; resto -= precisa[w]; mudou = true; return false; }
+      return true;
+    });
+  }
+  if (livres.length) { const parte = resto / livres.length; livres.forEach(w => { alturas[w] = parte; }); }
+  if (alturas.some(a => a < 70)) alturas.forEach((a, w) => { alturas[w] = Math.max(a, precisa[w]); }); // não coube: rola
+  grid.style.gridTemplateRows = 'auto ' + alturas.map(a => Math.floor(a) + 'px').join(' ');
 }
 
 function _renderCampBars() {
