@@ -1200,6 +1200,40 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
   position: absolute; left: 5px; bottom: 6px; max-width: calc(100% - 10px); padding: 1px 5px; border-radius: 3px;
   font-size: .6rem; font-weight: 600; background: rgba(29,25,21,.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+/* filtros e selos das ideias */
+.ideias-filtros { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 10px; padding-bottom: 2px; scrollbar-width: none; }
+.ideias-filtros::-webkit-scrollbar { display: none; }
+.ideia-filtro {
+  flex-shrink: 0; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text-2);
+  border-radius: 99px; padding: 5px 11px; font-family: inherit; font-size: .76rem; font-weight: 500; cursor: pointer;
+}
+.ideia-filtro span { color: var(--text-muted); margin-left: 2px; }
+.ideia-filtro.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.ideia-filtro.on span { color: rgba(255,255,255,.75); }
+.ideia-responder {
+  position: absolute; top: 8px; left: 6px; z-index: 2; padding: 2px 7px; border-radius: 3px;
+  font-size: .62rem; font-weight: 600; color: #fff; background: var(--caramel); cursor: pointer;
+}
+.ideia-selos { position: absolute; top: 6px; left: 6px; z-index: 2; font-size: .95rem; filter: drop-shadow(0 1px 2px rgba(0,0,0,.5)); }
+/* janela "Sobre essa ideia" */
+.modal-overlay.center .modal.iq-modal { max-width: 460px; max-height: calc(92vh / var(--escala, 1)); overflow-y: auto; }
+.iq-top { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
+.iq-capa { width: 48px; aspect-ratio: 3 / 4; border-radius: 5px; overflow: hidden; background: #2b2420; color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.iq-capa img { width: 100%; height: 100%; object-fit: cover; }
+.iq-sub { font-size: .76rem; color: var(--text-muted); }
+.iq-p { font-size: .8rem; font-weight: 600; margin: 12px 0 6px; }
+.iq-p span { font-weight: 400; color: var(--text-muted); font-size: .72rem; margin-left: 4px; }
+.iq-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.iq-chip {
+  border: 1px solid var(--border-strong); background: var(--surface); color: var(--text);
+  border-radius: 99px; padding: 7px 12px; font-family: inherit; font-size: .8rem; cursor: pointer;
+}
+.iq-chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.iq-sub-chips { margin-top: 8px; padding-left: 10px; border-left: 2px solid var(--caramel); }
+.iq-sub-chips .iq-chip { font-size: .76rem; padding: 5px 10px; }
+.iq-peca-nome { margin-top: 8px; }
+.iq-vazio { margin-top: 6px; font-size: .74rem; color: var(--text-muted); }
+#iq-nota { height: 64px; resize: none; font-size: .88rem; }
 .ideia-del {
   position: absolute; top: 6px; right: 6px; z-index: 2; width: 28px; height: 28px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center; font-size: .9rem; color: #fff;
@@ -2145,6 +2179,7 @@ textarea.form-input { resize: none; height: 76px; }
           onkeydown="if(event.key==='Enter')guardarIdeiaLink()">
         <button class="btn-sm-choco" onclick="guardarIdeiaLink()">Guardar</button>
       </div>
+      <div class="ideias-filtros" id="ideias-filtros"></div>
       <div class="ideias-grid" id="ideias-grid"></div>
       <button class="ideias-usadas-btn" id="ideias-usadas-btn" onclick="ideiasVerUsadas=!ideiasVerUsadas;renderIdeias()"></button>
     </div>
@@ -2291,6 +2326,34 @@ textarea.form-input { resize: none; height: 76px; }
       </ol>
     </div>
     <div class="btn-row"><button class="btn btn-primary" onclick="closeModal('modal-ideias-ajuda')">Entendi</button></div>
+  </div>
+</div>
+
+<!-- MODAL: SOBRE ESSA IDEIA (perguntas de tocar) -->
+<div class="modal-overlay center" id="modal-ideia-q">
+  <div class="modal iq-modal">
+    <div class="iq-top">
+      <div class="iq-capa" id="iq-capa"></div>
+      <div>
+        <div class="modal-title" style="margin-bottom:2px">Sobre essa ideia</div>
+        <div class="iq-sub">Só toques — dá para pular</div>
+      </div>
+    </div>
+    <div class="iq-p">O que chamou atenção? <span>pode marcar mais de um</span></div>
+    <div class="iq-chips" id="iq-atencao"></div>
+    <div class="iq-p">Pra quê serve?</div>
+    <div class="iq-chips" id="iq-objetivo"></div>
+    <div class="iq-p">Com qual peça?</div>
+    <div class="iq-chips" id="iq-peca"></div>
+    <div id="iq-peca-extra"></div>
+    <div class="iq-p">Tem prazo?</div>
+    <div class="iq-chips" id="iq-prazo"></div>
+    <div class="iq-p">Como a gente faria? <span>opcional</span></div>
+    <textarea class="form-input" id="iq-nota" placeholder="Ex: Mari com o vestido de linho, na vitrine de Areal, mesmo começo do vídeo"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal('modal-ideia-q')">Pular</button>
+      <button class="btn btn-primary" onclick="salvarRespostas()">Salvar</button>
+    </div>
   </div>
 </div>
 
@@ -5954,22 +6017,50 @@ function _ideiasContador() {
   document.getElementById('ideias-n').textContent = n ? n : '';
 }
 
+// ideia já tem alguma resposta das perguntas de tocar
+const _ideiaRespondida = x => !!((x.atencao && x.atencao.length) || x.objetivo || x.peca || x.prazo);
+// filtros da aba: todas | responder | tendência | vender | crescer
+let ideiasFiltro = 'todas';
+const IDEIA_FILTROS = [
+  ['todas', 'Todas', () => true],
+  ['responder', 'Responder', x => !_ideiaRespondida(x)],
+  ['tendencia', '🔥 Tendência', x => x.prazo === 'tendencia'],
+  ['vender', '🛍️ Vender', x => x.objetivo === 'vender'],
+  ['crescer', '🌱 Crescer', x => x.objetivo === 'crescer'],
+];
+
 function renderIdeias() {
   _ideiasContador();
-  const lista = (ideiasLista || []).filter(x => x.status === 'nova');
+  const novas = (ideiasLista || []).filter(x => x.status === 'nova');
   const usadas = (ideiasLista || []).filter(x => x.status === 'usada');
+  // filtros só com o que tem ideia (Todas sempre)
+  document.getElementById('ideias-filtros').innerHTML = novas.length ? IDEIA_FILTROS.map(([k, rot, f]) => {
+    const n = novas.filter(f).length;
+    if (k !== 'todas' && !n) return '';
+    return `<button class="ideia-filtro${ideiasFiltro === k ? ' on' : ''}" onclick="ideiasFiltro='${k}';renderIdeias()">${rot} <span>${n}</span></button>`;
+  }).join('') : '';
+  const filtro = (IDEIA_FILTROS.find(f => f[0] === ideiasFiltro) || IDEIA_FILTROS[0])[2];
+  // tendência (tem prazo curto) vem primeiro; o resto segue do mais novo pro mais antigo
+  const lista = novas.filter(filtro).sort((a, b) => (b.prazo === 'tendencia') - (a.prazo === 'tendencia'));
   const card = x => {
     const quando = new Date(x.criado_em);
     const sub = [x.autor, `${quando.getDate()}/${quando.getMonth() + 1}`].filter(Boolean).join(' · ');
+    const selos = (x.prazo === 'tendencia' ? '🔥' : '') + (x.objetivo === 'vender' ? '🛍️' : x.objetivo === 'crescer' ? '🌱' : '');
+    const canto = x.status === 'nova' && !_ideiaRespondida(x)
+      ? `<span class="ideia-responder" role="button" onclick="event.stopPropagation();perguntarIdeia('${x.id}')">responder</span>`
+      : (selos ? `<span class="ideia-selos">${selos}</span>` : '');
     return `<button class="ideia-card${x.status === 'usada' ? ' usada' : ''}" onclick="verIdeia('${x.id}')" title="${_attr(x.nota || 'Ideia')}">
       ${x.capa ? `<img src="${_attr(x.capa)}" alt="" loading="lazy">` : '<i class="ti ti-movie"></i>'}
+      ${canto}
       <span class="ideia-del" role="button" title="Apagar ideia" onclick="event.stopPropagation();apagarIdeia('${x.id}')"><i class="ti ti-trash"></i></span>
       <span class="ideia-sub">${_esc(sub)}</span>
       ${x.status === 'usada' && x.usada_em ? `<span class="ideia-usada">usada ${x.usada_em.slice(8)}/${x.usada_em.slice(5, 7)}</span>` : ''}</button>`;
   };
   document.getElementById('ideias-grid').innerHTML = ideiasLista === null
     ? '<div class="ideias-vazio">Carregando…</div>'
-    : (lista.length ? lista.map(card).join('') : `<div class="ideias-vazio">Nenhuma ideia guardada ainda.<br>
+    : (lista.length ? lista.map(card).join('') : novas.length
+        ? '<div class="ideias-vazio">Nenhuma ideia neste filtro.</div>'
+        : `<div class="ideias-vazio">Nenhuma ideia guardada ainda.<br>
         No Instagram, toque em <b>Compartilhar</b> num vídeo e mande para o Shai.
         <button class="met-link" onclick="openModal('modal-ideias-ajuda');_ideiasAjuda()">Ver como</button></div>`)
       + (ideiasVerUsadas ? usadas.map(card).join('') : '');
@@ -5981,13 +6072,91 @@ function renderIdeias() {
 // toque numa ideia: vídeo no player + usar num dia ou arquivar
 function verIdeia(id) {
   const x = (ideiasLista || []).find(i => i.id === id); if (!x) return;
-  const info = (x.nota ? `<div class="ver-ideia"><span>Nota</span>${_esc(x.nota)}</div>` : '')
+  const resumo = _resumoIdeia(x);
+  const info = (resumo ? `<div class="ver-ideia"><span>Sobre a ideia</span>${_esc(resumo).replace(/\n/g, '<br>')}</div>` : '')
     + `<div class="ver-ideia"><span>Guardada</span>${_esc([x.autor, new Date(x.criado_em).toLocaleDateString('pt-BR')].filter(Boolean).join(' · '))}</div>`;
   const acoes = x.status === 'nova'
     ? `<button class="btn btn-primary" onclick="fecharPlayer();abrirSlot(today, '${x.id}')"><i class="ti ti-calendar-plus"></i> Usar num dia</button>
+       <button class="btn btn-ghost" onclick="fecharPlayer();perguntarIdeia('${x.id}')"><i class="ti ti-forms"></i> ${_ideiaRespondida(x) ? 'Editar respostas' : 'Responder'}</button>
        <button class="btn btn-ghost" onclick="arquivarIdeia('${x.id}')"><i class="ti ti-archive"></i> Arquivar</button>`
     : '';
   abrirPlayerIG(x.link, 'Ideia', info, acoes);
+}
+
+// ── PERGUNTAS DE TOCAR SOBRE A IDEIA ──────────────────
+const IQ_OPCOES = {
+  atencao: [['gancho', '🎣 O começo'], ['formato', '🎬 O formato'], ['edicao', '✂️ A edição'],
+            ['audio', '🎵 A música'], ['cenario', '📍 O cenário'], ['legenda', '💬 A legenda']],
+  objetivo: [['crescer', '🌱 Trazer gente nova'], ['vender', '🛍️ Vender uma peça']],
+  peca: [['lancamento', 'Lançamento da semana'], ['campanha', 'Campanha'], ['peca', 'Peça específica'], ['nao_sei', 'Ainda não sei']],
+  prazo: [['tendencia', '🔥 Tendência — essa semana'], ['qualquer', '🗓️ Serve a qualquer hora']],
+};
+const _rotIQ = (q, v) => ((IQ_OPCOES[q].find(o => o[0] === v) || [])[1] || '').replace(/^\S+\s/, s => /\p{Extended_Pictographic}/u.test(s) ? '' : s);
+let _iq = null;
+
+function perguntarIdeia(id) {
+  const x = (ideiasLista || []).find(i => i.id === id); if (!x) return;
+  _iq = { id, atencao: [...(x.atencao || [])], objetivo: x.objetivo || null, peca: x.peca || null,
+          peca_detalhe: x.peca_detalhe || null, prazo: x.prazo || null };
+  document.getElementById('iq-capa').innerHTML = x.capa ? `<img src="${_attr(x.capa)}" alt="">` : '<i class="ti ti-movie"></i>';
+  document.getElementById('iq-nota').value = x.nota || '';
+  _iqRender();
+  openModal('modal-ideia-q');
+}
+
+function _iqRender() {
+  ['atencao', 'objetivo', 'peca', 'prazo'].forEach(q => {
+    document.getElementById('iq-' + q).innerHTML = IQ_OPCOES[q].map(([v, rot]) => {
+      const on = q === 'atencao' ? _iq.atencao.includes(v) : _iq[q] === v;
+      return `<button class="iq-chip${on ? ' on' : ''}" onclick="iqToque('${q}','${v}')">${rot}</button>`;
+    }).join('');
+  });
+  // peça: campanha escolhe entre as campanhas que ainda vão acontecer; peça específica pede o nome
+  const extra = document.getElementById('iq-peca-extra');
+  if (_iq.peca === 'campanha') {
+    const proximas = campanhas.filter(c => c.data_campanha >= today).sort((a, b) => a.data_campanha.localeCompare(b.data_campanha));
+    extra.innerHTML = proximas.length
+      ? `<div class="iq-chips iq-sub-chips">${proximas.map(c =>
+          `<button class="iq-chip${_iq.peca_detalhe === c.titulo ? ' on' : ''}" onclick="_iq.peca_detalhe=${_attr(JSON.stringify(c.titulo))};_iqRender()">${_esc(c.titulo)}</button>`).join('')}</div>`
+      : '<div class="iq-vazio">Nenhuma campanha marcada pra frente.</div>';
+  } else if (_iq.peca === 'peca') {
+    extra.innerHTML = `<input type="text" class="form-input iq-peca-nome" placeholder="Qual peça? Ex: vestido de linho"
+      value="${_attr(_iq.peca_detalhe || '')}" oninput="_iq.peca_detalhe=this.value">`;
+  } else extra.innerHTML = '';
+}
+
+function iqToque(q, v) {
+  if (q === 'atencao') {
+    _iq.atencao = _iq.atencao.includes(v) ? _iq.atencao.filter(a => a !== v) : _iq.atencao.concat(v);
+  } else {
+    _iq[q] = _iq[q] === v ? null : v;
+    if (q === 'peca') _iq.peca_detalhe = null;
+  }
+  _iqRender();
+  if (q === 'peca' && v === 'peca' && _iq.peca === 'peca') setTimeout(() => { const i = document.querySelector('.iq-peca-nome'); if (i) i.focus(); }, 30);
+}
+
+async function salvarRespostas() {
+  const nota = document.getElementById('iq-nota').value.trim() || null;
+  const muda = { atencao: _iq.atencao.length ? _iq.atencao : null, objetivo: _iq.objetivo, peca: _iq.peca,
+    peca_detalhe: (_iq.peca_detalhe || '').trim() || null, prazo: _iq.prazo, nota };
+  const { error } = await sb.from('ideias').update(muda).eq('id', _iq.id);
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  const x = ideiasLista.find(i => i.id === _iq.id); if (x) Object.assign(x, muda);
+  closeModal('modal-ideia-q');
+  renderIdeias();
+  showToast('Ideia completa ✓');
+}
+
+// respostas viram texto para quem vai gravar (vai junto pro post planejado)
+function _resumoIdeia(x) {
+  const linhas = [];
+  if (x.atencao && x.atencao.length) linhas.push('Copiar: ' + x.atencao.map(a => _rotIQ('atencao', a).toLowerCase()).join(', '));
+  if (x.objetivo) linhas.push(x.objetivo === 'vender' ? 'Pra vender uma peça' : 'Pra trazer gente nova');
+  if (x.peca && x.peca !== 'nao_sei') linhas.push('Peça: ' + (x.peca_detalhe || _rotIQ('peca', x.peca)));
+  if (x.prazo === 'tendencia') linhas.push('🔥 Tendência — postar essa semana');
+  if (x.nota) linhas.push('Como: ' + x.nota);
+  return linhas.join('\n');
 }
 
 async function apagarIdeia(id) {
@@ -6025,6 +6194,11 @@ async function _mandarIdeia(texto, origem) {
   const ok = !error && data && data.ok;
   showToast(msg || (ok ? 'Salvo nas ideias do Shai ✓' : 'Não consegui salvar a ideia'), ok ? undefined : 'error');
   if (ok) { await _ideiasCarrega(true); _ideiasContador(); if (planModo === 'ideias') renderIdeias(); }
+  // acabou de salvar: já pergunta sobre a ideia (se ainda não tem respostas)
+  if (ok && data.id) {
+    const x = ideiasLista.find(i => i.id === data.id);
+    if (x && !_ideiaRespondida(x)) perguntarIdeia(x.id);
+  }
   return ok;
 }
 
@@ -6105,7 +6279,8 @@ function _slotEscolherIdeia(id) {
   _slotCapa = x.capa || null;
   _slotBuscando = null;
   document.getElementById('sl-ref').value = x.link;
-  if (x.nota && !document.getElementById('sl-ideia').value) document.getElementById('sl-ideia').value = x.nota;
+  const resumo = _resumoIdeia(x); // o que copiar, pra quê, peça e como — vira o texto do post para quem grava
+  if (resumo && !document.getElementById('sl-ideia').value) document.getElementById('sl-ideia').value = resumo;
   document.getElementById('sl-prev').innerHTML = (x.capa ? `<img src="${_attr(x.capa)}" alt="">` : '') + '<span>Ideia salva escolhida</span>';
   if (/\/reels?\//.test(x.link)) setSlotFormato(document.querySelector('#sl-formatos [data-f="reel"]'));
   _slotIdeiasHTML();

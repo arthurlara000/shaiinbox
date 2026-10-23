@@ -77,18 +77,18 @@ Deno.serve(async (req) => {
         if (ja.status === "arquivada") muda.status = "nova";
         if (!ja.capa) { const c = await capaDoPost(tipo, codigo).catch(() => null); if (c) muda.capa = c; }
         if (Object.keys(muda).length) await sb.from("ideias").update(muda).eq("id", ja.id);
-        return json({ ok: true, mensagem: "Essa ideia já estava salva no Shai", repetida: true });
+        return json({ ok: true, mensagem: "Essa ideia já estava salva no Shai", repetida: true, id: ja.id });
       }
     }
     const capa = codigo ? await capaDoPost(tipo, codigo).catch(() => null) : null;
-    const { error } = await sb.from("ideias").insert({
+    const { data: nova, error } = await sb.from("ideias").insert({
       link: codigo ? `https://www.instagram.com/${tipo}/${codigo}/` : link, codigo, capa,
       autor: (corpo.autor || url.searchParams.get("autor") || "").slice(0, 40) || null,
       origem: (corpo.origem || url.searchParams.get("origem") || "").slice(0, 20) || null,
       nota: (corpo.nota || "").slice(0, 500) || null,
-    });
+    }).select("id").single();
     if (error) return json({ ok: false, mensagem: error.message }, 500);
-    return json({ ok: true, mensagem: "Salvo nas ideias do Shai ✓" });
+    return json({ ok: true, mensagem: "Salvo nas ideias do Shai ✓", id: nova.id });
   } catch (e) {
     return json({ ok: false, mensagem: (e as Error).message }, 500);
   }
