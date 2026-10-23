@@ -41,11 +41,14 @@ document.addEventListener('DOMContentLoaded',()=>{const ta=document.getElementBy
   --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', system-ui, sans-serif; min-height: 100vh; padding-bottom: calc(80px + env(safe-area-inset-bottom, 24px)); -webkit-font-smoothing: antialiased; }
+body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', system-ui, sans-serif; min-height: 100vh; padding-bottom: calc(80px * var(--escala, 1) + env(safe-area-inset-bottom, 24px)); -webkit-font-smoothing: antialiased; }
 :focus-visible { outline: 2px solid var(--caramel); outline-offset: 1px; }
 .day-num, .num, .event-date-day, .camp-countdown-num, .pd-chip, .plano-count { font-variant-numeric: tabular-nums; }
 
 /* HEADER */
+/* tela grande (TV, monitor 2K/4K): o app cresce junto com a tela. --escala vem do _ajustarEscala()
+   (1 até 1440×810; acima disso, proporcional). O quadro do Planejar (#event-detail) tem ajuste próprio. */
+.header, .app-body, .bottom-nav, .modal-overlay .modal, #toast { zoom: var(--escala, 1); }
 .header {
   background: var(--surface); border-bottom: 1px solid var(--border);
   padding: 14px 20px; display: flex; align-items: center; justify-content: space-between;
@@ -3816,6 +3819,15 @@ function _tituloPost(p) {
   if (anc.type === 'enquete') return (anc.q || '').trim() || 'Enquete';
   return anc.type === 'photo' ? 'Foto' : anc.type === 'video' ? 'Vídeo' : 'Post';
 }
+
+// tela grande (TV, monitor 2K/4K): o app cresce na proporção da tela. Até 1440×810 fica como está (escala 1);
+// acima disso, a escala acompanha o lado que cresceu menos — assim o mês inteiro continua cabendo na TV
+function _ajustarEscala() {
+  const z = Math.max(1, Math.min(window.innerWidth / 1440, window.innerHeight / 810));
+  document.documentElement.style.setProperty('--escala', z.toFixed(3));
+}
+_ajustarEscala();
+window.addEventListener('resize', _ajustarEscala);
 
 // tela mudou de tamanho: re-renderiza o mês (nº de pills por dia depende da largura)
 let _calResizeTimer = null;
