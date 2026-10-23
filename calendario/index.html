@@ -1200,6 +1200,12 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
   position: absolute; left: 5px; bottom: 6px; max-width: calc(100% - 10px); padding: 1px 5px; border-radius: 3px;
   font-size: .6rem; font-weight: 600; background: rgba(29,25,21,.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+.ideia-del {
+  position: absolute; top: 6px; right: 6px; z-index: 2; width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: .9rem; color: #fff;
+  background: rgba(29,25,21,.55); cursor: pointer;
+}
+.ideia-del:hover { background: var(--red); }
 .ideia-usada { position: absolute; top: 6px; left: 6px; padding: 1px 5px; border-radius: 3px; font-size: .6rem; font-weight: 600; background: var(--green); }
 .ideias-vazio { grid-column: 1 / -1; padding: 36px 16px; text-align: center; font-size: .85rem; color: var(--text-muted); line-height: 1.6; background: var(--surface); border: 1px dashed var(--border-strong); border-radius: 8px; }
 .ideias-vazio .met-link { display: block; margin: 8px auto 0; }
@@ -5940,7 +5946,7 @@ function setPlanModo(m) {
   document.querySelectorAll('#plan-modo button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
   document.getElementById('grade-conteudo').style.display = m === 'grade' ? '' : 'none';
   document.getElementById('ideias-conteudo').style.display = m === 'ideias' ? '' : 'none';
-  if (m === 'ideias') { renderIdeias(); _ideiasCarrega(true).then(() => { if (planModo === 'ideias') renderIdeias(); }); }
+  if (m === 'ideias') { renderIdeias(); _ideiasCarrega(true).then(() => { if (planModo === 'ideias') renderIdeias(); _ideiasRecapar(); }); }
 }
 
 function _ideiasContador() {
@@ -5957,6 +5963,7 @@ function renderIdeias() {
     const sub = [x.autor, `${quando.getDate()}/${quando.getMonth() + 1}`].filter(Boolean).join(' · ');
     return `<button class="ideia-card${x.status === 'usada' ? ' usada' : ''}" onclick="verIdeia('${x.id}')" title="${_attr(x.nota || 'Ideia')}">
       ${x.capa ? `<img src="${_attr(x.capa)}" alt="" loading="lazy">` : '<i class="ti ti-movie"></i>'}
+      <span class="ideia-del" role="button" title="Apagar ideia" onclick="event.stopPropagation();apagarIdeia('${x.id}')"><i class="ti ti-trash"></i></span>
       <span class="ideia-sub">${_esc(sub)}</span>
       ${x.status === 'usada' && x.usada_em ? `<span class="ideia-usada">usada ${x.usada_em.slice(8)}/${x.usada_em.slice(5, 7)}</span>` : ''}</button>`;
   };
@@ -5981,6 +5988,25 @@ function verIdeia(id) {
        <button class="btn btn-ghost" onclick="arquivarIdeia('${x.id}')"><i class="ti ti-archive"></i> Arquivar</button>`
     : '';
   abrirPlayerIG(x.link, 'Ideia', info, acoes);
+}
+
+async function apagarIdeia(id) {
+  if (!confirm('Apagar esta ideia?')) return;
+  const { error } = await sb.from('ideias').delete().eq('id', id);
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  ideiasLista = ideiasLista.filter(i => i.id !== id);
+  renderIdeias(); showToast('Ideia apagada');
+}
+
+// ideia sem capa (o Instagram às vezes nega a prévia ao servidor): pede de novo, uma vez por sessão, sem aviso
+const _capaRetentada = new Set();
+async function _ideiasRecapar() {
+  const faltam = (ideiasLista || []).filter(x => !x.capa && x.status !== 'arquivada' && !_capaRetentada.has(x.id));
+  if (!faltam.length) return;
+  faltam.forEach(x => _capaRetentada.add(x.id));
+  await Promise.all(faltam.map(x => sb.functions.invoke('ideia-salvar', { body: { texto: x.link } }).catch(() => {})));
+  await _ideiasCarrega(true);
+  if (planModo === 'ideias') renderIdeias();
 }
 
 async function arquivarIdeia(id) {
