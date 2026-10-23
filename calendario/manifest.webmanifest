@@ -2,8 +2,8 @@
   "id": "shai-calendario",
   "name": "Shai Calendário",
   "short_name": "Calendário",
-  "start_url": "/index.html",
-  "scope": "/",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#f4f3f1",
   "theme_color": "#f4f3f1",
@@ -14,7 +14,7 @@
     { "src": "assets/icon-calendario.svg", "type": "image/svg+xml", "sizes": "any" }
   ],
   "share_target": {
-    "action": "/index.html",
+    "action": "./index.html",
     "method": "GET",
     "params": { "title": "title", "text": "text", "url": "url" }
   }
