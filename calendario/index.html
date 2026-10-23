@@ -1139,8 +1139,9 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
 }
 .feed-cell.sel { outline: 3px solid var(--accent); outline-offset: -3px; }
 /* janela do player do Instagram */
+/* altura em vh precisa descontar o zoom de tela grande, senão a janela passa do fim da tela */
 .modal-overlay.center .modal.ver-modal {
-  max-width: 420px; padding: 12px 12px 14px; max-height: 94vh; overflow-y: auto;
+  max-width: 420px; padding: 12px 12px 14px; max-height: calc(94vh / var(--escala, 1)); overflow-y: auto;
 }
 .ver-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .ver-titulo { flex: 1; font-size: .9rem; font-weight: 600; }
@@ -1156,8 +1157,8 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
   display: flex; align-items: center; justify-content: center;
   font-size: .8rem; color: var(--text-muted);
 }
-.ver-player iframe { position: relative; display: block; width: 100%; height: min(72vh, 640px); border: 0; background: transparent; }
-.ver-player video { display: block; width: 100%; max-height: min(72vh, 640px); background: #000; }
+.ver-player iframe { position: relative; display: block; width: 100%; height: min(calc(58vh / var(--escala, 1)), 600px); border: 0; background: transparent; }
+.ver-player video { display: block; width: 100%; max-height: min(calc(58vh / var(--escala, 1)), 600px); background: #000; }
 .ver-sem { padding: 40px 16px; text-align: center; font-size: .82rem; color: var(--text-muted); }
 .ver-aviso {
   display: flex; gap: 8px; align-items: flex-start; margin: 10px 2px 0; padding: 8px 10px;
@@ -1171,8 +1172,8 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
 .ver-nums span { font-size: .64rem; color: var(--text-muted); }
 .ver-ideia { margin: 12px 2px 0; font-size: .85rem; line-height: 1.45; }
 .ver-ideia span { display: block; font-size: .64rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-bottom: 2px; }
-.ver-acoes { display: flex; gap: 8px; margin-top: 12px; }
-.ver-acoes .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; font-size: .84rem; padding: 11px; }
+.ver-acoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.ver-acoes .btn { flex: 1 1 140px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; font-size: .84rem; padding: 11px; white-space: nowrap; }
 @media (max-width: 520px) {
   .modal-overlay.center:has(.ver-modal) { padding: 0 8px; }
   .ver-player iframe { height: min(64vh, 600px); }
@@ -1204,7 +1205,7 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
 .ideias-vazio .met-link { display: block; margin: 8px auto 0; }
 .ideias-usadas-btn { margin: 12px auto 0; display: flex; align-items: center; gap: 5px; background: none; border: none; cursor: pointer; font-family: inherit; font-size: .78rem; color: var(--text-2); }
 /* janela "Como mandar" */
-.modal-overlay.center .modal.ajuda-modal { max-width: 520px; max-height: 90vh; overflow-y: auto; }
+.modal-overlay.center .modal.ajuda-modal { max-width: 520px; max-height: calc(90vh / var(--escala, 1)); overflow-y: auto; }
 .ajuda-sub { font-size: .8rem; color: var(--text-2); margin-bottom: 14px; }
 .ajuda-bloco { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; }
 .ajuda-tit { font-weight: 600; font-size: .86rem; display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
@@ -1767,7 +1768,7 @@ textarea.form-input { resize: none; height: 76px; }
   display: flex; align-items: center; gap: 3px;
 }
 /* janela "mandar pro Tarefas" */
-.ctf-modal { max-width: 640px !important; max-height: 88vh; overflow-y: auto; }
+.ctf-modal { max-width: 640px !important; max-height: calc(88vh / var(--escala, 1)); overflow-y: auto; }
 .ctf-sub { font-size: .8rem; color: var(--text-2); margin-bottom: 4px; }
 .ctf-ajuda { font-size: .74rem; color: var(--text-muted); margin-bottom: 12px; }
 .ctf-col {
