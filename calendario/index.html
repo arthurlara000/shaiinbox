@@ -1281,8 +1281,46 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
 .sl-prev { margin-top: 8px; display: flex; align-items: center; gap: 10px; font-size: .78rem; color: var(--text-2); }
 .sl-prev:empty { display: none; }
 .sl-prev img { width: 54px; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 4px; }
+/* Montar minha semana (IA): faixa na grade, post sugerido e janelas */
+.feed-montar { display: flex; align-items: center; gap: 10px; margin: 0 16px 14px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; }
+.feed-montar:empty { display: none; }
+.feed-montar-txt { flex: 1; min-width: 0; font-size: .78rem; color: var(--text-2); line-height: 1.35; }
+.feed-montar-txt b { display: block; font-size: .86rem; color: var(--text); font-weight: 600; }
+.feed-montar .btn-sm-choco { display: inline-flex; align-items: center; gap: 5px; }
+.feed-cell.sugestao {
+  display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 26px 10px 30px;
+  background: var(--surface2); text-align: left; outline: 1.5px dashed var(--caramel); outline-offset: -6px;
+}
+.feed-cell.sugestao img { position: absolute; inset: 0; opacity: .18; }
+.feed-sug-tit { position: relative; font-size: .76rem; font-weight: 600; color: var(--text); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.feed-sug-fmt { position: relative; font-size: .64rem; color: var(--text-muted); display: flex; align-items: center; gap: 3px; }
+.feed-sug-tag { background: var(--choco); }
+.mt-dias { display: flex; flex-wrap: wrap; gap: 6px; }
+.mt-carregando { padding: 26px 8px; text-align: center; font-size: .84rem; color: var(--text-2); line-height: 1.5; }
+.mt-carregando .ti { display: block; margin: 0 auto 10px; font-size: 1.6rem; color: var(--caramel); animation: girar 1.2s linear infinite; width: max-content; }
+.mt-leitura { border-left: 3px solid var(--caramel); background: var(--surface2); padding: 10px 12px; font-size: .84rem; line-height: 1.5; margin-bottom: 12px; }
+.mt-leitura span, .sug-rot { display: block; font-size: .64rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-bottom: 3px; }
+.mt-lista { display: flex; flex-direction: column; gap: 1px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; background: var(--border); }
+.mt-lista div { background: var(--surface); padding: 8px 10px; font-size: .8rem; display: flex; gap: 8px; }
+.mt-lista b { font-variant-numeric: tabular-nums; min-width: 52px; color: var(--text-2); font-weight: 600; }
+.modal-overlay.center .modal.sug-modal { max-width: 480px; max-height: calc(92vh / var(--escala, 1)); overflow-y: auto; }
+.sug-top { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
+.sug-top .modal-title { flex: 1; margin: 0; }
+.sug-sub { font-size: .76rem; color: var(--text-muted); margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+.sug-bloco { margin-bottom: 12px; font-size: .86rem; line-height: 1.5; }
+.sug-gancho { font-size: .95rem; font-weight: 600; }
+.sug-cenas { padding-left: 20px; }
+.sug-cenas li { margin-bottom: 3px; }
+.sug-legenda { white-space: pre-wrap; background: var(--surface2); border-radius: 6px; padding: 10px 12px; font-size: .82rem; }
+.sug-copiar { margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; }
+.sug-porque { font-size: .78rem; color: var(--text-2); display: flex; gap: 6px; }
+.sug-porque .ti { color: var(--caramel); margin-top: 2px; }
+.sug-ref { display: flex; align-items: center; gap: 10px; font-size: .8rem; color: var(--text-2); }
+.sug-ref img { width: 44px; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 4px; }
+.sug-acoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.sug-acoes .btn { flex: 1 1 130px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: .84rem; padding: 11px; }
 .sl-erro { color: var(--red); }
-.sl-buscando .ti { display: inline-block; animation: girar 1s linear infinite; }
+.sl-buscando .ti, .ti.girando { display: inline-block; animation: girar 1s linear infinite; }
 @keyframes girar { to { transform: rotate(360deg); } }
 .feed-cell.sel::after { content: ''; position: absolute; inset: 0; background: rgba(92,61,40,.2); }
 .feed-legenda {
@@ -2210,6 +2248,7 @@ textarea.form-input { resize: none; height: 76px; }
         </div>
       </div>
       <div class="feed-placar" id="feed-placar"></div>
+      <div class="feed-montar" id="feed-montar"></div>
       <div class="feed-aviso" id="feed-aviso">Toque em dois posts para trocar um pelo outro.</div>
       <div class="feed-grid" id="feed-grid"></div>
       <div class="feed-legenda">
@@ -2403,6 +2442,16 @@ textarea.form-input { resize: none; height: 76px; }
       <button class="btn btn-primary" id="sl-salvar" onclick="salvarSlot()">Salvar no quadro</button>
     </div>
   </div>
+</div>
+
+<!-- MODAL: MONTAR MINHA SEMANA (a IA preenche os dias vazios da grade) -->
+<div class="modal-overlay center" id="modal-montar">
+  <div class="modal slot-modal" id="mt-corpo"></div>
+</div>
+
+<!-- MODAL: POST SUGERIDO PELA IA (roteiro para quem vai gravar) -->
+<div class="modal-overlay center" id="modal-sug">
+  <div class="modal sug-modal" id="sug-corpo"></div>
 </div>
 
 <!-- VIEW: MÉTRICAS DO INSTAGRAM -->
@@ -5875,6 +5924,16 @@ function _feedCellHTML(p, i) {
     return `<button class="feed-cell vazio" onclick="feedToque(${i})" title="Planejar um post para ${_ROT_DIA(p.data)}">
       <i class="ti ti-plus" aria-hidden="true"></i><span class="feed-vazio-dia">${_ROT_DIA(p.data)}</span></button>`;
   }
+  // sugestão da IA ainda não aprovada: título do post sobre a capa da referência (se tiver)
+  if (!p.real && p.midia.sug && !p.midia.sug.ok) {
+    const [, mm, dd] = p.data.split('-').map(Number);
+    return `<button class="feed-cell sugestao${_feedSel === i ? ' sel' : ''}" onclick="feedToque(${i})" title="${_attr(p.midia.sug.titulo)}">
+      ${p.midia.capa ? `<img src="${String(p.midia.capa).replace(/"/g, '%22')}" alt="" loading="lazy">` : ''}
+      <span class="feed-ref-tag feed-sug-tag">sugestão</span>
+      <span class="feed-sug-tit">${_esc(p.midia.sug.titulo)}</span>
+      <span class="feed-sug-fmt"><i class="ti ti-sparkles" aria-hidden="true"></i>${_FMT_SUG[p.midia.formato] || ''}</span>
+      ${_feedLixeira(i)}<span class="feed-data">${pad(dd)}/${pad(mm)}</span></button>`;
+  }
   // referência de outro perfil: mostra a capa dela, marcada como "referência" (falta gravar o da Shai)
   if (!p.real && p.midia.ref && p.midia.capa) {
     const [, mm, dd] = p.data.split('-').map(Number);
@@ -5921,6 +5980,7 @@ function renderFeed() {
     + `<span><b>${prontos}</b> prontos</span><span><b>${gravar}</b> a gravar</span>`;
   document.getElementById('feed-leg-ig').style.display = noIg ? '' : 'none';
   document.getElementById('feed-placar').innerHTML = _placarHTML();
+  document.getElementById('feed-montar').innerHTML = _montarFaixaHTML();
   const fmt = ds => { const [, m, d] = ds.split('-').map(Number); return `${pad(d)}/${pad(m)}`; };
   document.getElementById('feed-sub').textContent = n
     ? `${fmt(_feedLista[n - 1].data)} – ${fmt(_feedLista[0].data)}` : '';
@@ -6384,11 +6444,8 @@ async function salvarSlot() {
   btn.disabled = true;
   try {
     const b = await _quadroSemanaDe(ds);
-    const col = (new Date(y, m - 1, d).getDay() + 6) % 7;
-    const x = PLAN_X0 + col * PLAN_COLW;
-    // entra embaixo do que já existe na coluna (o quadro reorganiza ao abrir)
-    const daCol = (b.canvas || []).filter(e => e.type !== 'add' && Math.round(((e.x || 0) - PLAN_X0) / PLAN_COLW) === col && !_ehTplElSemanal(e));
-    let yBase = daCol.length ? Math.max(...daCol.map(e => (e.y || 0) + (e.h || 170))) + 14 : 150;
+    const { x, y: y0 } = _lugarNoDia(b.canvas || [], ds);
+    let yBase = y0;
     const novos = [];
     if (ideia) { novos.push({ id: _uid(), type: 'text', x, y: yBase, w: 190, h: 60, content: ideia, color: '' }); yBase += 74; }
     const midia = ref
@@ -6425,6 +6482,228 @@ function _ehTplElSemanal(e) {
   return t === 'planejamento semanal' || DIAS_TPL.some(n => n.toLowerCase() === t);
 }
 
+// onde entra um post novo no quadro da semana: coluna do dia, embaixo do que já existe (o quadro reorganiza ao abrir)
+function _lugarNoDia(canvas, ds) {
+  const [y, m, d] = ds.split('-').map(Number);
+  const col = (new Date(y, m - 1, d).getDay() + 6) % 7;
+  const daCol = canvas.filter(e => e.type !== 'add' && Math.round(((e.x || 0) - PLAN_X0) / PLAN_COLW) === col && !_ehTplElSemanal(e));
+  return { x: PLAN_X0 + col * PLAN_COLW, y: daCol.length ? Math.max(...daCol.map(e => (e.y || 0) + (e.h || 170))) + 14 : 150 };
+}
+
+// ── MONTAR MINHA SEMANA (IA) ──────────────────────────
+// a função montar-semana olha os posts da Shai, as ideias salvas e a agenda e monta um post por dia vazio;
+// cada post entra no quadro como sugestão: texto com o roteiro + caixa de vídeo/foto com tudo em midia.sug
+// (sug.ok = aprovado). Ideia salva usada vira a referência do post, como no "Planejar post".
+const _MT_JANELA = 7; // dias à frente que o "Montar minha semana" preenche
+const _FMT_SUG = { reel: 'Reel', carrossel: 'Carrossel', foto: 'Foto' };
+let _mtDias = [], _mtPedido = '', _mtRodando = false, _sugI = null;
+
+const _somaDias = (ds, n) => { const [y, m, d] = ds.split('-').map(Number); return iso(new Date(y, m - 1, d + n)); };
+const _mtVazios = () => _feedLista.filter(p => p.vazio && p.data <= _somaDias(today, _MT_JANELA - 1)).map(p => p.data).sort();
+
+// faixa embaixo do placar: chama para montar a semana (ou lembra das sugestões que faltam aprovar)
+function _montarFaixaHTML() {
+  const n = _mtVazios().length;
+  const pend = _feedLista.filter(p => !p.real && !p.vazio && p.midia.sug && !p.midia.sug.ok).length;
+  if (n) return `<div class="feed-montar-txt"><b>${n} ${n === 1 ? 'dia vazio' : 'dias vazios'} nos próximos 7 dias</b>A IA monta os posts olhando o que deu certo na Shai</div>
+    <button class="btn-sm-choco" onclick="abrirMontar()"><i class="ti ti-sparkles"></i> Montar minha semana</button>`;
+  return pend ? `<div class="feed-montar-txt"><b>${pend} ${pend === 1 ? 'sugestão' : 'sugestões'} para aprovar</b>Toque no post para ver o roteiro</div>` : '';
+}
+
+function abrirMontar() {
+  _mtDias = _mtVazios();
+  _mtPedido = '';
+  _mtFormHTML();
+  openModal('modal-montar');
+}
+
+function _mtFormHTML() {
+  const n = _mtDias.length;
+  document.getElementById('mt-corpo').innerHTML = `
+    <div class="modal-title" style="margin-bottom:6px">Montar minha semana</div>
+    <div class="ajuda-sub">A IA olha os posts da Shai dos últimos 60 dias, as ideias salvas e a agenda, e monta um post para cada dia marcado. Depois você aprova um por um.</div>
+    <div class="form-group"><label class="form-label">Dias</label>
+      <div class="mt-dias">${_mtVazios().map(ds => `<button class="iq-chip${_mtDias.includes(ds) ? ' on' : ''}" onclick="_mtDia('${ds}')">${_ROT_DIA(ds)}</button>`).join('')}</div></div>
+    <div class="form-group"><label class="form-label">Algum foco essa semana? <span style="font-weight:400">(opcional)</span></label>
+      <textarea class="form-input" id="mt-pedido" oninput="_mtPedido=this.value" placeholder="Ex: aquecer a Sexta na Vinícola e mostrar as peças de renda">${_esc(_mtPedido)}</textarea></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal('modal-montar')">Cancelar</button>
+      <button class="btn btn-primary" onclick="montarSemana()"${n ? '' : ' disabled'}><i class="ti ti-sparkles"></i> Montar ${n} ${n === 1 ? 'post' : 'posts'}</button>
+    </div>`;
+}
+
+function _mtDia(ds) {
+  _mtDias = _mtDias.includes(ds) ? _mtDias.filter(d => d !== ds) : _mtDias.concat(ds).sort();
+  _mtFormHTML();
+}
+
+// o que a IA precisa saber além do banco: datas e eventos da agenda e o que já está planejado (menos o post que vai sair)
+function _mtContexto(dias, semPost) {
+  const fim = _somaDias(dias[dias.length - 1], 21);
+  const anos = [...new Set([today, fim].map(d => Number(d.slice(0, 4))))];
+  const datas = anos.flatMap(allEventos).filter(e => e.data >= today && e.data <= fim)
+    .sort((a, b) => a.data.localeCompare(b.data)).map(e => ({ data: e.data, titulo: e.titulo, desc: e.desc || e.descricao || '' }));
+  const planejados = _feedLista.filter(p => !p.real && !p.vazio && p !== semPost && p.data >= _somaDias(today, -7))
+    .map(p => ({ data: p.data, texto: [p.legenda, p.midia.sug && p.midia.sug.gancho].filter(Boolean).join(' — ') || (p.midia.ref ? 'referência de outro perfil' : 'post sem descrição') }));
+  return { datas, planejados };
+}
+
+async function _mtPedir(body) {
+  const { data, error } = await sb.functions.invoke('montar-semana', { body });
+  let msg = data && data.mensagem;
+  try { if (!msg && error && error.context) msg = (await error.context.json()).mensagem; } catch (e) { /* sem corpo */ }
+  if (error || !data || !data.ok) throw new Error(msg || 'A IA não respondeu — tente de novo');
+  if (!data.posts || !data.posts.length) throw new Error('A IA não devolveu nenhum post — tente de novo');
+  return data;
+}
+
+const _sugTexto = s => [s.titulo, 'Gancho: ' + s.gancho, ...(s.cenas || []).map((c, k) => `${k + 1}. ${c}`), s.peca ? 'Peça: ' + s.peca : '']
+  .filter(Boolean).join('\n');
+
+// texto com o roteiro + caixa de vídeo/foto (com a ideia salva como referência, se a IA usou uma)
+function _sugElementos(canvas, s, ideia) {
+  const { x, y } = _lugarNoDia(canvas, s.data);
+  const sug = { titulo: s.titulo, gancho: s.gancho, cenas: s.cenas, legenda: s.legenda, peca: s.peca, porque: s.porque, ok: false };
+  const base = { id: _uid(), x, y: y + 74, w: 190, h: 250, formato: s.formato, st: 'ideia', sug };
+  const midia = ideia
+    ? { ...base, type: 'video', url: ideia.link, ref: true, ...(ideia.capa ? { capa: ideia.capa } : {}) }
+    : { ...base, type: s.formato === 'reel' ? 'video' : 'photo', url: '' };
+  return [{ id: _uid(), type: 'text', x, y, w: 190, h: 60, content: _sugTexto(s), color: '' }, midia];
+}
+
+async function _marcarIdeia(ideia, ds) {
+  if (!ideia) return;
+  const muda = ds ? { status: 'usada', usada_em: ds } : { status: 'nova', usada_em: null };
+  await sb.from('ideias').update(muda).eq('id', ideia.id);
+  Object.assign(ideia, muda);
+}
+
+async function montarSemana() {
+  if (_mtRodando || !_mtDias.length) return;
+  _mtRodando = true;
+  const dias = _mtDias.slice();
+  document.getElementById('mt-corpo').innerHTML = `<div class="mt-carregando"><i class="ti ti-loader-2"></i>
+    A IA está olhando os posts da Shai, as ideias salvas e a agenda…<br>Leva mais ou menos um minuto.</div>`;
+  try {
+    await _ideiasCarrega(true);
+    const plano = await _mtPedir({ dias, pedido: _mtPedido.trim(), ..._mtContexto(dias) });
+    // monta os quadros novos primeiro e só troca na memória depois de gravar
+    const novos = new Map();
+    for (const s of plano.posts) {
+      const b = await _quadroSemanaDe(s.data);
+      const ideia = s.ideia_id && ideiasLista.find(x => x.id === s.ideia_id);
+      const atual = novos.has(b) ? novos.get(b) : (b.canvas || []);
+      novos.set(b, atual.concat(_sugElementos(atual, s, ideia)));
+    }
+    for (const [b, canvas] of novos) {
+      const { error } = await sb.from('eventos_loja').update({ canvas }).eq('id', b.id);
+      if (error) throw error;
+      b.canvas = canvas;
+    }
+    for (const s of plano.posts) await _marcarIdeia(s.ideia_id && ideiasLista.find(x => x.id === s.ideia_id), s.data);
+    _ideiasContador();
+    renderFeed();
+    document.getElementById('mt-corpo').innerHTML = `
+      <div class="modal-title" style="margin-bottom:10px">Semana montada ✓</div>
+      ${plano.leitura ? `<div class="mt-leitura"><span>O que está funcionando na Shai</span>${_esc(plano.leitura)}</div>` : ''}
+      <div class="mt-lista">${plano.posts.map(s => `<div><b>${_ROT_DIA(s.data)}</b><span>${_esc(s.titulo)} · ${_FMT_SUG[s.formato] || ''}</span></div>`).join('')}</div>
+      <div class="ajuda-sub" style="margin:10px 0 0">Os posts entraram na grade como sugestão. Toque em cada um para ver o roteiro e aprovar ou pedir outra ideia.</div>
+      <div class="btn-row"><button class="btn btn-primary" onclick="closeModal('modal-montar')">Ver na grade</button></div>`;
+  } catch (e) {
+    document.getElementById('mt-corpo').innerHTML = `<div class="modal-title" style="margin-bottom:8px">Não deu certo</div>
+      <div class="sl-erro" style="font-size:.86rem;margin-bottom:14px">${_esc(e.message || String(e))}</div>
+      <div class="btn-row"><button class="btn btn-ghost" onclick="closeModal('modal-montar')">Fechar</button>
+        <button class="btn btn-primary" onclick="_mtFormHTML()">Tentar de novo</button></div>`;
+  } finally {
+    _mtRodando = false;
+  }
+}
+
+// janela do post sugerido: roteiro para quem vai gravar + aprovar / outra ideia
+function abrirSug(i) {
+  const p = _feedLista[i];
+  if (!p || !p.midia.sug) return;
+  _sugI = i;
+  const s = p.midia.sug;
+  const bloco = (rot, html) => `<div class="sug-bloco"><span class="sug-rot">${rot}</span>${html}</div>`;
+  document.getElementById('sug-corpo').innerHTML = `
+    <div class="sug-top"><div class="modal-title">${_esc(s.titulo)}</div>
+      <button class="ver-x" onclick="closeModal('modal-sug')" aria-label="Fechar"><i class="ti ti-x"></i></button></div>
+    <div class="sug-sub"><span>${_ROT_DIA(p.data)}</span><span>${_FMT_SUG[p.midia.formato] || ''}</span>
+      ${s.ok ? '<span style="color:var(--green)">✓ aprovado</span>' : '<span><i class="ti ti-sparkles"></i> sugestão da IA</span>'}</div>
+    ${bloco(p.midia.formato === 'reel' ? 'Gancho — primeiros 3 segundos' : 'Capa', `<div class="sug-gancho">${_esc(s.gancho)}</div>`)}
+    ${bloco(p.midia.formato === 'reel' ? 'Cenas para gravar' : 'Fotos', `<ol class="sug-cenas">${(s.cenas || []).map(c => `<li>${_esc(c)}</li>`).join('')}</ol>`)}
+    ${s.peca ? bloco('Peça', _esc(s.peca)) : ''}
+    ${p.midia.ref && p.midia.url ? bloco('Referência — ideia salva', `<div class="sug-ref">${p.midia.capa ? `<img src="${_attr(p.midia.capa)}" alt="">` : ''}
+      <button class="btn-sm-choco" onclick="closeModal('modal-sug');_verReferencia(_feedLista[${i}], ${i})"><i class="ti ti-player-play"></i> Ver o vídeo</button></div>`) : ''}
+    ${bloco('Legenda pronta', `<div class="sug-legenda">${_esc(s.legenda)}</div>
+      <button class="btn-sm-choco sug-copiar" onclick="_sugCopiar()"><i class="ti ti-copy"></i> Copiar legenda</button>`)}
+    ${s.porque ? `<div class="sug-porque"><i class="ti ti-chart-bar"></i><span>${_esc(s.porque)}</span></div>` : ''}
+    <div class="sug-acoes">
+      ${s.ok ? '' : '<button class="btn btn-primary" onclick="aprovarSug()"><i class="ti ti-check"></i> Aprovar</button>'}
+      <button class="btn btn-ghost" id="sug-outra" onclick="outraSug()"><i class="ti ti-refresh"></i> Outra ideia</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-sug');_feedAbrirQuadro(${i})"><i class="ti ti-layout-board-split"></i> Abrir no quadro</button>
+    </div>`;
+  openModal('modal-sug');
+}
+
+async function _sugCopiar() {
+  const p = _feedLista[_sugI];
+  if (!p) return;
+  try { await navigator.clipboard.writeText(p.midia.sug.legenda); showToast('Legenda copiada'); }
+  catch (e) { showToast('Não consegui copiar — segure o dedo no texto para copiar', 'error'); }
+}
+
+async function aprovarSug() {
+  const p = _feedLista[_sugI];
+  if (!p) return;
+  p.midia.sug.ok = true;
+  const { error } = await sb.from('eventos_loja').update({ canvas: p.board.canvas }).eq('id', p.board.id);
+  if (error) { p.midia.sug.ok = false; showToast('Erro: ' + error.message, 'error'); return; }
+  closeModal('modal-sug');
+  renderFeed();
+  showToast('Aprovado — já está no quadro para gravar');
+}
+
+// pede outro post para o mesmo dia; o novo fica no lugar do antigo e a ideia que ele usava volta para as Ideias
+async function outraSug() {
+  const p = _feedLista[_sugI];
+  if (!p || _mtRodando) return;
+  const btn = document.getElementById('sug-outra');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2 girando"></i> Pensando…';
+  _mtRodando = true;
+  try {
+    await _ideiasCarrega(true);
+    const s0 = p.midia.sug;
+    const plano = await _mtPedir({ dias: [p.data], evitar: [`${s0.titulo} — ${s0.gancho}`], pedido: _mtPedido.trim(), ..._mtContexto([p.data], p) });
+    const s = plano.posts[0];
+    const velha = p.midia.ref && ideiasLista.find(x => x.status === 'usada' && x.link === p.midia.url);
+    const nova = s.ideia_id && ideiasLista.find(x => x.id === s.ideia_id);
+    const resto = p.board.canvas.filter(e => !p.els.includes(e));
+    const els = _sugElementos(resto, s, nova);
+    // mesmo lugar do antigo na fila do dia (frações mantêm a ordem; o quadro renumera ao abrir)
+    const y0 = Math.min(...p.els.map(e => e.y || 0));
+    els[0].y = y0; els[1].y = y0 + 0.01;
+    const canvas = resto.concat(els);
+    const { error } = await sb.from('eventos_loja').update({ canvas }).eq('id', p.board.id);
+    if (error) throw error;
+    p.board.canvas = canvas;
+    if (velha && velha !== nova) await _marcarIdeia(velha, null);
+    await _marcarIdeia(nova, p.data);
+    _ideiasContador();
+    renderFeed();
+    const i = _feedLista.findIndex(q => q.midia === els[1]);
+    if (i >= 0) abrirSug(i); else closeModal('modal-sug');
+  } catch (e) {
+    showToast('Erro: ' + (e.message || e), 'error');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-refresh"></i> Outra ideia';
+  } finally {
+    _mtRodando = false;
+  }
+}
+
 function toggleFeedTrocar() {
   _feedTrocando = !_feedTrocando;
   _feedSel = null;
@@ -6451,8 +6730,9 @@ function feedToque(i) {
   // post que já está no Instagram: toca aqui dentro com os números (não entra na troca de ordem)
   if (p.real) { if (!_feedTrocando && p.link) _verPostReal(p); return; }
   if (!_feedTrocando) {
-    // referência do Instagram: toca o vídeo aqui dentro; o resto abre o quadro no dia do post
-    if (p.midia.ref && _igEmbed(p.midia.url)) _verReferencia(p, i);
+    // post montado pela IA: abre o roteiro; referência do Instagram: toca o vídeo aqui dentro; o resto abre o quadro
+    if (p.midia.sug) abrirSug(i);
+    else if (p.midia.ref && _igEmbed(p.midia.url)) _verReferencia(p, i);
     else _feedAbrirQuadro(i);
     return;
   }
