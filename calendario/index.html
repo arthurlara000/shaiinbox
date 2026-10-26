@@ -1133,6 +1133,14 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
 /* referência de outro perfil: capa esmaecida + etiqueta */
 .feed-cell.referencia img { opacity: .55; filter: saturate(.6); }
 .feed-cell.referencia { outline: 1.5px dashed var(--caramel); outline-offset: -6px; }
+.feed-lixeira {
+  position: absolute; right: 6px; bottom: 6px; z-index: 3; width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: .9rem; color: #fff;
+  background: rgba(29,25,21,.55); cursor: pointer;
+}
+.feed-lixeira:hover { background: var(--red); }
+.feed-cell.gravar .feed-lixeira { color: var(--text-2); background: var(--surface3); }
+.feed-cell.gravar .feed-lixeira:hover { color: #fff; background: var(--red); }
 .feed-ref-tag {
   position: absolute; top: 8px; left: 8px; padding: 1px 6px; border-radius: 3px;
   font-size: .6rem; font-weight: 600; color: #fff; background: var(--caramel);
@@ -5834,6 +5842,29 @@ function _feedCapa(m, pid) {
 
 const _ROT_DIA = ds => { const [y, m, d] = ds.split('-').map(Number); return `${DOWS[new Date(y, m - 1, d).getDay()]} ${d}/${m}`; };
 
+// lixeira dos posts planejados (some no modo de trocar a ordem)
+const _feedLixeira = i => _feedTrocando ? ''
+  : `<span class="feed-lixeira" role="button" title="Tirar do planejamento" onclick="event.stopPropagation();apagarPostPlanejado(${i})"><i class="ti ti-trash"></i></span>`;
+
+// tira o post do quadro da semana (o vídeo/foto e o texto junto dele); se veio de uma ideia, ela volta pras Ideias
+async function apagarPostPlanejado(i) {
+  const p = _feedLista[i];
+  if (!p || !p.board) return;
+  if (!confirm(`Tirar este post de ${_ROT_DIA(p.data)} do planejamento?`)) return;
+  const canvas = (p.board.canvas || []).filter(e => !p.els.includes(e));
+  const { error } = await sb.from('eventos_loja').update({ canvas }).eq('id', p.board.id);
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  p.board.canvas = canvas;
+  const ideia = p.midia.url && (ideiasLista || []).find(x => x.status === 'usada' && x.link === p.midia.url);
+  if (ideia) {
+    await sb.from('ideias').update({ status: 'nova', usada_em: null }).eq('id', ideia.id);
+    ideia.status = 'nova'; ideia.usada_em = null;
+    _ideiasContador();
+  }
+  renderFeed();
+  showToast(ideia ? 'Post tirado — a ideia voltou para as Ideias' : 'Post tirado do planejamento');
+}
+
 function _feedCellHTML(p, i) {
   if (p.vazio) {
     return `<button class="feed-cell vazio" onclick="feedToque(${i})" title="Planejar um post para ${_ROT_DIA(p.data)}">
@@ -5844,7 +5875,7 @@ function _feedCellHTML(p, i) {
     const [, mm, dd] = p.data.split('-').map(Number);
     return `<button class="feed-cell referencia${_feedSel === i ? ' sel' : ''}" onclick="feedToque(${i})" title="${_attr(p.legenda || 'Referência')}">
       <img src="${String(p.midia.capa).replace(/"/g, '%22')}" alt="" loading="lazy">
-      <span class="feed-ref-tag">referência</span><span class="feed-data">${pad(dd)}/${pad(mm)}</span></button>`;
+      <span class="feed-ref-tag">referência</span>${_feedLixeira(i)}<span class="feed-data">${pad(dd)}/${pad(mm)}</span></button>`;
   }
   if (p.real) {
     const [, rm, rd] = p.data.split('-').map(Number);
@@ -5861,7 +5892,7 @@ function _feedCellHTML(p, i) {
   if (st === 'gravar') {
     return `<button class="feed-cell gravar${sel}" onclick="feedToque(${i})" title="${titulo}">
       <i class="ti ${p.midia.type === 'video' ? 'ti-video' : 'ti-camera'}" aria-hidden="true"></i>
-      <span class="feed-gravar-txt">a gravar</span>
+      <span class="feed-gravar-txt">a gravar</span>${_feedLixeira(i)}
       <span class="feed-data">${dataTxt}</span></button>`;
   }
   const pid = 'fd' + i;
@@ -5869,7 +5900,7 @@ function _feedCellHTML(p, i) {
   const semCapa = !capa && p.midia.type === 'video' ? ' sem-capa' : '';
   const ico = p.midia.type === 'video' ? '<i class="ti ti-movie feed-ico" aria-hidden="true"></i>' : '';
   return `<button class="feed-cell${semCapa}${sel}" id="${pid}" onclick="feedToque(${i})" title="${titulo}">
-    ${capa}${ico}<span class="feed-data">${dataTxt}</span><span class="feed-bar ${st}"></span></button>`;
+    ${capa}${ico}${_feedLixeira(i)}<span class="feed-data">${dataTxt}</span><span class="feed-bar ${st}"></span></button>`;
 }
 
 function renderFeed() {
@@ -6393,7 +6424,7 @@ function toggleFeedTrocar() {
   _feedTrocando = !_feedTrocando;
   _feedSel = null;
   _feedAtualizarModo();
-  _feedMarcaSel();
+  renderFeed(); // tira/põe as lixeiras (no modo de trocar elas somem)
 }
 
 function _feedAtualizarModo() {
