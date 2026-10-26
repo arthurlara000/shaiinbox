@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shai · Painel</title>
+<link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+<meta name="theme-color" content="#f4f3f1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* Painel para a TV do escritório: tela cheia 16:9, sem rolagem, letras grandes,
+   atualiza sozinho. Mesmo visual do Manager (base neutra, cor fixa por loja). */
+:root {
+  --bg: #f4f3f1; --surface: #fff; --surface2: #f7f6f4; --surface3: #eeece8;
+  --border: #e3e0db; --border-strong: #cfcac2;
+  --text: #1d1915; --text-2: #57504a; --text-muted: #8a827a;
+  --accent: #5c3d28; --caramel: #a5713d;
+  --red: #b23b36; --green: #2e7a55; --yellow: #9a6a1c;
+  --loja1: #2f6aa3; --loja2: #b4553b; --site: #3a7d74;
+  --meta: #2e7a55; --super: #9a6a1c; --mega: #a5713d;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: clamp(11px, min(0.8vw, 1.6vh), 26px); }
+body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', system-ui, sans-serif; line-height: 1.35;
+  -webkit-font-smoothing: antialiased; height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-variant-numeric: tabular-nums; }
+body.tv { cursor: none; }
+
+.topo { display: flex; align-items: center; justify-content: space-between; padding: 1rem 2rem .8rem; }
+.marca { display: flex; align-items: baseline; gap: .7rem; }
+.marca b { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--accent); font-weight: 600; }
+.marca span { font-size: 1.05rem; color: var(--text-2); font-weight: 500; }
+.relogio { text-align: right; }
+.relogio .hora { font-size: 2rem; font-weight: 600; letter-spacing: -.02em; }
+.relogio .data { font-size: .95rem; color: var(--text-muted); }
+
+.grade { flex: 1; min-height: 0; display: grid; gap: 1rem; padding: 0 2rem; grid-template-columns: repeat(12, 1fr); grid-template-rows: auto 1.1fr 1fr; }
+.painel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: .95rem 1.3rem; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.painel h2 { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; font-size: 1.15rem; font-weight: 600; margin-bottom: .8rem; }
+.painel h2 small { font-size: .85rem; font-weight: 400; color: var(--text-muted); }
+.mes { grid-column: span 8; } .sem { grid-column: span 4; } .graf { grid-column: span 5; } .vend { grid-column: span 3; } .cats { grid-column: span 4; }
+
+.dot { display: inline-block; width: .6rem; height: .6rem; border-radius: 50%; margin-right: .4rem; vertical-align: .05rem; }
+.dot.ar { background: var(--loja1); } .dot.tr { background: var(--loja2); } .dot.st { background: var(--site); }
+.muted { color: var(--text-muted); }
+.pos { color: var(--green); } .neg { color: var(--red); }
+
+/* MÊS: três colunas (Areal, Três Rios, Total) */
+.mes-cols { flex: 1; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0; }
+.mcol { padding: 0 1.3rem; border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: .6rem; justify-content: center; }
+.mcol:first-child { padding-left: 0; border-left: none; }
+.mcol:last-child { padding-right: 0; }
+.mcol .nome { font-size: 1rem; color: var(--text-2); font-weight: 500; }
+.mcol .grande { font-size: 2.2rem; font-weight: 600; letter-spacing: -.02em; line-height: 1.05; }
+.barra { position: relative; height: .7rem; background: var(--surface3); border-radius: 4px; margin: .2rem 0 .1rem; }
+.barra .enche { position: absolute; inset: 0 auto 0 0; border-radius: 4px; }
+.barra .proj { position: absolute; inset: 0 auto 0 0; border-radius: 4px; opacity: .25; }
+.barra .marca-m { position: absolute; top: -.25rem; width: 2px; height: 1.2rem; background: var(--text-2); }
+.linha { display: flex; justify-content: space-between; align-items: baseline; gap: .8rem; font-size: 1.1rem; }
+.linha .l { color: var(--text-2); }
+.linha .v { font-weight: 600; white-space: nowrap; }
+.sep { border-top: 1px solid var(--surface3); margin: .15rem 0; }
+
+/* com 3 canais (lojas + site) tudo fica um pouco mais compacto */
+.c3 .mcol .grande { font-size: 1.9rem; }
+.c3 .mcol { padding: 0 1rem; }
+.c3 .linha { font-size: 1rem; }
+.c3 .anel { width: min(100%, 8.6rem); }
+.c3 .anel .pc b { font-size: 2rem; }
+
+/* SEMANA */
+.sem-loja { flex: 1; display: flex; flex-direction: column; gap: .2rem; justify-content: center; }
+.sem-loja .faixas { display: none; }   /* com 3 canais não cabe; a barra já tem as marcas de Meta/Super/Mega */
+.sem-loja + .sem-loja { border-top: 1px solid var(--border); padding-top: .5rem; margin-top: .3rem; }
+.sem-cab { display: flex; justify-content: space-between; align-items: baseline; }
+.sem-cab .nome { font-size: 1rem; color: var(--text-2); font-weight: 500; }
+.sem-sit { font-size: .9rem; display: flex; align-items: baseline; gap: .5rem; }
+.sem-ant { font-size: .95rem; color: var(--text-2); white-space: nowrap; }
+.sem-ant b { color: var(--text); font-weight: 600; }
+.sem-cab .grande { font-size: 1.5rem; font-weight: 600; letter-spacing: -.02em; }
+.tier { display: inline-block; padding: .1rem .6rem; border-radius: 4px; font-size: .9rem; font-weight: 500; }
+.t-nenhum { background: var(--surface3); color: var(--text-muted); }
+.t-meta { background: color-mix(in srgb, var(--meta) 13%, transparent); color: var(--meta); }
+.t-super { background: color-mix(in srgb, var(--super) 14%, transparent); color: var(--super); }
+.t-mega { background: color-mix(in srgb, var(--mega) 16%, transparent); color: var(--mega); }
+.faixas { display: flex; justify-content: space-between; font-size: .85rem; color: var(--text-muted); }
+
+/* listas */
+.lista { flex: 1; display: flex; flex-direction: column; }
+.item { display: grid; grid-template-columns: 1.6rem 1fr auto auto; gap: .8rem; align-items: baseline; padding: .5rem 0; border-bottom: 1px solid var(--surface3); font-size: 1.05rem; }
+.item:last-child { border-bottom: none; }
+.item .pos-n { color: var(--text-muted); font-size: .95rem; text-align: right; }
+.item .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item .v1 { font-weight: 600; text-align: right; }
+.item .v2 { color: var(--text-muted); font-size: .9rem; text-align: right; min-width: 5.5rem; }
+.cat { display: grid; grid-template-columns: 8.5rem 1fr 4.6rem 3.6rem; gap: .7rem; align-items: center; padding: .25rem 0; font-size: 1rem; }
+.cat .bar { height: .75rem; background: var(--surface3); border-radius: 3px; overflow: hidden; }
+.cat .bar i { display: block; height: 100%; background: var(--caramel); border-radius: 3px; }
+.cat .n { text-align: right; font-weight: 600; }
+.cat .p { text-align: right; color: var(--text-muted); font-size: .9rem; }
+
+.kpis { display: grid; grid-template-columns: auto 1fr 1fr; gap: .15rem 1rem; font-size: .95rem; margin-bottom: .6rem; padding-bottom: .5rem; border-bottom: 1px solid var(--border); }
+.kpis .h { font-size: .85rem; color: var(--text-muted); text-align: right; }
+.kpis .k { color: var(--text-2); }
+.kpis .x { text-align: right; font-weight: 600; }
+.kpis .x small { font-weight: 400; font-size: .8rem; margin-left: .3rem; }
+
+/* META DA SEMANA: contador de quanto da meta já foi batido */
+.metas-sem { flex: 1; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 1rem; align-items: start; align-content: center; }
+.ms { display: flex; flex-direction: column; align-items: center; gap: .35rem; text-align: center; min-width: 0; }
+.ms .nome { font-size: 1rem; color: var(--text-2); font-weight: 500; }
+.anel { position: relative; width: min(100%, 9.8rem); aspect-ratio: 1; }
+.anel svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.anel .pc { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.anel .pc b { font-size: 2.4rem; font-weight: 600; letter-spacing: -.03em; line-height: 1; }
+.anel .pc span { font-size: .85rem; color: var(--text-muted); margin-top: .2rem; }
+.ms .val { font-size: 1rem; font-weight: 600; white-space: nowrap; }
+.ms .falta { font-size: .9rem; color: var(--text-2); line-height: 1.3; }
+.ms .falta b { color: var(--text); }
+
+/* HOJE AO VIVO: faixa com o que passa pelo caixa das lojas agora */
+.vivo { grid-column: span 12; flex-direction: row; align-items: stretch; padding: .9rem 1.3rem; gap: 0; }
+.v-cel { padding: 0 1.4rem; border-left: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; gap: .15rem; min-width: 0; }
+.v-cel:first-child { padding-left: 0; border-left: none; }
+.v-tit { font-size: 1.05rem; font-weight: 600; display: flex; align-items: center; gap: .5rem; white-space: nowrap; }
+.pulso { width: .7rem; height: .7rem; border-radius: 50%; background: var(--green); animation: pulso 2s infinite; }
+.pulso.off { background: var(--border-strong); animation: none; }
+@keyframes pulso { 0% { box-shadow: 0 0 0 0 rgba(46,122,85,.5); } 70% { box-shadow: 0 0 0 .6rem rgba(46,122,85,0); } 100% { box-shadow: 0 0 0 0 rgba(46,122,85,0); } }
+.v-l { font-size: .9rem; color: var(--text-2); white-space: nowrap; }
+.v-v { font-size: 1.7rem; font-weight: 600; letter-spacing: -.02em; white-space: nowrap; }
+.v-s { font-size: .85rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v-ult { flex: 1; }
+.v-linha { display: grid; grid-template-columns: 3.2rem minmax(0, 18rem) 6rem; justify-content: start; gap: .6rem; font-size: .95rem; padding: .08rem 0; white-space: nowrap; }
+.v-linha .h { color: var(--text-muted); }
+.v-linha .n { overflow: hidden; text-overflow: ellipsis; }
+.v-linha b { font-weight: 600; text-align: right; }
+.v-alerta { color: var(--red); font-size: .9rem; }
+
+.rodape { display: flex; justify-content: space-between; gap: 2rem; padding: .7rem 2rem .9rem; font-size: .85rem; color: var(--text-muted); }
+
+/* login (mesma conta do Manager) */
+#gate { position: fixed; inset: 0; background: var(--bg); display: none; align-items: center; justify-content: center; flex-direction: column; gap: .5rem; z-index: 10; cursor: auto; }
+#gate.show { display: flex; }
+#gate b { font-family: 'Playfair Display', serif; font-size: 2.4rem; color: var(--accent); }
+#gate form { display: flex; gap: .5rem; margin-top: 1rem; }
+#gate input { font: inherit; font-size: 1.1rem; padding: .5rem .8rem; border: 1px solid var(--border-strong); border-radius: 6px; width: 18rem; }
+#gate button { font: inherit; font-size: 1.1rem; padding: .5rem 1.2rem; border: none; border-radius: 6px; background: var(--accent); color: #fff; cursor: pointer; }
+#gate-erro { color: var(--red); min-height: 1.2rem; }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <b>Shai</b><span class="muted">Painel do escritório</span>
+  <form onsubmit="event.preventDefault(); entrar()">
+    <input type="password" id="gate-senha" placeholder="Senha do Manager" autocomplete="current-password">
+    <button>Entrar</button>
+  </form>
+  <div id="gate-erro"></div>
+</div>
+
+<header class="topo">
+  <div class="marca"><b>Shai</b><span>Painel</span></div>
+  <div class="relogio"><div class="hora" id="hora">--:--</div><div class="data" id="data">—</div></div>
+</header>
+
+<main class="grade">
+  <section class="painel vivo" id="vivo"></section>
+
+  <section class="painel mes">
+    <h2><span id="mes-titulo">Mês</span><small id="mes-sub"></small></h2>
+    <div class="mes-cols" id="mes-cols"></div>
+  </section>
+
+  <section class="painel sem">
+    <h2><span id="sem-titulo">Semana</span><small id="sem-sub"></small></h2>
+    <div id="semana" style="flex:1;display:flex;flex-direction:column"></div>
+  </section>
+
+  <section class="painel graf">
+    <h2><span>Meta da semana</span><small id="ms-sub"></small></h2>
+    <div class="metas-sem" id="metas-sem"></div>
+  </section>
+
+  <section class="painel vend">
+    <h2><span>Vendedoras</span><small id="vend-sub">no mês · na semana</small></h2>
+    <div class="lista" id="vendedoras"></div>
+  </section>
+
+  <section class="painel cats">
+    <h2><span>O que está vendendo</span><small id="cat-sub">no mês</small></h2>
+    <div class="kpis" id="kpis"></div>
+    <div class="lista" id="categorias"></div>
+  </section>
+</main>
+
+<footer class="rodape">
+  <span id="rod-dados">—</span>
+  <span id="rod-atual">—</span>
+</footer>
+
+<script>
+const SB_URL = 'https://ofoljmhfnohxwswskplx.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mb2xqbWhmbm9oeHdzd3NrcGx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTQzMjIsImV4cCI6MjA5NTM5MDMyMn0.IRfqUSxOLuYBlE79gdCdHaMrtuoYwNrprw6FaXj_7K8';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+const CONTA_EMAIL = 'donos@shai.local';
+
+// Margem de contribuição: o que sobra de cada R$ vendido depois de mercadoria (~46%, margem de 120%),
+// Simples (~9,4%), cartão (~2%) e comissão (~1,5%). Usada no resultado estimado e no ponto de equilíbrio.
+// No site sobra menos (taxa de pagamento, frete, embalagem, devoluções e collabs): ~33%.
+const MARGEM_CONTRIB = 0.41;
+const MARGEM = { 'Loja Areal': 0.41, 'Loja Três Rios': 0.41, 'Site': 0.33 };
+// Canais de venda: as duas lojas e o site, em todos os quadros.
+const LOJAS = [['Loja Areal', 'ar', 'Areal'], ['Loja Três Rios', 'tr', 'Três Rios'], ['Site', 'st', 'Site']];
+const FISICAS = LOJAS.filter(([l]) => l !== 'Site');
+let ATIVAS = FISICAS;
+const COR = { 'Loja Areal': '#2f6aa3', 'Loja Três Rios': '#b4553b', 'Site': '#3a7d74' };
+const dotDe = l => (LOJAS.find(x => x[0] === l) || [, ''])[1];
+
+const fmt = v => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v || 0);
+const fmtK = v => v >= 1000 ? 'R$ ' + (v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil' : fmt(v);
+const pct = v => (v * 100).toFixed(0) + '%';
+const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const addDias = (s, n) => { const d = new Date(s + 'T12:00:00'); d.setDate(d.getDate() + n); return iso(d); };
+const segunda = s => { const d = new Date(s + 'T12:00:00'); const w = d.getDay(); return addDias(s, -(w === 0 ? 6 : w - 1)); };
+const ddmm = s => s.slice(8, 10) + '/' + s.slice(5, 7);
+// dias de loja aberta (segunda a sábado) entre duas datas, inclusive
+function diasAbertos(de, ate) { let n = 0; for (let d = de; d <= ate; d = addDias(d, 1)) if (new Date(d + 'T12:00:00').getDay() !== 0) n++; return n; }
+const variacao = (a, b) => !b ? '' : `<span class="${a >= b ? 'pos' : 'neg'}">${a >= b ? '+' : '−'}${Math.abs((a / b - 1) * 100).toFixed(0)}%</span>`;
+
+async function todas(tabela, colunas, filtro) {
+  const out = [];
+  for (let i = 0; ; i += 1000) {
+    const { data, error } = await filtro(sb.from(tabela).select(colunas)).range(i, i + 999);
+    if (error) throw error;
+    out.push(...(data || []));
+    if (!data || data.length < 1000) break;
+  }
+  return out;
+}
+
+// estado usado pelo contador da meta da semana (atualizado pelo painel e pelo ao vivo)
+const estadoMeta = { pronto: false, vivo: {} };
+async function carregar() {
+  const hoje = iso(new Date());
+  const ano = +hoje.slice(0, 4), mes = +hoje.slice(5, 7);
+  const iniMes = hoje.slice(0, 8) + '01', fimMes = iso(new Date(ano, mes, 0));
+  const pAno = mes === 1 ? ano - 1 : ano, pMes = mes === 1 ? 12 : mes - 1;
+  const iniAnt = `${pAno}-${String(pMes).padStart(2, '0')}-01`, fimAnt = iso(new Date(pAno, pMes, 0));
+  const segAtual = segunda(hoje);
+  const ini12 = addDias(segAtual, -77);
+  const desde = ini12 < iniAnt ? ini12 : iniAnt;
+
+  const [vendas, reais, cats, metasSem2, metasMes, custos, ultimas] = await Promise.all([
+    todas('vendas', 'data_venda,loja,valor,funcionaria_id,funcionarias(nome)', q => q.gte('data_venda', desde).lte('data_venda', hoje).order('data_venda')),
+    todas('v_vendas_dia', 'loja,data,num_vendas,pecas,valor_itens', q => q.gte('data', iniAnt).lte('data', hoje)),
+    todas('v_vendas_categoria', 'loja,data,categoria,pecas,valor', q => q.gte('data', iniMes).lte('data', hoje)),
+    sb.from('metas_semanais').select('*').gte('semana_inicio', addDias(segAtual, -7)).lte('semana_inicio', segAtual).then(r => r.data || []),
+    sb.from('metas_mensais').select('*').eq('mes', mes).eq('ano', ano).then(r => r.data || []),
+    sb.from('custos_fixos').select('loja,valor').then(r => r.data || []),
+    Promise.all(LOJAS.map(([l]) => sb.from('vendas').select('data_venda').eq('loja', l).order('data_venda', { ascending: false }).limit(1).then(r => r.data?.[0]?.data_venda || null)))
+  ]);
+  const dadosAte = Object.fromEntries(LOJAS.map(([l], i) => [l, (estadoMeta.vivo || {})[l] ? hoje : ultimas[i]]));
+  // Segunda de manhã a semana atual ainda está vazia (Areal entra pelo Zaal, Três Rios à noite):
+  // nesse caso o painel mostra a semana passada, já fechada.
+  const atualVazia = !vendas.some(v => v.data_venda >= segAtual);
+  const seg = atualVazia ? addDias(segAtual, -7) : segAtual, dom = addDias(seg, 6);
+  const metasSem = metasSem2.filter(m => m.semana_inicio === seg);
+  // Hoje: vale o maior entre o que já entrou pela sincronização (vendas) e o que o caixa novo / site
+  // registrou ao vivo — assim o número de hoje aparece na hora e nunca conta a mesma venda duas vezes.
+  const vivo = estadoMeta.vivo || {};
+  const lancadoHoje = l => vendas.reduce((s, v) => s + (v.loja === l && v.data_venda === hoje ? Number(v.valor) : 0), 0);
+  const hojeDe = l => Math.max(lancadoHoje(l), vivo[l] || 0);
+  const soma = (l, de, ate) => {
+    const lojas = l ? [l] : LOJAS.map(x => x[0]);
+    return lojas.reduce((t, lj) => t
+      + vendas.reduce((s, v) => s + (v.loja === lj && v.data_venda !== hoje && v.data_venda >= de && v.data_venda <= ate ? Number(v.valor) : 0), 0)
+      + (de <= hoje && hoje <= ate ? hojeDe(lj) : 0), 0);
+  };
+  const custoDe = l => custos.filter(c => c.loja === l).reduce((s, c) => s + Number(c.valor), 0);
+  // o Site aparece sempre, em todos os quadros (mesmo antes da primeira venda)
+  ATIVAS = LOJAS;
+  document.body.classList.add('c3');
+
+  // ---------- MÊS ----------
+  const nomeMes = new Date(ano, mes - 1, 1).toLocaleDateString('pt-BR', { month: 'long' });
+  document.getElementById('mes-titulo').textContent = nomeMes[0].toUpperCase() + nomeMes.slice(1);
+  document.getElementById('mes-sub').textContent = `${diasAbertos(iniMes, fimMes)} dias de loja aberta · projeção pelo ritmo de cada loja · vs mês passado no mesmo dia`;
+  const col = ATIVAS.map(([l, c, nome]) => {
+    const ate = dadosAte[l] && dadosAte[l] >= iniMes ? (dadosAte[l] > hoje ? hoje : dadosAte[l]) : null;
+    const vendido = soma(l, iniMes, hoje);
+    const diasFeitos = ate ? diasAbertos(iniMes, ate) : 0;
+    const proj = diasFeitos ? vendido / diasFeitos * diasAbertos(iniMes, fimMes) : 0;
+    const diaRef = ate ? +ate.slice(8, 10) : 0;
+    const antMesmoPonto = diaRef ? soma(l, iniAnt, addDias(iniAnt, Math.min(diaRef, +fimAnt.slice(8, 10)) - 1)) : 0;
+    const meta = metasMes.find(m => m.loja === l);
+    const custo = custoDe(l);
+    return { l, c, nome, vendido, proj, antMesmoPonto, meta: meta ? Number(meta.valor_meta) : 0, custo, ate, margem: MARGEM[l] || MARGEM_CONTRIB };
+  });
+  const somaCol = k => col.reduce((s, x) => s + x[k], 0);
+  const tot = {
+    nome: 'Total', vendido: somaCol('vendido'), proj: somaCol('proj'), antMesmoPonto: somaCol('antMesmoPonto'),
+    meta: somaCol('meta'),
+    custo: somaCol('custo') + custoDe('Centro de Distribuição'),
+    // margem do total ponderada pelo que cada canal deve vender no mês
+    margem: somaCol('proj') ? col.reduce((s, x) => s + x.proj * x.margem, 0) / somaCol('proj') : MARGEM_CONTRIB
+  };
+  const colHtml = x => {
+    const equil = x.custo / x.margem;
+    const resultado = x.proj * x.margem - x.custo;
+    const ref = x.meta || equil;
+    const cor = x.c ? COR[x.l] : 'var(--accent)';
+    return `<div class="mcol">
+      <div class="nome">${x.c ? `<span class="dot ${x.c}"></span>` : ''}${x.nome}</div>
+      <div class="grande">${fmt(x.vendido)}</div>
+      <div class="barra" title="vendido e projeção">
+        <div class="proj" style="width:${ref ? Math.min(x.proj / ref, 1) * 100 : 0}%;background:${cor}"></div>
+        <div class="enche" style="width:${ref ? Math.min(x.vendido / ref, 1) * 100 : 0}%;background:${cor}"></div>
+      </div>
+      <div class="linha"><span class="l">${x.meta ? 'Meta do mês' : ref ? 'Sem meta · equilíbrio' : 'Sem meta'}</span><span class="v">${ref ? `${fmt(ref)} <span class="muted">· ${pct(x.vendido / ref)}</span>` : '—'}</span></div>
+      <div class="sep"></div>
+      <div class="linha"><span class="l">Projeção do mês</span><span class="v">${x.proj ? fmt(x.proj) : '—'}${x.proj && x.meta ? ` <span class="${x.proj >= x.meta ? 'pos' : 'neg'}">${pct(x.proj / x.meta)}</span>` : ''}</span></div>
+      <div class="linha"><span class="l">vs mês passado</span><span class="v">${variacao(x.vendido, x.antMesmoPonto) || '—'}</span></div>
+      <div class="linha"><span class="l">Equilíbrio</span><span class="v">${x.custo ? `${fmt(equil)} <span class="muted">· ${x.vendido >= equil ? 'já coberto' : 'faltam ' + fmt(equil - x.vendido)}</span>` : '—'}</span></div>
+      <div class="linha"><span class="l">Resultado estimado</span><span class="v ${resultado >= 0 ? 'pos' : 'neg'}">${x.proj ? (resultado < 0 ? '− ' : '') + fmt(Math.abs(resultado)) : '—'}</span></div>
+    </div>`;
+  };
+  document.getElementById('mes-cols').innerHTML = col.map(colHtml).join('') + colHtml(tot);
+
+  // ---------- SEMANA ----------
+  document.getElementById('sem-titulo').textContent = atualVazia ? 'Semana passada' : 'Semana';
+  document.getElementById('sem-sub').textContent = `${ddmm(seg)} a ${ddmm(dom)}${atualVazia ? ' · fechada' : ''}`;
+  document.getElementById('vend-sub').textContent = atualVazia ? 'no mês · semana passada' : 'no mês · nesta semana';
+  // a semana mostra sempre os três canais (o Site aparece mesmo antes da primeira venda)
+  document.getElementById('semana').innerHTML = LOJAS.map(([l, c, nome]) => {
+    const v = soma(l, seg, dom);
+    const passada = soma(l, addDias(seg, -7), addDias(seg, -1));
+    const fechada = dom < hoje;
+    const m = metasSem.find(x => x.loja === l);
+    const ate = dadosAte[l] && dadosAte[l] >= seg ? dadosAte[l] : null;
+    const feitos = ate ? diasAbertos(seg, ate) : 0;
+    const proj = fechada ? 0 : feitos ? v / feitos * 6 : 0;
+    let tier = 'Não bateu', cls = 't-nenhum', barra = '', faixas = '', falta = '';
+    if (m) {
+      const [mt, sp, mg] = [m.valor_meta, m.valor_super, m.valor_mega].map(Number);
+      if (v >= mg) { tier = 'Mega'; cls = 't-mega'; } else if (v >= sp) { tier = 'Super'; cls = 't-super'; } else if (v >= mt) { tier = 'Meta'; cls = 't-meta'; }
+      const topo = mg * 1.05;
+      barra = `<div class="barra"><div class="proj" style="width:${Math.min(proj / topo, 1) * 100}%;background:${COR[l]}"></div><div class="enche" style="width:${Math.min(v / topo, 1) * 100}%;background:${COR[l]}"></div>
+        <div class="marca-m" style="left:${mt / topo * 100}%"></div><div class="marca-m" style="left:${sp / topo * 100}%"></div><div class="marca-m" style="left:${mg / topo * 100}%"></div></div>`;
+      faixas = `<div class="faixas"><span>Meta ${fmtK(mt)}</span><span>Super ${fmtK(sp)}</span><span>Mega ${fmtK(mg)}</span></div>`;
+      const prox = v < mt ? ['Meta', mt] : v < sp ? ['Super', sp] : v < mg ? ['Mega', mg] : null;
+      falta = prox ? `${fechada ? 'faltou' : 'faltam'} <b>${fmt(prox[1] - v)}</b> para ${prox[0]}` : '';
+    }
+    // três linhas por canal: nome + situação · valor + semana anterior (e projeção) · barra da meta
+    return `<div class="sem-loja">
+      <div class="sem-cab"><span class="nome"><span class="dot ${c}"></span>${nome}</span>${m ? `<span class="sem-sit">${falta ? `<span class="muted">${falta}</span> ` : ''}<span class="tier ${cls}">${tier}</span></span>` : '<span class="muted">sem meta</span>'}</div>
+      <div class="sem-cab"><span class="grande">${fmt(v)}</span><span class="sem-ant">anterior <b>${fmt(passada)}</b> ${variacao(v, passada)}${!fechada && proj ? ` · projeção <b>${fmt(proj)}</b>` : ''}</span></div>
+      ${barra}
+    </div>`;
+  }).join('');
+
+  // ---------- META DA SEMANA (sempre a semana atual) ----------
+  const domAtual = addDias(segAtual, 6);
+  Object.assign(estadoMeta, {
+    pronto: true, hoje, segAtual, domAtual,
+    metas: Object.fromEntries(LOJAS.map(([l]) => [l, metasSem2.find(m => m.loja === l && m.semana_inicio === segAtual) || null])),
+    vendido: Object.fromEntries(LOJAS.map(([l]) => [l, soma(l, segAtual, domAtual) - (hoje >= segAtual && hoje <= domAtual ? hojeDe(l) : 0)])),   // semana sem o dia de hoje
+    lancadoHoje: Object.fromEntries(LOJAS.map(([l]) => [l, lancadoHoje(l)]))
+  });
+  renderMetaSemana();
+
+  // ---------- VENDEDORAS ----------
+  const pv = {};
+  vendas.filter(v => v.data_venda >= iniMes && v.funcionaria_id).forEach(v => {
+    const p = pv[v.funcionaria_id] || (pv[v.funcionaria_id] = { nome: v.funcionarias?.nome || '—', loja: v.loja, mes: 0, sem: 0 });
+    p.mes += Number(v.valor);
+    if (v.data_venda >= seg && v.data_venda <= dom) p.sem += Number(v.valor);
+  });
+  const vend = Object.values(pv).sort((a, b) => b.mes - a.mes).slice(0, 7);
+  const semVendedora = col.filter(x => x.vendido && !Object.values(pv).some(p => p.loja === x.l)).map(x => x.nome);
+  document.getElementById('vendedoras').innerHTML = (vend.length ? vend.map((p, i) => `<div class="item">
+      <span class="pos-n">${i + 1}</span>
+      <span class="nm"><span class="dot ${dotDe(p.loja)}"></span>${p.nome}</span>
+      <span class="v1">${fmt(p.mes)}</span><span class="v2">${fmt(p.sem)}</span></div>`).join('')
+    : '<div class="muted">Sem vendas com vendedora no mês</div>')
+    + (semVendedora.filter(n => n !== 'Site').length ? `<div class="muted" style="margin-top:auto;font-size:.85rem">${semVendedora.filter(n => n !== 'Site').join(' e ')}: vendas sem vendedora (vêm do Zaal)</div>` : '');
+
+  // ---------- INDICADORES + CATEGORIAS ----------
+  const ind = (l, de, ate) => { const r = reais.filter(x => x.loja === l && x.data >= de && x.data <= ate);
+    const n = r.reduce((s, x) => s + Number(x.num_vendas), 0), p = r.reduce((s, x) => s + Number(x.pecas), 0), v = r.reduce((s, x) => s + Number(x.valor_itens), 0);
+    return { n, ticket: n ? v / n : 0, pa: n ? p / n : 0 }; };
+  const kp = ATIVAS.map(([l]) => {
+    const ate = dadosAte[l] && dadosAte[l] >= iniMes ? dadosAte[l] : null;
+    const atual = ind(l, iniMes, hoje);
+    const ant = ate ? ind(l, iniAnt, addDias(iniAnt, Math.min(+ate.slice(8, 10), +fimAnt.slice(8, 10)) - 1)) : { n: 0 };
+    return { atual, ant };
+  });
+  const cel = (a, b, f) => a ? `${f(a)}<small>${b ? variacao(a, b) : ''}</small>` : '<span class="muted">—</span>';
+  document.getElementById('kpis').style.gridTemplateColumns = `auto repeat(${ATIVAS.length}, 1fr)`;
+  document.getElementById('kpis').innerHTML = `<span></span>${ATIVAS.map(([, c, nome]) => `<span class="h"><span class="dot ${c}"></span>${nome}</span>`).join('')}
+    <span class="k">Vendas no mês</span>${kp.map(k => `<span class="x">${cel(k.atual.n, k.ant.n, v => v)}</span>`).join('')}
+    <span class="k">Ticket médio</span>${kp.map(k => `<span class="x">${cel(k.atual.ticket, k.ant.ticket, fmt)}</span>`).join('')}
+    <span class="k">Peças por venda</span>${kp.map(k => `<span class="x">${cel(k.atual.pa, k.ant.pa, v => v.toFixed(1).replace('.', ','))}</span>`).join('')}`;
+
+  const pc = {};
+  cats.forEach(c => { const x = pc[c.categoria] || (pc[c.categoria] = { pecas: 0, valor: 0 }); x.pecas += Number(c.pecas); x.valor += Number(c.valor); });
+  const totCat = Object.values(pc).reduce((s, x) => s + x.valor, 0);
+  const lc = Object.entries(pc).sort((a, b) => b[1].valor - a[1].valor).slice(0, 5);
+  const maxCat = lc.length ? lc[0][1].valor : 1;
+  document.getElementById('categorias').innerHTML = lc.length ? lc.map(([nome, x]) => `<div class="cat">
+      <span class="nm">${nome}</span><span class="bar"><i style="width:${x.valor / maxCat * 100}%"></i></span>
+      <span class="n">${x.pecas} pç</span><span class="p">${pct(x.valor / totCat)}</span></div>`).join('')
+    : '<div class="muted">Sem peças registradas no mês</div>';
+  const lojasCat = [...new Set(cats.map(c => c.loja))].map(l => l.replace('Loja ', ''));
+  document.getElementById('cat-sub').textContent = lojasCat.length ? `no mês · ${lojasCat.join(' e ')}` : 'no mês';
+
+  // ---------- RODAPÉ ----------
+  document.getElementById('rod-dados').innerHTML = 'Dados até: ' + ATIVAS.map(([l, c, nome]) =>
+    `<span class="dot ${c}"></span>${nome} ${dadosAte[l] ? ddmm(dadosAte[l]) : '—'}`).join(' &nbsp; ')
+    + ` &nbsp;·&nbsp; resultado e equilíbrio estimados com ${pct(MARGEM_CONTRIB)} de margem de contribuição${ATIVAS.some(([l]) => l === 'Site') ? ' (site ' + pct(MARGEM.Site) + ')' : ''} e os custos fixos do Manager`;
+  document.getElementById('rod-atual').textContent = 'Atualizado às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
+// ---------- HOJE AO VIVO (caixa novo das lojas + pedidos do site) ----------
+// Vendas de hoje, em tempo real. Elas só entram no mês e na semana depois da sincronização
+// da noite, então aqui ficam separadas para não contar duas vezes.
+const hojeSP = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+const horaSP = d => new Date(d).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+let canalVivo = null, esperaVivo = null;
+
+async function carregarVivo() {
+  const hoje = hojeSP();
+  const [{ data: vendas }, { data: caixas }, { data: trocas }, { data: pedidos }] = await Promise.all([
+    sb.from('pdv_vendas').select('loja,total,status,vendedora,pagamentos,itens,criado_em').eq('data', hoje).order('criado_em', { ascending: false }),
+    sb.from('pdv_caixas').select('loja,aberto_em,fechado_em,diferenca').or(`fechado_em.is.null,aberto_em.gte.${hoje}T00:00:00-03:00`).order('aberto_em', { ascending: false }),
+    sb.from('pdv_trocas').select('destino,valor,status').eq('data', hoje),
+    sb.from('site_pedidos').select('total,status,cliente_cidade,cliente_uf,cupom,itens,criado_em').eq('data', hoje).neq('status', 'cancelado')
+  ]);
+  const validas = (vendas || []).filter(v => v.status !== 'cancelada' && v.status !== 'cancelar');
+  // o que foi pago com vale-troca não é venda nova
+  const liquido = v => Number(v.total) - (v.pagamentos || []).filter(p => p.forma === 'vale').reduce((s, p) => s + Number(p.valor), 0);
+  const pecas = v => (v.itens || []).reduce((s, i) => s + Number(i.qtd || 0), 0);
+  // tudo o que foi vendido hoje, das lojas (caixa novo) e do site (pedidos da Nuvemshop)
+  const hojeTodas = [
+    ...validas.map(v => ({ loja: v.loja, valor: liquido(v), quem: v.vendedora || 'sem vendedora', pecas: pecas(v), em: v.criado_em })),
+    ...(pedidos || []).map(p => ({ loja: 'Site', valor: Number(p.total), quem: [p.cliente_cidade, p.cliente_uf].filter(Boolean).join('/') || 'pedido do site', pecas: pecas(p), em: p.criado_em, cupom: p.cupom }))
+  ].sort((a, b) => b.em.localeCompare(a.em));
+  const total = hojeTodas.reduce((s, v) => s + v.valor, 0), n = hojeTodas.length;
+  // no ao vivo o Site aparece sempre, com o contador de pedidos do dia (mesmo zerado)
+  const canais = LOJAS;
+  estadoMeta.vivo = Object.fromEntries(canais.map(([l]) => [l, hojeTodas.filter(v => v.loja === l).reduce((s, v) => s + v.valor, 0)]));
+  renderMetaSemana();
+
+  const lojaCel = ([l, c, nome]) => {
+    const vs = hojeTodas.filter(v => v.loja === l);
+    const t = vs.reduce((s, v) => s + v.valor, 0);
+    let sub;
+    if (l === 'Site') {
+      sub = `${vs.length} pedido${vs.length === 1 ? '' : 's'} hoje` + (vs.length ? ` · ticket ${fmt(t / vs.length)}` : '');
+    } else {
+      const cx = (caixas || []).find(x => x.loja === l && !x.fechado_em) || (caixas || []).find(x => x.loja === l);
+      const caixa = !cx ? 'caixa ainda não abriu'
+        : !cx.fechado_em ? `caixa aberto às ${horaSP(cx.aberto_em)}`
+        : `caixa fechado às ${horaSP(cx.fechado_em)}` + (Math.abs(Number(cx.diferenca) || 0) >= 0.01 ? ` · <span class="neg">diferença ${fmt(cx.diferenca)}</span>` : '');
+      sub = `${vs.length} venda${vs.length === 1 ? '' : 's'} · ${caixa}`;
+    }
+    return `<div class="v-cel"><span class="v-l"><span class="dot ${c}"></span>${nome}</span>
+      <span class="v-v">${fmt(t)}</span><span class="v-s">${sub}</span></div>`;
+  };
+  const algumAberto = (caixas || []).some(x => !x.fechado_em);
+  const alertas = [];
+  const erros = (vendas || []).filter(v => v.status === 'erro').length + (trocas || []).filter(t => t.status === 'erro').length;
+  if (erros) alertas.push(`<b>${erros}</b> com erro no Bling`);
+  const dev = (trocas || []).filter(t => t.destino === 'dinheiro');
+  if (dev.length) alertas.push(`devolução em dinheiro: ${fmt(dev.reduce((s, t) => s + Number(t.valor), 0))}`);
+  const canc = (vendas || []).filter(v => v.status === 'cancelada' || v.status === 'cancelar').length;
+  if (canc) alertas.push(`${canc} venda${canc > 1 ? 's' : ''} cancelada${canc > 1 ? 's' : ''}`);
+
+  document.getElementById('vivo').innerHTML = `
+    <div class="v-cel"><span class="v-tit"><span class="pulso ${algumAberto ? '' : 'off'}"></span>Hoje ao vivo</span>
+      <span class="v-s">${n ? 'última venda às ' + horaSP(hojeTodas[0].em) : (algumAberto ? 'nenhuma venda ainda' : 'caixas fechados')}</span>
+      ${alertas.length ? `<span class="v-alerta">${alertas.join(' · ')}</span>` : ''}</div>
+    <div class="v-cel"><span class="v-l">Vendido hoje</span><span class="v-v">${fmt(total)}</span>
+      <span class="v-s">${n} venda${n === 1 ? '' : 's'} · ticket ${n ? fmt(total / n) : '—'} · ${hojeTodas.reduce((s, v) => s + v.pecas, 0)} peças</span></div>
+    ${canais.map(lojaCel).join('')}
+    <div class="v-cel v-ult"><span class="v-l">Últimas vendas</span>
+      ${hojeTodas.slice(0, 3).map(v => `<div class="v-linha"><span class="h">${horaSP(v.em)}</span>
+        <span class="n"><span class="dot ${dotDe(v.loja)}"></span>${esc(v.quem)} · ${v.pecas} peça${v.pecas === 1 ? '' : 's'}${v.cupom ? ' · ' + esc(v.cupom) : ''}</span><b>${fmt(v.valor)}</b></div>`).join('') || '<span class="v-s">—</span>'}
+    </div>`;
+}
+function ligarVivo() {
+  if (canalVivo) return;
+  // venda nova no caixa ou pedido do site: atualiza a faixa ao vivo e o painel inteiro
+  const recarregar = () => { clearTimeout(esperaVivo); esperaVivo = setTimeout(() => carregarVivo().then(carregar).catch(console.error), 800); };
+  canalVivo = sb.channel('tv-ao-vivo');
+  for (const t of ['pdv_vendas', 'pdv_caixas', 'pdv_trocas', 'site_pedidos']) canalVivo.on('postgres_changes', { event: '*', schema: 'public', table: t }, recarregar);
+  canalVivo.subscribe();
+
+}
+
+// Contador da meta da semana: vendido na semana (+ o que o caixa novo vendeu hoje, enquanto o dia
+// ainda não entrou pela sincronização da noite) contra a meta, e quanto falta por dia até sábado.
+function renderMetaSemana() {
+  const e = estadoMeta;
+  if (!e.pronto) return;
+  const diasRest = diasAbertos(e.hoje > e.segAtual ? e.hoje : e.segAtual, addDias(e.segAtual, 5));
+  document.getElementById('ms-sub').textContent = `semana atual · ${ddmm(e.segAtual)} a ${ddmm(e.domAtual)} · ${diasRest ? diasRest + (diasRest === 1 ? ' dia aberto' : ' dias abertos') + ' até sábado' : 'última semana fechada'}`;
+  // a meta da semana mostra sempre os três canais (o Site aparece mesmo antes da primeira venda)
+  const itens = LOJAS.map(([l, c, nome]) => {
+    const v = e.vendido[l] + Math.max(e.lancadoHoje[l] || 0, e.vivo[l] || 0);
+    const m = e.metas[l];
+    return { nome, c, cor: COR[l], v, meta: m ? Number(m.valor_meta) : 0, m };
+  });
+  // total: soma só os canais que têm meta, para a porcentagem não ficar inflada por quem não tem
+  const comMeta = itens.filter(x => x.meta);
+  const tot = { nome: 'Total', c: '', cor: '#5c3d28', v: comMeta.reduce((s, x) => s + x.v, 0), meta: comMeta.reduce((s, x) => s + x.meta, 0) };
+  const anel = x => {
+    const p = x.meta ? x.v / x.meta : 0;
+    const r = 42, circ = 2 * Math.PI * r;
+    const cor = p >= 1 ? 'var(--green)' : x.cor;
+    let tier = '';
+    if (x.m) { const v = x.v; tier = v >= x.m.valor_mega ? 'Mega batida' : v >= x.m.valor_super ? 'Super batida' : v >= x.m.valor_meta ? 'Meta batida' : ''; }
+    const falta = !x.meta ? '<span class="muted">sem meta cadastrada</span>'
+      : p >= 1 ? `<b class="pos">${tier || 'Meta batida'}</b>`
+      : `faltam <b>${fmt(x.meta - x.v)}</b>` + (diasRest ? `<br>${fmt((x.meta - x.v) / diasRest)} por dia` : '');
+    return `<div class="ms">
+      <span class="nome">${x.c ? `<span class="dot ${x.c}"></span>` : ''}${x.nome}</span>
+      <div class="anel"><svg viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="${r}" fill="none" stroke="#eeece8" stroke-width="9"/>
+        <circle cx="50" cy="50" r="${r}" fill="none" stroke="${cor}" stroke-width="9" stroke-linecap="round"
+          stroke-dasharray="${circ}" stroke-dashoffset="${circ * (1 - Math.min(p, 1))}"/></svg>
+        <div class="pc"><b>${x.meta ? pct(p) : '—'}</b><span>da meta</span></div></div>
+      <span class="val">${fmt(x.v)}${x.meta ? `<span class="muted"> de ${fmt(x.meta)}</span>` : ''}</span>
+      <span class="falta">${falta}</span></div>`;
+  };
+  document.getElementById('metas-sem').innerHTML = [...itens, tot].map(anel).join('');
+}
+
+function relogio() {
+  const d = new Date();
+  document.getElementById('hora').textContent = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const s = d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+  document.getElementById('data').textContent = s[0].toUpperCase() + s.slice(1);
+}
+
+async function rodar() {
+  document.body.classList.add('tv');
+  try { await carregarVivo(); } catch (e) { console.error(e); }
+  ligarVivo();
+  try { await carregar(); } catch (e) { console.error(e); document.getElementById('rod-atual').textContent = 'Erro ao atualizar — tentando de novo em 5 min'; }
+  // painel inteiro a cada 1 min (a sincronização com o Bling roda a cada 10 min durante o dia)
+  setInterval(() => carregarVivo().then(carregar).catch(console.error), 60 * 1000);
+  setTimeout(() => location.reload(), 6 * 60 * 60 * 1000);             // recarrega a página a cada 6 h
+}
+
+async function entrar() {
+  const { error } = await sb.auth.signInWithPassword({ email: CONTA_EMAIL, password: document.getElementById('gate-senha').value });
+  if (error) { document.getElementById('gate-erro').textContent = 'Senha incorreta.'; return; }
+  document.getElementById('gate').classList.remove('show');
+  rodar();
+}
+
+relogio(); setInterval(relogio, 15000);
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user?.email === CONTA_EMAIL) return rodar();
+  document.getElementById('gate').classList.add('show');
+})();
+</script>
+</body>
+</html>

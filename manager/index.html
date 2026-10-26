@@ -39,7 +39,7 @@
   --cd: #7a5236;
   --loja1: #2f6aa3;   /* Areal */
   --loja2: #b4553b;   /* Três Rios */
-  --site: #3a7d74;
+  --site: #3a7d74;   /* Site (loja online) */
   /* tiers */
   --meta-color: #2e7a55;
   --super-color: #9a6a1c;
@@ -93,7 +93,7 @@ button, input, select, textarea { font-family: inherit; }
 
 /* números em faixa única (no lugar de cartões soltos) */
 .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; }
-.stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; }
+.stat-strip { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; }
 .stat-strip > .stat-card { border: none; border-left: 1px solid var(--border); border-radius: 0; background: none; min-width: 0; }
 .stat-strip > .stat-card:first-child { border-left: none; }
 .stat-label { display: flex; align-items: center; gap: 6px; font-size: .75rem; color: var(--text-2); }
@@ -127,6 +127,7 @@ button, input, select, textarea { font-family: inherit; }
 .badge { display: inline-block; padding: 1px 7px; border-radius: 4px; font-size: .72rem; font-weight: 500; }
 .badge-loja1 { background: color-mix(in srgb, var(--loja1) 12%, transparent); color: var(--loja1); }
 .badge-loja2 { background: color-mix(in srgb, var(--loja2) 12%, transparent); color: var(--loja2); }
+.badge-site { background: color-mix(in srgb, var(--site) 12%, transparent); color: var(--site); }
 .badge-green { background: color-mix(in srgb, var(--green) 12%, transparent); color: var(--green); }
 .badge-red   { background: color-mix(in srgb, var(--red) 10%, transparent); color: var(--red); }
 .badge-muted { background: var(--surface3); color: var(--text-muted); }
@@ -165,6 +166,50 @@ th { text-align: left; padding: 8px 12px; font-size: .72rem; font-weight: 500; c
 td { padding: 7px 12px; border-bottom: 1px solid var(--surface3); color: var(--text); vertical-align: middle; }
 tr:last-child td { border-bottom: none; }
 tbody tr:hover td { background: var(--surface2); }
+
+/* tabela solta (sem cartão em volta), padrão do Compras */
+.tbl-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow-x: auto; }
+table.tbl td { white-space: nowrap; }
+table.tbl tfoot td { background: var(--surface2); border-top: 1px solid var(--border); border-bottom: none; font-weight: 600; }
+.num { text-align: right !important; font-variant-numeric: tabular-nums; }
+th.num .dot { margin-right: 2px; vertical-align: 1px; }
+.muted { color: var(--text-muted); }
+.small { font-size: .78rem; }
+.z { color: var(--border-strong); }
+.var-pos { color: var(--green); }
+.var-neg { color: var(--red); }
+/* metas: quadro de apoio + campos lado a lado */
+.card-title .dot { margin-right: 4px; vertical-align: 1px; }
+.meta-base { border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 14px; overflow: hidden; }
+.mb-topo { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; background: var(--surface2); border-bottom: 1px solid var(--border); font-size: .75rem; font-weight: 600; color: var(--text-2); }
+.mb-cresc { display: inline-flex; align-items: center; gap: 4px; font-weight: 400; color: var(--text-muted); }
+.mb-cresc .form-input { width: 54px; min-height: 26px; height: 26px; padding: 2px 6px; font-size: .8rem; text-align: right; }
+.mb-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; width: 100%; padding: 7px 10px; border: none; border-bottom: 1px solid var(--surface3); background: none; font: inherit; font-size: .82rem; color: var(--text); text-align: left; cursor: pointer; }
+.mb-row:hover { background: var(--surface2); }
+.mb-row.vazio { cursor: default; color: var(--text-muted); }
+.mb-row.vazio:hover { background: none; }
+.mb-l { min-width: 0; }
+.mb-l .muted { font-size: .75rem; }
+.mb-v { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mb-nota { padding: 6px 10px; font-size: .72rem; color: var(--text-muted); }
+.meta-campos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+/* semana: separação por mês e dias da semana abrindo embaixo */
+table.tbl tr.grp td { background: var(--surface2); font-size: .72rem; font-weight: 600; color: var(--text-2); padding-top: 6px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+table.tbl tbody tr.grp:hover td { background: var(--surface2); }
+table.tbl tr.wrow { cursor: pointer; }
+table.tbl tr.wrow.open td { background: var(--surface2); }
+.chev { color: var(--text-muted); font-size: .9rem; margin-right: 4px; transition: transform .15s; display: inline-block; }
+tr.wrow.open .chev { transform: rotate(90deg); }
+table.tbl tr.sub { display: none; }
+table.tbl tr.sub.show { display: table-row; }
+table.tbl tr.sub td { font-size: .8rem; color: var(--text-2); background: var(--surface2); }
+table.tbl tr.sub td:first-child { padding-left: 34px; }
+.hist-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.hist-toolbar .tab-pills { margin-bottom: 0; }
+.tab-pill .dot { vertical-align: 1px; }
+.hist-datas { display: flex; align-items: center; gap: 8px; }
+.hist-datas .form-input { width: 150px; }
 
 .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; min-height: 36px; }
 .section-title { font-size: 1.25rem; font-weight: 600; letter-spacing: -.01em; }
@@ -248,6 +293,14 @@ tbody tr:hover td { background: var(--surface2); }
   .card { padding: 14px; }
   .card > .table-wrap { margin: 0 -14px -14px; }
   table { min-width: 480px; }
+  table.tbl { min-width: 0; }
+  .col-hide { display: none; }
+  table.tbl { font-size: .78rem; }
+  table.tbl td, table.tbl th { padding-left: 5px; padding-right: 5px; }
+  .hist-toolbar > * { width: 100%; }
+  .hist-toolbar .tab-pills button { flex: 1; }
+  .hist-datas { flex-wrap: wrap; }
+  .hist-datas .form-input { flex: 1; width: auto; min-width: 0; }
   .section-header, .ph { gap: 10px; }
   .ph-dir { width: 100%; justify-content: space-between; }
   .week-label { min-width: 0; flex: 1; }
@@ -293,7 +346,7 @@ tbody tr:hover td { background: var(--surface2); }
 
 <div class="header">
   <div class="logo">Shai <span>Manager</span></div>
-  <div class="header-dir"><span id="header-semana"></span></div>
+  <div class="header-dir"><span id="header-semana"></span><a class="link" href="tv.html" target="_blank">Painel da TV</a></div>
 </div>
 
 <div class="nav-tabs">
@@ -378,13 +431,18 @@ tbody tr:hover td { background: var(--surface2); }
           <div class="stat-sub" id="d-l2-tier"></div>
         </div>
         <div class="stat-card">
+          <div class="stat-label"><span class="dot st"></span>Site</div>
+          <div class="stat-value" id="d-l3">R$ 0</div>
+          <div class="stat-sub" id="d-l3-tier"></div>
+        </div>
+        <div class="stat-card">
           <div class="stat-label">Ticket médio</div>
           <div class="stat-value" id="d-ticket">R$ 0</div>
           <div class="stat-sub">por venda</div>
         </div>
       </div>
 
-      <div class="grid-2" style="margin-bottom:12px">
+      <div class="grid-3" style="margin-bottom:12px">
         <div class="card">
           <div class="card-title">Meta da semana · Areal</div>
           <div id="meta-prog-l1"><div class="empty">Sem meta definida</div></div>
@@ -392,6 +450,10 @@ tbody tr:hover td { background: var(--surface2); }
         <div class="card">
           <div class="card-title">Meta da semana · Três Rios</div>
           <div id="meta-prog-l2"><div class="empty">Sem meta definida</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Meta da semana · Site</div>
+          <div id="meta-prog-l3"><div class="empty">Sem meta definida</div></div>
         </div>
       </div>
 
@@ -425,13 +487,18 @@ tbody tr:hover td { background: var(--surface2); }
           <div class="stat-sub" id="dm-l2-tier"></div>
         </div>
         <div class="stat-card">
+          <div class="stat-label"><span class="dot st"></span>Site</div>
+          <div class="stat-value" id="dm-l3">R$ 0</div>
+          <div class="stat-sub" id="dm-l3-tier"></div>
+        </div>
+        <div class="stat-card">
           <div class="stat-label">Ticket médio</div>
           <div class="stat-value" id="dm-ticket">R$ 0</div>
           <div class="stat-sub">por venda</div>
         </div>
       </div>
 
-      <div class="grid-2">
+      <div class="grid-3">
         <div class="card">
           <div class="card-title">Meta do mês · Areal</div>
           <div id="meta-prog-mensal-l1"><div class="empty">Sem meta definida</div></div>
@@ -439,6 +506,10 @@ tbody tr:hover td { background: var(--surface2); }
         <div class="card">
           <div class="card-title">Meta do mês · Três Rios</div>
           <div id="meta-prog-mensal-l2"><div class="empty">Sem meta definida</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Meta do mês · Site</div>
+          <div id="meta-prog-mensal-l3"><div class="empty">Sem meta definida</div></div>
         </div>
       </div>
     </div>
@@ -459,6 +530,11 @@ tbody tr:hover td { background: var(--surface2); }
           <div class="stat-label"><span class="dot tr"></span>Loja Três Rios</div>
           <div class="stat-value" id="da-l2">R$ 0</div>
           <div class="stat-sub" id="da-l2-pct"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label"><span class="dot st"></span>Site</div>
+          <div class="stat-value" id="da-l3">R$ 0</div>
+          <div class="stat-sub" id="da-l3-pct"></div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Melhor mês</div>
@@ -515,307 +591,153 @@ tbody tr:hover td { background: var(--surface2); }
 
   <!-- ===== METAS ===== -->
   <div class="tab-panel" id="tab-metas">
-    <div class="section-header">
-      <div class="section-title">Metas</div>
-    </div>
-
-    <div class="tab-pills" style="margin-bottom:20px">
-      <button class="tab-pill active" onclick="setMetasView('semanal',this)"><i class="ti ti-calendar"></i>Meta Semanal</button>
-      <button class="tab-pill" onclick="setMetasView('mensal',this)"><i class="ti ti-calendar-month"></i>Meta Mensal</button>
+    <div class="ph">
+      <h1 class="page-title">Metas</h1>
+      <div class="ph-dir">
+        <div class="tab-pills">
+          <button class="tab-pill active" onclick="setMetasView('semanal',this)">Semanal</button>
+          <button class="tab-pill" onclick="setMetasView('mensal',this)">Mensal</button>
+        </div>
+        <div class="week-nav" id="metas-nav-semanal">
+          <button onclick="metasWeek(-1)" aria-label="Semana anterior">‹</button>
+          <span class="week-label" id="metas-week-label">—</span>
+          <button onclick="metasWeek(1)" aria-label="Próxima semana">›</button>
+        </div>
+        <div class="week-nav" id="metas-nav-mensal" style="display:none">
+          <button onclick="metasMonth(-1)" aria-label="Mês anterior">‹</button>
+          <span class="week-label" id="metas-month-label">—</span>
+          <button onclick="metasMonth(1)" aria-label="Próximo mês">›</button>
+        </div>
+      </div>
     </div>
 
     <!-- METAS SEMANAIS -->
     <div id="metas-semanal-view">
-      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:16px">
-        <button class="week-nav" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="metasWeek(-1)">‹</button>
-        <div style="text-align:center">
-          <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Semana</div>
-          <strong id="metas-week-label" style="color:var(--text);font-size:0.9rem">—</strong>
-        </div>
-        <button class="week-nav" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="metasWeek(1)">›</button>
-      </div>
-
-      <div class="grid-2" style="margin-bottom:24px">
+      <div class="grid-3" style="margin-bottom:12px">
         <div class="card">
-          <div class="card-title">Loja Areal</div>
-          <div class="form-group">
-            <label class="form-label"><i class="ti ti-circle-check" style="color:var(--meta-color)"></i> Meta (R$)</label>
-            <input type="text" class="form-input" id="ms-l1-meta" placeholder="R$ 0,00" oninput="maskBRL(this)">
+          <div class="card-title"><span class="dot ar"></span> Loja Areal</div>
+          <div class="meta-base" id="ms-l1-base"></div>
+          <div class="meta-campos">
+            <div class="form-group"><label class="form-label">Meta</label><input type="text" class="form-input" id="ms-l1-meta" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
+            <div class="form-group"><label class="form-label">Super</label><input type="text" class="form-input" id="ms-l1-super" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
+            <div class="form-group"><label class="form-label">Mega</label><input type="text" class="form-input" id="ms-l1-mega" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
           </div>
-          <div class="form-group">
-            <label class="form-label"><i class="ti ti-star" style="color:var(--super-color)"></i> Super (R$)</label>
-            <input type="text" class="form-input" id="ms-l1-super" placeholder="R$ 0,00" oninput="maskBRL(this)">
-          </div>
-          <div class="form-group">
-            <label class="form-label"><i class="ti ti-trophy" style="color:var(--mega-color)"></i> Mega (R$)</label>
-            <input type="text" class="form-input" id="ms-l1-mega" placeholder="R$ 0,00" oninput="maskBRL(this)">
-          </div>
-          <button class="btn btn-primary" onclick="saveMetaSemanalNamed('Loja Areal')">Salvar Loja Areal</button>
+          <button class="btn btn-primary" onclick="saveMetaSemanalNamed('Loja Areal')">Salvar meta da Areal</button>
         </div>
         <div class="card">
-          <div class="card-title">Loja Três Rios</div>
-          <div class="form-group">
-            <label class="form-label"><i class="ti ti-circle-check" style="color:var(--meta-color)"></i> Meta (R$)</label>
-            <input type="text" class="form-input" id="ms-l2-meta" placeholder="R$ 0,00" oninput="maskBRL(this)">
+          <div class="card-title"><span class="dot tr"></span> Loja Três Rios</div>
+          <div class="meta-base" id="ms-l2-base"></div>
+          <div class="meta-campos">
+            <div class="form-group"><label class="form-label">Meta</label><input type="text" class="form-input" id="ms-l2-meta" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
+            <div class="form-group"><label class="form-label">Super</label><input type="text" class="form-input" id="ms-l2-super" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
+            <div class="form-group"><label class="form-label">Mega</label><input type="text" class="form-input" id="ms-l2-mega" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
           </div>
-          <div class="form-group">
-            <label class="form-label"><i class="ti ti-star" style="color:var(--super-color)"></i> Super (R$)</label>
-            <input type="text" class="form-input" id="ms-l2-super" placeholder="R$ 0,00" oninput="maskBRL(this)">
+          <button class="btn btn-primary" onclick="saveMetaSemanalNamed('Loja Três Rios')">Salvar meta de Três Rios</button>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="dot st"></span> Site</div>
+          <div class="meta-base" id="ms-l3-base"></div>
+          <div class="meta-campos">
+            <div class="form-group"><label class="form-label">Meta</label><input type="text" class="form-input" id="ms-l3-meta" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
+            <div class="form-group"><label class="form-label">Super</label><input type="text" class="form-input" id="ms-l3-super" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
+            <div class="form-group"><label class="form-label">Mega</label><input type="text" class="form-input" id="ms-l3-mega" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
           </div>
-          <div class="form-group">
-            <label class="form-label"><i class="ti ti-trophy" style="color:var(--mega-color)"></i> Mega (R$)</label>
-            <input type="text" class="form-input" id="ms-l2-mega" placeholder="R$ 0,00" oninput="maskBRL(this)">
-          </div>
-          <button class="btn btn-primary" onclick="saveMetaSemanalNamed('Loja Três Rios')">Salvar Loja Três Rios</button>
+          <button class="btn btn-primary" onclick="saveMetaSemanalNamed('Site')">Salvar meta do Site</button>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-title">Histórico de Metas Semanais</div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Semana</th><th>Loja</th><th><i class="ti ti-circle-check" style="color:var(--meta-color)"></i> Meta</th><th><i class="ti ti-star" style="color:var(--super-color)"></i> Super</th><th><i class="ti ti-trophy" style="color:var(--mega-color)"></i> Mega</th><th></th></tr></thead>
-            <tbody id="metas-sem-tbody"><tr><td colspan="6" class="empty">Nenhuma meta cadastrada</td></tr></tbody>
-          </table>
-        </div>
+      <div class="sec-title">Metas semanais cadastradas</div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Semana</th><th>Loja</th><th class="num">Meta</th><th class="num">Super</th><th class="num">Mega</th><th></th></tr></thead>
+          <tbody id="metas-sem-tbody"><tr><td colspan="6" class="empty">Nenhuma meta cadastrada</td></tr></tbody>
+        </table>
       </div>
     </div>
 
     <!-- METAS MENSAIS -->
     <div id="metas-mensal-view" style="display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:16px">
-        <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="metasMonth(-1)">‹</button>
-        <div style="text-align:center">
-          <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Mês</div>
-          <strong id="metas-month-label" style="color:var(--text);font-size:0.9rem">—</strong>
-        </div>
-        <button style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:1rem" onclick="metasMonth(1)">›</button>
-      </div>
-
-      <div class="grid-2" style="margin-bottom:24px">
+      <div class="grid-3" style="margin-bottom:12px">
         <div class="card">
-          <div class="card-title">Loja Areal</div>
-          <div class="form-group">
-            <label class="form-label"><i class="ti ti-circle-check" style="color:var(--meta-color)"></i> Meta (R$)</label>
-            <input type="text" class="form-input" id="mm-l1-meta" placeholder="R$ 0,00" oninput="maskBRL(this)">
+          <div class="card-title"><span class="dot ar"></span> Loja Areal</div>
+          <div class="meta-base" id="mm-l1-base"></div>
+          <div class="meta-campos">
+            <div class="form-group"><label class="form-label">Meta</label><input type="text" class="form-input" id="mm-l1-meta" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
+            <div class="form-group"><label class="form-label">Super</label><input type="text" class="form-input" id="mm-l1-super" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
+            <div class="form-group"><label class="form-label">Mega</label><input type="text" class="form-input" id="mm-l1-mega" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
           </div>
-          <div class="form-group">
-            <label class="form-label"><i class="ti ti-star" style="color:var(--super-color)"></i> Super (R$)</label>
-            <input type="text" class="form-input" id="mm-l1-super" placeholder="R$ 0,00" oninput="maskBRL(this)">
-          </div>
-          <div class="form-group">
-            <label class="form-label"><i class="ti ti-trophy" style="color:var(--mega-color)"></i> Mega (R$)</label>
-            <input type="text" class="form-input" id="mm-l1-mega" placeholder="R$ 0,00" oninput="maskBRL(this)">
-          </div>
-          <button class="btn btn-primary" onclick="saveMetaMensalNamed('Loja Areal')">Salvar Loja Areal</button>
+          <button class="btn btn-primary" onclick="saveMetaMensalNamed('Loja Areal')">Salvar meta da Areal</button>
         </div>
         <div class="card">
-          <div class="card-title">Loja Três Rios</div>
-          <div class="form-group">
-            <label class="form-label"><i class="ti ti-circle-check" style="color:var(--meta-color)"></i> Meta (R$)</label>
-            <input type="text" class="form-input" id="mm-l2-meta" placeholder="R$ 0,00" oninput="maskBRL(this)">
+          <div class="card-title"><span class="dot tr"></span> Loja Três Rios</div>
+          <div class="meta-base" id="mm-l2-base"></div>
+          <div class="meta-campos">
+            <div class="form-group"><label class="form-label">Meta</label><input type="text" class="form-input" id="mm-l2-meta" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
+            <div class="form-group"><label class="form-label">Super</label><input type="text" class="form-input" id="mm-l2-super" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
+            <div class="form-group"><label class="form-label">Mega</label><input type="text" class="form-input" id="mm-l2-mega" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
           </div>
-          <div class="form-group">
-            <label class="form-label"><i class="ti ti-star" style="color:var(--super-color)"></i> Super (R$)</label>
-            <input type="text" class="form-input" id="mm-l2-super" placeholder="R$ 0,00" oninput="maskBRL(this)">
+          <button class="btn btn-primary" onclick="saveMetaMensalNamed('Loja Três Rios')">Salvar meta de Três Rios</button>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="dot st"></span> Site</div>
+          <div class="meta-base" id="mm-l3-base"></div>
+          <div class="meta-campos">
+            <div class="form-group"><label class="form-label">Meta</label><input type="text" class="form-input" id="mm-l3-meta" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
+            <div class="form-group"><label class="form-label">Super</label><input type="text" class="form-input" id="mm-l3-super" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
+            <div class="form-group"><label class="form-label">Mega</label><input type="text" class="form-input" id="mm-l3-mega" placeholder="R$ 0,00" oninput="maskBRL(this)"></div>
           </div>
-          <div class="form-group">
-            <label class="form-label"><i class="ti ti-trophy" style="color:var(--mega-color)"></i> Mega (R$)</label>
-            <input type="text" class="form-input" id="mm-l2-mega" placeholder="R$ 0,00" oninput="maskBRL(this)">
-          </div>
-          <button class="btn btn-primary" onclick="saveMetaMensalNamed('Loja Três Rios')">Salvar Loja Três Rios</button>
+          <button class="btn btn-primary" onclick="saveMetaMensalNamed('Site')">Salvar meta do Site</button>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-title">Histórico de Metas Mensais</div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Mês</th><th>Loja</th><th><i class="ti ti-circle-check" style="color:var(--meta-color)"></i> Meta</th><th><i class="ti ti-star" style="color:var(--super-color)"></i> Super</th><th><i class="ti ti-trophy" style="color:var(--mega-color)"></i> Mega</th><th></th></tr></thead>
-            <tbody id="metas-men-tbody"><tr><td colspan="6" class="empty">Nenhuma meta cadastrada</td></tr></tbody>
-          </table>
-        </div>
+      <div class="sec-title">Metas mensais cadastradas</div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Mês</th><th>Loja</th><th class="num">Meta</th><th class="num">Super</th><th class="num">Mega</th><th></th></tr></thead>
+          <tbody id="metas-men-tbody"><tr><td colspan="6" class="empty">Nenhuma meta cadastrada</td></tr></tbody>
+        </table>
       </div>
     </div>
   </div>
 
   <!-- ===== HISTÓRICO ===== -->
   <div class="tab-panel" id="tab-historico">
-    <div class="section-header">
-      <div class="section-title">Vendas</div>
-    </div>
-
-    <div class="tab-pills" style="margin-bottom:20px">
-      <button class="tab-pill active" onclick="setHistView('diario',this)">Por Dia</button>
-      <button class="tab-pill" onclick="setHistView('semanal',this)">Por Semana</button>
-      <button class="tab-pill" onclick="setHistView('mensal',this)">Por Mês</button>
-      <button class="tab-pill" onclick="setHistView('periodo',this)">Por Período</button>
-    </div>
-
-    <!-- HISTÓRICO POR PERÍODO -->
-    <div id="hist-periodo-view" style="display:none">
-      <div class="card" style="margin-bottom:16px">
-        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
-          <div class="form-group" style="margin:0">
-            <label class="form-label">Loja</label>
-            <select class="form-select" id="hist-per-loja" style="width:140px">
-              <option value="">Todas</option><option>Loja Areal</option><option>Loja Três Rios</option>
-            </select>
-          </div>
-          <div class="form-group" style="margin:0">
-            <label class="form-label">Data início</label>
-            <input type="date" class="form-input" id="hist-per-ini" style="width:160px">
-          </div>
-          <div class="form-group" style="margin:0">
-            <label class="form-label">Data fim</label>
-            <input type="date" class="form-input" id="hist-per-fim" style="width:160px">
-          </div>
-          <button class="btn btn-primary" onclick="loadHistPeriodo()">Buscar</button>
-        </div>
-      </div>
-
-      <div class="grid-3" style="margin-bottom:16px">
-        <div class="stat-card">
-          <div class="stat-label">Faturamento Total</div>
-          <div class="stat-value" id="per-total" style="color:var(--accent)">—</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Total de Vendas</div>
-          <div class="stat-value" id="per-count" style="color:var(--text)">—</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Ticket Médio</div>
-          <div class="stat-value" id="per-ticket" style="color:var(--text)">—</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Data</th><th>Funcionária</th><th>Loja</th><th>Descrição</th><th>Valor</th></tr></thead>
-            <tbody id="hist-per-tbody"><tr><td colspan="5" class="empty">Selecione o período e clique em Buscar</td></tr></tbody>
-          </table>
-        </div>
+    <div class="ph">
+      <h1 class="page-title">Vendas</h1>
+      <div class="tab-pills" id="hist-views">
+        <button class="tab-pill active" data-v="diario" onclick="setHistView('diario')">Dia</button>
+        <button class="tab-pill" data-v="semanal" onclick="setHistView('semanal')">Semana</button>
+        <button class="tab-pill" data-v="mensal" onclick="setHistView('mensal')">Mês</button>
+        <button class="tab-pill" data-v="periodo" onclick="setHistView('periodo')">Período</button>
       </div>
     </div>
 
-    <!-- HISTÓRICO DIÁRIO -->
-    <div id="hist-diario-view">
-      <div class="card" style="margin-bottom:16px">
-        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
-          <div class="form-group" style="margin:0">
-            <label class="form-label">Loja</label>
-            <select class="form-select" id="hist-dia-loja" onchange="loadHistDiario()" style="width:140px">
-              <option value="">Todas</option><option>Loja Areal</option><option>Loja Três Rios</option>
-            </select>
-          </div>
-          <div class="form-group" style="margin:0">
-            <label class="form-label">Mês</label>
-            <select class="form-select" id="hist-dia-mes" onchange="loadHistDiario()" style="width:140px"></select>
-          </div>
-          <div class="form-group" style="margin:0">
-            <label class="form-label">Ano</label>
-            <select class="form-select" id="hist-dia-ano" onchange="loadHistDiario()" style="width:100px"></select>
-          </div>
-        </div>
+    <div class="hist-toolbar">
+      <div class="tab-pills" id="hist-lojas">
+        <button class="tab-pill active" data-l="" onclick="setHistLoja('')">Todas</button>
+        <button class="tab-pill" data-l="Loja Areal" onclick="setHistLoja('Loja Areal')"><span class="dot ar"></span> Areal</button>
+        <button class="tab-pill" data-l="Loja Três Rios" onclick="setHistLoja('Loja Três Rios')"><span class="dot tr"></span> Três Rios</button>
+        <button class="tab-pill" data-l="Site" onclick="setHistLoja('Site')"><span class="dot st"></span> Site</button>
       </div>
-      <div class="grid-2" id="hist-dia-grid" style="align-items:start">
-        <div class="card" id="hist-dia-card-areal">
-          <div class="card-title"><span class="badge badge-loja1">Loja Areal</span></div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Data</th><th>Vendas</th><th>Faturamento</th><th>Ticket Médio</th></tr></thead>
-              <tbody id="hist-dia-tbody-areal"><tr><td colspan="4" class="empty">Carregando...</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="card" id="hist-dia-card-tresrios">
-          <div class="card-title"><span class="badge badge-loja2">Loja Três Rios</span></div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Data</th><th>Vendas</th><th>Faturamento</th><th>Ticket Médio</th></tr></thead>
-              <tbody id="hist-dia-tbody-tresrios"><tr><td colspan="4" class="empty">Carregando...</td></tr></tbody>
-            </table>
-          </div>
-        </div>
+      <div class="week-nav" id="hist-nav">
+        <button onclick="histNav(-1)" aria-label="Anterior">‹</button>
+        <span class="week-label" id="hist-nav-label">—</span>
+        <button onclick="histNav(1)" aria-label="Próximo">›</button>
+      </div>
+      <div class="hist-datas" id="hist-datas" style="display:none">
+        <input type="date" class="form-input" id="hist-per-ini">
+        <span class="muted">até</span>
+        <input type="date" class="form-input" id="hist-per-fim">
+        <button class="btn btn-primary" onclick="loadHist()">Buscar</button>
       </div>
     </div>
 
-    <!-- HISTÓRICO SEMANAL -->
-    <div id="hist-semanal-view" style="display:none">
-      <div class="card" style="margin-bottom:16px">
-        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
-          <div class="form-group" style="margin:0">
-            <label class="form-label">Loja</label>
-            <select class="form-select" id="hist-sem-loja" onchange="loadHistSemanal()" style="width:140px">
-              <option value="">Todas</option><option>Loja Areal</option><option>Loja Três Rios</option>
-            </select>
-          </div>
-          <div class="form-group" style="margin:0">
-            <label class="form-label">Ano</label>
-            <select class="form-select" id="hist-sem-ano" onchange="loadHistSemanal()" style="width:100px"></select>
-          </div>
-        </div>
-      </div>
-      <div id="hist-sem-grid" style="display:grid;gap:16px">
-        <div class="card" id="hist-sem-card-areal">
-          <div class="card-title"><span class="badge badge-loja1">Loja Areal</span></div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Semana</th><th>Vendas</th><th>Faturamento</th><th>Ticket Médio</th><th>Tier</th><th>Meta</th><th>Super</th><th>Mega</th></tr></thead>
-              <tbody id="hist-sem-tbody-areal"><tr><td colspan="8" class="empty">Carregando...</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="card" id="hist-sem-card-tresrios">
-          <div class="card-title"><span class="badge badge-loja2">Loja Três Rios</span></div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Semana</th><th>Vendas</th><th>Faturamento</th><th>Ticket Médio</th><th>Tier</th><th>Meta</th><th>Super</th><th>Mega</th></tr></thead>
-              <tbody id="hist-sem-tbody-tresrios"><tr><td colspan="8" class="empty">Carregando...</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div class="stat-strip" id="hist-strip"></div>
 
-    <!-- HISTÓRICO MENSAL -->
-    <div id="hist-mensal-view" style="display:none;">
-      <div class="card" style="margin-bottom:16px">
-        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
-          <div class="form-group" style="margin:0">
-            <label class="form-label">Loja</label>
-            <select class="form-select" id="hist-men-loja" onchange="loadHistMensal()" style="width:140px">
-              <option value="">Todas</option><option>Loja Areal</option><option>Loja Três Rios</option>
-            </select>
-          </div>
-          <div class="form-group" style="margin:0">
-            <label class="form-label">Ano</label>
-            <select class="form-select" id="hist-men-ano" onchange="loadHistMensal()" style="width:100px"></select>
-          </div>
-        </div>
-      </div>
-      <div id="hist-men-grid" style="display:grid;gap:16px">
-        <div class="card" id="hist-men-card-areal">
-          <div class="card-title"><span class="badge badge-loja1">Loja Areal</span></div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Mês</th><th>Vendas</th><th>Faturamento</th><th>Ticket Médio</th><th>Tier</th><th>Meta</th><th>Super</th><th>Mega</th></tr></thead>
-              <tbody id="hist-men-tbody-areal"><tr><td colspan="8" class="empty">Carregando...</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="card" id="hist-men-card-tresrios">
-          <div class="card-title"><span class="badge badge-loja2">Loja Três Rios</span></div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Mês</th><th>Vendas</th><th>Faturamento</th><th>Ticket Médio</th><th>Tier</th><th>Meta</th><th>Super</th><th>Mega</th></tr></thead>
-              <tbody id="hist-men-tbody-tresrios"><tr><td colspan="8" class="empty">Carregando...</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div class="tbl-wrap"><table class="tbl" id="hist-tbl"></table></div>
+
+    <div class="sec-title" id="hist-vend-titulo">Por vendedora</div>
+    <div class="tbl-wrap"><table class="tbl" id="hist-vend"></table></div>
   </div>
 
   <!-- ===== CUSTOS FIXOS ===== -->
@@ -827,6 +749,7 @@ tbody tr:hover td { background: var(--surface2); }
     <div class="tab-pills" style="margin-bottom:20px">
       <button class="tab-pill active" id="cpill-areal"    onclick="setCustosLoja('Loja Areal',this)"><i class="ti ti-map-pin"></i>Loja Areal</button>
       <button class="tab-pill"        id="cpill-tresrios" onclick="setCustosLoja('Loja Três Rios',this)"><i class="ti ti-map-pin"></i>Loja Três Rios</button>
+      <button class="tab-pill"        id="cpill-site"     onclick="setCustosLoja('Site',this)">Site</button>
       <button class="tab-pill"        id="cpill-cd"       onclick="setCustosLoja('Centro de Distribuição',this)"><i class="ti ti-building-warehouse"></i>Centro de Distribuição</button>
     </div>
 
@@ -1046,6 +969,16 @@ const COMISSAO = {
 // ===== UTILS =====
 const fmt = v => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0);
 const fmtDate = d => new Date(d + 'T12:00:00').toLocaleDateString('pt-BR');
+
+// Canais de venda: as duas lojas físicas e o site (loja online)
+const LOJAS_VENDA = ['Loja Areal', 'Loja Três Rios', 'Site'];
+const LOJA_INFO = {
+  'Loja Areal':     { c: 'ar', curto: 'Areal',     cor: '#2f6aa3', css: 'var(--loja1)', suf: 'l1' },
+  'Loja Três Rios': { c: 'tr', curto: 'Três Rios', cor: '#b4553b', css: 'var(--loja2)', suf: 'l2' },
+  'Site':           { c: 'st', curto: 'Site',      cor: '#3a7d74', css: 'var(--site)',  suf: 'l3' },
+};
+const lojaInfo = l => LOJA_INFO[l] || { c: '', curto: l, cor: '#8a827a', css: 'var(--text-muted)', suf: '' };
+const lojaDot = l => `<span class="ranking-loja"><span class="dot ${lojaInfo(l).c}"></span>${lojaInfo(l).curto}</span>`;
 
 function getMonday(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
@@ -1330,7 +1263,7 @@ function renderTierProgress(realizado, meta, lojaColor) {
 
 // Uma linha por pessoa: posição, nome, loja em cinza e valor à direita
 function rankingLinha(r, i) {
-  const loja = r.loja === 'Loja Areal' ? ['ar', 'Areal'] : ['tr', 'Três Rios'];
+  const loja = [lojaInfo(r.loja).c, lojaInfo(r.loja).curto];
   return `<div class="ranking-item">
     <span class="ranking-pos">${i + 1}</span>
     <span class="ranking-nome"><b>${r.nome}</b><span class="ranking-loja"><span class="dot ${loja[0]}"></span>${loja[1]}</span></span>
@@ -1394,27 +1327,32 @@ async function loadDashSemanal() {
   const total = (vendas||[]).reduce((s,v)=>s+v.valor,0);
   const l1 = (vendas||[]).filter(v=>v.loja==='Loja Areal').reduce((s,v)=>s+v.valor,0);
   const l2 = (vendas||[]).filter(v=>v.loja==='Loja Três Rios').reduce((s,v)=>s+v.valor,0);
+  const l3 = (vendas||[]).filter(v=>v.loja==='Site').reduce((s,v)=>s+v.valor,0);
   const reais = somaVendasReais(await buscarVendasReais(monday, sunday), vendas);
 
   document.getElementById('d-total').textContent = fmt(total);
   document.getElementById('d-count').textContent = reais.n ? `${txtNumVendas(reais)} venda${reais.n !== 1 ? 's' : ''}` : 'vendas: sem dado';
   document.getElementById('d-l1').textContent = fmt(l1);
   document.getElementById('d-l2').textContent = fmt(l2);
+  document.getElementById('d-l3').textContent = fmt(l3);
   document.getElementById('d-ticket').textContent = txtTicket(reais);
 
   const { data: metas } = await sb.from('metas_semanais').select('*').eq('semana_inicio', monday);
   const ml1 = metas?.find(m=>m.loja==='Loja Areal');
   const ml2 = metas?.find(m=>m.loja==='Loja Três Rios');
+  const ml3 = metas?.find(m=>m.loja==='Site');
 
   document.getElementById('d-l1-tier').innerHTML = tierBadgeHtml(calcTier(l1, ml1));
   document.getElementById('d-l2-tier').innerHTML = tierBadgeHtml(calcTier(l2, ml2));
   document.getElementById('meta-prog-l1').innerHTML = renderTierProgress(l1, ml1, 'var(--loja1)');
   document.getElementById('meta-prog-l2').innerHTML = renderTierProgress(l2, ml2, 'var(--loja2)');
+  document.getElementById('d-l3-tier').innerHTML = ml3 ? tierBadgeHtml(calcTier(l3, ml3)) : '';
+  document.getElementById('meta-prog-l3').innerHTML = renderTierProgress(l3, ml3, 'var(--site)');
 
   // Ranking
   const rankMap = {};
   (vendas||[]).forEach(v => {
-    const key = v.funcionaria_id || '__sem__';
+    const key = v.funcionaria_id || `__sem__${v.loja}`;
     if (!rankMap[key]) rankMap[key] = { nome: v.funcionarias?.nome||'Sem atribuição', loja: v.loja, total: 0 };
     rankMap[key].total += v.valor;
   });
@@ -1436,6 +1374,7 @@ async function loadDashSemanal() {
   const somaLoja = (d,loja)=>(vendas||[]).filter(v=>v.data_venda===d && v.loja===loja).reduce((s,v)=>s+v.valor,0);
   const valsAreal = days.map(d=>somaLoja(d,'Loja Areal'));
   const valsTres  = days.map(d=>somaLoja(d,'Loja Três Rios'));
+  const valsSite  = days.map(d=>somaLoja(d,'Site'));
 
   if (chartDias) chartDias.destroy();
   chartDias = new Chart(document.getElementById('chart-dias').getContext('2d'), {
@@ -1443,6 +1382,7 @@ async function loadDashSemanal() {
     data: { labels, datasets:[
       { label:'Loja Areal',     data:valsAreal, backgroundColor:'#2f6aa3', borderRadius:3, barPercentage:1.5, categoryPercentage:0.5, borderColor:'#ffffff', borderWidth:2 },
       { label:'Loja Três Rios', data:valsTres,  backgroundColor:'#b4553b', borderRadius:3, barPercentage:1.5, categoryPercentage:0.5, borderColor:'#ffffff', borderWidth:2 },
+      ...(valsSite.some(v => v) ? [{ label:'Site', data:valsSite, backgroundColor:'#3a7d74', borderRadius:3, barPercentage:1.5, categoryPercentage:0.5, borderColor:'#ffffff', borderWidth:2 }] : []),
     ] },
     options: {
       maintainAspectRatio:false,
@@ -1481,22 +1421,27 @@ async function loadDashMensal() {
   const total = (vendas||[]).reduce((s,v)=>s+v.valor,0);
   const l1 = (vendas||[]).filter(v=>v.loja==='Loja Areal').reduce((s,v)=>s+v.valor,0);
   const l2 = (vendas||[]).filter(v=>v.loja==='Loja Três Rios').reduce((s,v)=>s+v.valor,0);
+  const l3 = (vendas||[]).filter(v=>v.loja==='Site').reduce((s,v)=>s+v.valor,0);
   const reais = somaVendasReais(await buscarVendasReais(start, end), vendas);
 
   document.getElementById('dm-total').textContent = fmt(total);
   document.getElementById('dm-count').textContent = reais.n ? `${txtNumVendas(reais)} venda${reais.n !== 1 ? 's' : ''}` : 'vendas: sem dado';
   document.getElementById('dm-l1').textContent = fmt(l1);
   document.getElementById('dm-l2').textContent = fmt(l2);
+  document.getElementById('dm-l3').textContent = fmt(l3);
   document.getElementById('dm-ticket').textContent = txtTicket(reais);
 
   const { data: metas } = await sb.from('metas_mensais').select('*').eq('mes',mes).eq('ano',ano);
   const ml1 = metas?.find(m=>m.loja==='Loja Areal');
   const ml2 = metas?.find(m=>m.loja==='Loja Três Rios');
+  const ml3 = metas?.find(m=>m.loja==='Site');
 
   document.getElementById('dm-l1-tier').innerHTML = tierBadgeHtml(calcTier(l1,ml1));
   document.getElementById('dm-l2-tier').innerHTML = tierBadgeHtml(calcTier(l2,ml2));
   document.getElementById('meta-prog-mensal-l1').innerHTML = renderTierProgress(l1, ml1, 'var(--loja1)');
   document.getElementById('meta-prog-mensal-l2').innerHTML = renderTierProgress(l2, ml2, 'var(--loja2)');
+  document.getElementById('dm-l3-tier').innerHTML = ml3 ? tierBadgeHtml(calcTier(l3, ml3)) : '';
+  document.getElementById('meta-prog-mensal-l3').innerHTML = renderTierProgress(l3, ml3, 'var(--site)');
 }
 
 async function loadDashAnual() {
@@ -1517,11 +1462,13 @@ async function loadDashAnual() {
   const total = vendas.reduce((s,v)=>s+Number(v.valor),0);
   const l1 = vendas.filter(v=>v.loja==='Loja Areal').reduce((s,v)=>s+Number(v.valor),0);
   const l2 = vendas.filter(v=>v.loja==='Loja Três Rios').reduce((s,v)=>s+Number(v.valor),0);
+  const l3 = vendas.filter(v=>v.loja==='Site').reduce((s,v)=>s+Number(v.valor),0);
 
   const somaMes = (m, loja) => vendas.filter(v => Number(v.data_venda.slice(5,7)) === m && v.loja === loja).reduce((s,v)=>s+Number(v.valor),0);
   const valsAreal = Array.from({length:12}, (_,i) => somaMes(i+1, 'Loja Areal'));
   const valsTres  = Array.from({length:12}, (_,i) => somaMes(i+1, 'Loja Três Rios'));
-  const totaisMes = valsAreal.map((v,i) => v + valsTres[i]);
+  const valsSite  = Array.from({length:12}, (_,i) => somaMes(i+1, 'Site'));
+  const totaisMes = valsAreal.map((v,i) => v + valsTres[i] + valsSite[i]);
   const mesesComVenda = totaisMes.filter(v => v > 0).length;
   const iMelhor = totaisMes.reduce((best,v,i) => v > totaisMes[best] ? i : best, 0);
   const nomeMes = i => new Date(ano, i, 1).toLocaleDateString('pt-BR', { month: 'long' });
@@ -1533,6 +1480,8 @@ async function loadDashAnual() {
   document.getElementById('da-l2').textContent = fmt(l2);
   document.getElementById('da-l1-pct').textContent = pct(l1);
   document.getElementById('da-l2-pct').textContent = pct(l2);
+  document.getElementById('da-l3').textContent = fmt(l3);
+  document.getElementById('da-l3-pct').textContent = pct(l3);
   document.getElementById('da-melhor').textContent = total ? nomeMes(iMelhor).replace(/^./, c => c.toUpperCase()) : '—';
   document.getElementById('da-melhor-valor').textContent = total ? fmt(totaisMes[iMelhor]) : '';
 
@@ -1557,6 +1506,7 @@ async function loadDashAnual() {
     data: { labels, datasets:[
       { label:'Loja Areal',     data:valsAreal, backgroundColor:'#2f6aa3', borderRadius:3, barPercentage:1.5, categoryPercentage:0.5, borderColor:'#ffffff', borderWidth:2 },
       { label:'Loja Três Rios', data:valsTres,  backgroundColor:'#b4553b', borderRadius:3, barPercentage:1.5, categoryPercentage:0.5, borderColor:'#ffffff', borderWidth:2 },
+      ...(valsSite.some(v => v) ? [{ label:'Site', data:valsSite, backgroundColor:'#3a7d74', borderRadius:3, barPercentage:1.5, categoryPercentage:0.5, borderColor:'#ffffff', borderWidth:2 }] : []),
     ] },
     options: {
       maintainAspectRatio:false,
@@ -2206,7 +2156,7 @@ async function loadFechamentos() {
   const diasPeriodo = Math.round((d2 - d1) / 86400000) + 1;
 
   // Buscar dados em paralelo
-  const lojas = ['Loja Areal', 'Loja Três Rios'];
+  const lojas = LOJAS_VENDA;
   const [vendasRes, despesasRes, custosRes, comissoesRes, comprasRes] = await Promise.all([
     sb.from('fechamento_dia').select('loja,total_loja,total_dinheiro,total_cartao,total_pix,total_crediario')
       .gte('data_fechamento', dtIni).lte('data_fechamento', dtFim),
@@ -2245,7 +2195,9 @@ async function loadFechamentos() {
     return { loja, receita, dinheiro, cartao, pix, crediario, cmv, desp, comissao, custoMensal, custoProp, liquido };
   });
 
-  const cor = loja => loja === 'Loja Areal' ? 'var(--loja1)' : 'var(--loja2)';
+  const cor = loja => lojaInfo(loja).css;
+  // o Site só aparece quando tiver venda ou custo no período
+  const dreVisivel = dre.filter(d => d.loja !== 'Site' || d.receita || d.custoMensal);
 
   const dreCard = d => `
     <div class="card" style="margin-bottom:16px">
@@ -2281,7 +2233,7 @@ async function loadFechamentos() {
   tot.liquido = tot.receita - tot.cmv - tot.desp - tot.comissao - tot.custoProp - cdProp;
 
   el.innerHTML = `
-    <div class="grid-2">${dre.map(dreCard).join('')}</div>
+    <div class="${dreVisivel.length > 2 ? 'grid-3' : 'grid-2'}">${dreVisivel.map(dreCard).join('')}</div>
     <div class="card" style="background:var(--surface2)">
       <div class="card-title" style="margin-bottom:14px"><i class="ti ti-clipboard-list"></i>Consolidado — ${label}</div>
       <div class="dre-row"><span><i class="ti ti-cash"></i>Receita total</span><span style="color:var(--green)">${fmt(tot.receita)}</span></div>
@@ -2363,6 +2315,87 @@ async function saveMetaMensal(loja) {
   showToast(`Meta mensal da ${loja} salva!`);
 }
 
+// ===== APOIO PARA MONTAR A META =====
+// Mostra números de referência de cada loja (período anterior, média recente, melhor período e o
+// mesmo período do ano passado). Clicar em um deles preenche Meta, Super (+10%) e Mega (+10% sobre o Super).
+const LOJAS_META = LOJAS_VENDA.map(l => [l, lojaInfo(l).suf]);
+const addDias = (d, n) => { const x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() + n); return x.toISOString().split('T')[0]; };
+const diaMes = d => fmtDate(d).slice(0, 5);
+const ultimoDia = (ano, mes) => new Date(ano, mes, 0).toISOString().split('T')[0];
+const primeiroDia = (ano, mes) => `${ano}-${String(mes).padStart(2, '0')}-01`;
+const somaLoja = (vendas, loja, de, ate) => vendas.reduce((s, v) => s + (v.loja === loja && v.data_venda >= de && v.data_venda <= ate ? Number(v.valor) : 0), 0);
+const media = arr => { const c = arr.filter(v => v > 0); return c.length ? c.reduce((s, v) => s + v, 0) / c.length : 0; };
+const arred100 = v => Math.round(v / 100) * 100;
+const metaLojaHtml = lojaDot;
+
+function renderBaseMeta(prefixo, refs) {
+  LOJAS_META.forEach(([loja, suf]) => {
+    const el = document.getElementById(`${prefixo}-${suf}-base`);
+    const cresc = el.querySelector('input')?.value ?? '0';
+    el.innerHTML = `<div class="mb-topo"><span>Base para a meta</span>
+        <label class="mb-cresc">aumento <input type="number" step="1" value="${cresc}" class="form-input"> %</label></div>`
+      + refs.map(r => {
+        const v = r.valores[loja] || 0;
+        return v
+          ? `<button class="mb-row" onclick="usarBaseMeta('${prefixo}','${suf}',${v.toFixed(2)})" title="Usar como base da meta"><span class="mb-l">${r.rotulo} <span class="muted">${r.sub}</span></span><span class="mb-v">${fmt(v)}</span></button>`
+          : `<div class="mb-row vazio"><span class="mb-l">${r.rotulo} <span class="muted">${r.sub}</span></span><span class="mb-v muted">sem dado</span></div>`;
+      }).join('')
+      + '<div class="mb-nota">Clique em um valor para preencher. Super e Mega ficam 10% acima cada.</div>';
+  });
+}
+
+function usarBaseMeta(prefixo, suf, base) {
+  const cresc = parseFloat(document.querySelector(`#${prefixo}-${suf}-base input`).value) || 0;
+  const meta = arred100(base * (1 + cresc / 100));
+  const sup = arred100(meta * 1.10);
+  const mega = arred100(sup * 1.10);
+  setBRL(`${prefixo}-${suf}-meta`, meta);
+  setBRL(`${prefixo}-${suf}-super`, sup);
+  setBRL(`${prefixo}-${suf}-mega`, mega);
+}
+
+async function baseMetaSemanal(monday) {
+  const hoje = new Date().toISOString().split('T')[0];
+  const ini = addDias(monday, -91), fimAnt = addDias(monday, -1);
+  const lyIni = addDias(monday, -364), lyFim = addDias(monday, -358);
+  const [recentes, anoPassado] = await Promise.all([
+    buscarVendasPeriodo(ini, fimAnt, null, 'data_venda,loja,valor'),
+    buscarVendasPeriodo(lyIni, lyFim, null, 'data_venda,loja,valor')
+  ]);
+  const semanas = Array.from({ length: 13 }, (_, i) => addDias(monday, -7 * (i + 1)));  // da mais recente para trás
+  const val = (fn) => Object.fromEntries(LOJAS_META.map(([l]) => [l, fn(l)]));
+  const porSemana = l => semanas.map(s => somaLoja(recentes, l, s, addDias(s, 6)));
+  const ant = semanas[0];
+  const melhorIdx = l => { const p = porSemana(l); return p.indexOf(Math.max(...p)); };
+  renderBaseMeta('ms', [
+    { rotulo: 'Semana anterior', sub: `${diaMes(ant)} – ${diaMes(addDias(ant, 6))}${hoje <= addDias(ant, 6) ? ' (em andamento)' : ''}`, valores: val(l => porSemana(l)[0]) },
+    { rotulo: 'Média das últimas 4 semanas', sub: '', valores: val(l => media(porSemana(l).slice(0, 4))) },
+    { rotulo: 'Melhor semana em 3 meses', sub: '', valores: val(l => Math.max(...porSemana(l))) },
+    { rotulo: `Mesma semana em ${lyIni.slice(0, 4)}`, sub: `${diaMes(lyIni)} – ${diaMes(lyFim)}`, valores: val(l => somaLoja(anoPassado, l, lyIni, lyFim)) },
+  ]);
+}
+
+async function baseMetaMensal(ano, mes) {
+  const hoje = new Date().toISOString().split('T')[0];
+  const mesAnt = k => { const d = new Date(ano, mes - 1 - k, 1); return { ano: d.getFullYear(), mes: d.getMonth() + 1 }; };
+  const meses = Array.from({ length: 6 }, (_, i) => mesAnt(i + 1));
+  const ini = primeiroDia(meses[5].ano, meses[5].mes), fim = ultimoDia(meses[0].ano, meses[0].mes);
+  const lyIni = primeiroDia(ano - 1, mes), lyFim = ultimoDia(ano - 1, mes);
+  const [recentes, anoPassado] = await Promise.all([
+    buscarVendasPeriodo(ini, fim, null, 'data_venda,loja,valor'),
+    buscarVendasPeriodo(lyIni, lyFim, null, 'data_venda,loja,valor')
+  ]);
+  const val = (fn) => Object.fromEntries(LOJAS_META.map(([l]) => [l, fn(l)]));
+  const porMes = l => meses.map(m => somaLoja(recentes, l, primeiroDia(m.ano, m.mes), ultimoDia(m.ano, m.mes)));
+  const nome = m => monthLabel(m.ano, m.mes).replace(' de ', '/').replace(/^./, c => c.toUpperCase());
+  renderBaseMeta('mm', [
+    { rotulo: 'Mês anterior', sub: nome(meses[0]) + (hoje <= ultimoDia(meses[0].ano, meses[0].mes) ? ' (em andamento)' : ''), valores: val(l => porMes(l)[0]) },
+    { rotulo: 'Média dos últimos 3 meses', sub: '', valores: val(l => media(porMes(l).slice(0, 3))) },
+    { rotulo: 'Melhor mês em 6 meses', sub: '', valores: val(l => Math.max(...porMes(l))) },
+    { rotulo: `Mesmo mês em ${ano - 1}`, sub: nome({ ano: ano - 1, mes }), valores: val(l => somaLoja(anoPassado, l, lyIni, lyFim)) },
+  ]);
+}
+
 // ===== METAS =====
 let metasWeekOffset = _offs.metasWeek || 0, metasMonthOffset = _offs.metasMonth || 0;
 let metasView = 'semanal';
@@ -2373,6 +2406,8 @@ function setMetasView(v, btn) {
   btn.classList.add('active');
   document.getElementById('metas-semanal-view').style.display = v === 'semanal' ? '' : 'none';
   document.getElementById('metas-mensal-view').style.display  = v === 'mensal'  ? '' : 'none';
+  document.getElementById('metas-nav-semanal').style.display = v === 'semanal' ? '' : 'none';
+  document.getElementById('metas-nav-mensal').style.display  = v === 'mensal'  ? '' : 'none';
   if (v === 'semanal') loadMetasSemanal();
   else loadMetasMensal();
 }
@@ -2384,11 +2419,12 @@ async function loadMetasSemanal() {
   const monday = currentMonday(metasWeekOffset);
   const sunday = getSunday(monday);
   document.getElementById('metas-week-label').textContent = weekLabel(monday);
+  baseMetaSemanal(monday);
 
   // Preenche formulário com valores existentes
   const { data: existing } = await sb.from('metas_semanais').select('*').eq('semana_inicio', monday);
-  ['Loja Areal','Loja Três Rios'].forEach(l => {
-    const suf = l === 'Loja Areal' ? 'l1' : 'l2';
+  LOJAS_VENDA.forEach(l => {
+    const suf = lojaInfo(l).suf;
     const m = existing?.find(x => x.loja === l);
     setBRL(`ms-${suf}-meta`,  m ? m.valor_meta  : null);
     setBRL(`ms-${suf}-super`, m ? m.valor_super : null);
@@ -2401,19 +2437,19 @@ async function loadMetasSemanal() {
   if (!all?.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Nenhuma meta cadastrada</td></tr>'; return; }
   tbody.innerHTML = all.map(m => `
     <tr>
-      <td style="white-space:nowrap">${fmtDate(m.semana_inicio)} – ${fmtDate(m.semana_fim)}</td>
-      <td><span class="badge badge-${m.loja === 'Loja Areal' ? 'loja1' : 'loja2'}">${m.loja}</span></td>
-      <td style="color:var(--meta-color)">${fmt(m.valor_meta)}</td>
-      <td style="color:var(--super-color)">${fmt(m.valor_super)}</td>
-      <td style="color:var(--mega-color)">${fmt(m.valor_mega)}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteMetaSem('${m.id}')"><i class="ti ti-x"></i></button></td>
+      <td>${fmtDate(m.semana_inicio)} – ${fmtDate(m.semana_fim)}</td>
+      <td>${metaLojaHtml(m.loja)}</td>
+      <td class="num">${fmt(m.valor_meta)}</td>
+      <td class="num">${fmt(m.valor_super)}</td>
+      <td class="num">${fmt(m.valor_mega)}</td>
+      <td class="num"><button class="link" onclick="deleteMetaSem('${m.id}')">Excluir</button></td>
     </tr>`).join('');
 }
 
 async function saveMetaSemanalNamed(loja) {
   const monday = currentMonday(metasWeekOffset);
   const sunday = getSunday(monday);
-  const suf = loja === 'Loja Areal' ? 'l1' : 'l2';
+  const suf = lojaInfo(loja).suf;
   const valor_meta  = parseBRL(document.getElementById(`ms-${suf}-meta`).value);
   const valor_super = parseBRL(document.getElementById(`ms-${suf}-super`).value);
   const valor_mega  = parseBRL(document.getElementById(`ms-${suf}-mega`).value);
@@ -2435,11 +2471,12 @@ async function deleteMetaSem(id) {
 
 async function loadMetasMensal() {
   const { mes, ano } = getCurrentMonthYear(metasMonthOffset);
-  document.getElementById('metas-month-label').textContent = monthLabel(ano, mes);
+  document.getElementById('metas-month-label').textContent = monthLabel(ano, mes).replace(/^./, c => c.toUpperCase());
+  baseMetaMensal(ano, mes);
 
   const { data: existing } = await sb.from('metas_mensais').select('*').eq('mes', mes).eq('ano', ano);
-  ['Loja Areal','Loja Três Rios'].forEach(l => {
-    const suf = l === 'Loja Areal' ? 'l1' : 'l2';
+  LOJAS_VENDA.forEach(l => {
+    const suf = lojaInfo(l).suf;
     const m = existing?.find(x => x.loja === l);
     setBRL(`mm-${suf}-meta`,  m ? m.valor_meta  : null);
     setBRL(`mm-${suf}-super`, m ? m.valor_super : null);
@@ -2451,18 +2488,18 @@ async function loadMetasMensal() {
   if (!all?.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Nenhuma meta cadastrada</td></tr>'; return; }
   tbody.innerHTML = all.map(m => `
     <tr>
-      <td>${monthLabel(m.ano, m.mes)}</td>
-      <td><span class="badge badge-${m.loja === 'Loja Areal' ? 'loja1' : 'loja2'}">${m.loja}</span></td>
-      <td style="color:var(--meta-color)">${fmt(m.valor_meta)}</td>
-      <td style="color:var(--super-color)">${fmt(m.valor_super)}</td>
-      <td style="color:var(--mega-color)">${fmt(m.valor_mega)}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteMetaMen('${m.id}')"><i class="ti ti-x"></i></button></td>
+      <td>${monthLabel(m.ano, m.mes).replace(/^./, c => c.toUpperCase())}</td>
+      <td>${metaLojaHtml(m.loja)}</td>
+      <td class="num">${fmt(m.valor_meta)}</td>
+      <td class="num">${fmt(m.valor_super)}</td>
+      <td class="num">${fmt(m.valor_mega)}</td>
+      <td class="num"><button class="link" onclick="deleteMetaMen('${m.id}')">Excluir</button></td>
     </tr>`).join('');
 }
 
 async function saveMetaMensalNamed(loja) {
   const { mes, ano } = getCurrentMonthYear(metasMonthOffset);
-  const suf = loja === 'Loja Areal' ? 'l1' : 'l2';
+  const suf = lojaInfo(loja).suf;
   const valor_meta  = parseBRL(document.getElementById(`mm-${suf}-meta`).value);
   const valor_super = parseBRL(document.getElementById(`mm-${suf}-super`).value);
   const valor_mega  = parseBRL(document.getElementById(`mm-${suf}-mega`).value);
@@ -2482,236 +2519,184 @@ async function deleteMetaMen(id) {
   loadMetasMensal();
 }
 
-// ===== HISTÓRICO =====
-let histView = 'diario';
+// ===== VENDAS (histórico) =====
+// Uma tabela só: cada linha é um dia, semana ou mês, com as lojas lado a lado.
+// Filtro de loja e período ficam guardados (a página reabre onde estava).
+let histView = _offs.histView || 'diario';
+let histLoja = _offs.histLoja ?? '';
+let histMesOff = _offs.histMes || 0, histAnoOff = _offs.histAno || 0;
 
-function setHistView(v, btn) {
-  histView = v;
-  document.querySelectorAll('#tab-historico .tab-pill').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('hist-periodo-view').style.display = v === 'periodo' ? '' : 'none';
-  document.getElementById('hist-diario-view').style.display  = v === 'diario'  ? '' : 'none';
-  document.getElementById('hist-semanal-view').style.display = v === 'semanal' ? '' : 'none';
-  document.getElementById('hist-mensal-view').style.display  = v === 'mensal'  ? '' : 'none';
-  if (v === 'diario')  loadHistDiario();
-  if (v === 'semanal') loadHistSemanal();
-  if (v === 'mensal')  loadHistMensal();
-  // período: só busca quando o usuário clicar em Buscar
+function setHistView(v) {
+  histView = v; saveOff('histView', v);
+  loadHist();
+}
+function setHistLoja(l) {
+  histLoja = l; saveOff('histLoja', l);
+  loadHist();
+}
+function histNav(d) {
+  if (histView === 'diario') { histMesOff += d; saveOff('histMes', histMesOff); }
+  else { histAnoOff += d; saveOff('histAno', histAnoOff); }
+  loadHist();
+}
+function histAbrirSemana(k, tr) {
+  const aberta = tr.classList.toggle('open');
+  document.querySelectorAll(`#hist-tbl tr.sub[data-w="${k}"]`).forEach(x => x.classList.toggle('show', aberta));
+}
+// Compatibilidade com quem chama os nomes antigos
+function initHistFilters() {}
+const loadHistDiario = () => loadHist();
+
+function histIntervalo() {
+  const hoje = new Date();
+  if (histView === 'diario') {
+    const d = new Date(hoje.getFullYear(), hoje.getMonth() + histMesOff, 1);
+    const ano = d.getFullYear(), mes = d.getMonth() + 1;
+    return { de: `${ano}-${String(mes).padStart(2, '0')}-01`, ate: new Date(ano, mes, 0).toISOString().split('T')[0],
+             rotulo: monthLabel(ano, mes).replace(/^./, c => c.toUpperCase()) };
+  }
+  if (histView === 'periodo') {
+    return { de: document.getElementById('hist-per-ini').value, ate: document.getElementById('hist-per-fim').value };
+  }
+  const ano = hoje.getFullYear() + histAnoOff;
+  return { de: `${ano}-01-01`, ate: `${ano}-12-31`, rotulo: String(ano), ano };
 }
 
-function initHistFilters() {
-  const anoAtual = new Date().getFullYear();
-  const mesAtual = new Date().getMonth() + 1;
-  const anos = Array.from({ length: 5 }, (_, i) => anoAtual - i);
+const pct = v => (v * 100).toFixed(0) + '%';
+const histDia = d => new Date(d + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' }).replace('.', '').replace(',', '');
 
-  ['hist-sem-ano','hist-men-ano','hist-dia-ano'].forEach(id => {
-    const sel = document.getElementById(id);
-    if (!sel) return;
-    sel.innerHTML = anos.map(a => `<option value="${a}" ${a === anoAtual ? 'selected' : ''}>${a}</option>`).join('');
+async function loadHist() {
+  // estado dos botões
+  document.querySelectorAll('#hist-views .tab-pill').forEach(b => b.classList.toggle('active', b.dataset.v === histView));
+  document.querySelectorAll('#hist-lojas .tab-pill').forEach(b => b.classList.toggle('active', b.dataset.l === histLoja));
+  document.getElementById('hist-nav').style.display = histView === 'periodo' ? 'none' : '';
+  document.getElementById('hist-datas').style.display = histView === 'periodo' ? '' : 'none';
+
+  const it = histIntervalo();
+  if (histView === 'periodo') {
+    if (!it.de || !it.ate) { showToast('Escolha a data de início e de fim', 'error'); return; }
+    if (it.de > it.ate) { showToast('A data de início está depois da data de fim', 'error'); return; }
+  } else {
+    document.getElementById('hist-nav-label').textContent = it.rotulo;
+  }
+  const loja = histLoja || null;
+
+  let qMetas = null;
+  if (histView === 'semanal') qMetas = sb.from('metas_semanais').select('*').gte('semana_inicio', it.de).lte('semana_inicio', it.ate);
+  if (histView === 'mensal')  qMetas = sb.from('metas_mensais').select('*').eq('ano', it.ano);
+  const [vendas, reais, metasRes] = await Promise.all([
+    buscarVendasPeriodo(it.de, it.ate, loja, 'data_venda,loja,valor,funcionaria_id,funcionarias(nome)'),
+    buscarVendasReais(it.de, it.ate, loja),
+    qMetas || Promise.resolve({ data: [] })
+  ]);
+  const metas = metasRes.data || [];
+
+  // agrupa por linha (dia, semana ou mês)
+  const chave = d => histView === 'semanal' ? getMonday(d) : histView === 'mensal' ? d.slice(0, 7) : d;
+  const dentro = (k, d) => histView === 'semanal' ? (d >= k && d <= getSunday(k)) : histView === 'mensal' ? d.slice(0, 7) === k : d === k;
+  // soma por linha e por canal (Areal, Três Rios, Site)
+  const zera = () => Object.fromEntries(LOJAS_VENDA.map(l => [l, 0]));
+  const linhas = {};
+  vendas.forEach(v => {
+    const k = chave(v.data_venda);
+    const l = linhas[k] || (linhas[k] = { k, v: zera(), dias: {} });
+    const dd = l.dias[v.data_venda] || (l.dias[v.data_venda] = zera());
+    l.v[v.loja] = (l.v[v.loja] || 0) + Number(v.valor);
+    dd[v.loja] = (dd[v.loja] || 0) + Number(v.valor);
   });
-
-  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  const selMes = document.getElementById('hist-dia-mes');
-  if (selMes) selMes.innerHTML = meses.map((m,i) => `<option value="${i+1}" ${i+1===mesAtual?'selected':''}>${m}</option>`).join('');
-}
-
-const LOJAS_HIST = [['Loja Areal','areal'], ['Loja Três Rios','tresrios']];
-
-// Mostra/esconde as repartições conforme o filtro de loja
-function histFiltraCards(prefix, loja) {
-  LOJAS_HIST.forEach(([nome, suf]) => {
-    const card = document.getElementById(`${prefix}-card-${suf}`);
-    if (card) card.style.display = (!loja || loja === nome) ? '' : 'none';
+  const rows = Object.values(linhas).sort((a, b) => b.k.localeCompare(a.k));
+  const hojeISO = new Date().toISOString().split('T')[0];
+  const somaObj = o => Object.values(o).reduce((s, x) => s + x, 0);
+  rows.forEach(r => {
+    r.total = somaObj(r.v);
+    r.reais = somaVendasReais(reais, vendas, x => dentro(r.k, x.data));
+    r.andamento = histView === 'semanal' ? hojeISO <= getSunday(r.k) && hojeISO >= r.k
+                : histView === 'mensal'  ? hojeISO.slice(0, 7) === r.k : false;
+    if (loja) {
+      const m = histView === 'semanal' ? metas.find(x => x.semana_inicio === r.k && x.loja === loja)
+              : histView === 'mensal'  ? metas.find(x => x.mes === Number(r.k.slice(5, 7)) && x.loja === loja) : null;
+      r.meta = m || null;
+    }
   });
-  const grid = document.getElementById(`${prefix}-grid`);
-  if (grid && grid.classList.contains('grid-2')) grid.style.gridTemplateColumns = loja ? '1fr' : '';
-}
+  const rotulo = r => histView === 'semanal' ? `${fmtDate(r.k).slice(0, 5)} – ${fmtDate(getSunday(r.k)).slice(0, 5)}`
+                    : histView === 'mensal'  ? new Date(r.k + '-15T12:00:00').toLocaleDateString('pt-BR', { month: 'long' }).replace(/^./, c => c.toUpperCase())
+                    : histDia(r.k);
+  const comVar = histView === 'semanal' || histView === 'mensal';
+  // o Site só ganha coluna quando tiver venda no período
+  const canais = LOJAS_VENDA.filter(l => l !== 'Site' || rows.some(r => r.v.Site));
 
-async function loadHistDiario() {
-  const loja = document.getElementById('hist-dia-loja').value;
-  const mes  = parseInt(document.getElementById('hist-dia-mes').value);
-  const ano  = parseInt(document.getElementById('hist-dia-ano').value);
-  const start = `${ano}-${String(mes).padStart(2,'0')}-01`;
-  const end   = new Date(ano, mes, 0).toISOString().split('T')[0];
+  // ---- faixa de números
+  const tLoja = Object.fromEntries(LOJAS_VENDA.map(l => [l, rows.reduce((s, r) => s + (r.v[l] || 0), 0)]));
+  const tot = somaObj(tLoja);
+  const geral = somaVendasReais(reais, vendas);
+  const nomeLinha = { diario: 'dia', semanal: 'semana', mensal: 'mês', periodo: 'dia' }[histView];
+  const melhor = rows.filter(r => !r.andamento).reduce((b, r) => !b || r.total > b.total ? r : b, null);
+  const cel = (l, v, s = '') => `<div class="stat-card"><div class="stat-label">${l}</div><div class="stat-value">${v}</div><div class="stat-sub">${s}</div></div>`;
+  const nV = geral.n ? `${txtNumVendas(geral)} vendas` : '';
+  const nomeCanal = l => `<span class="dot ${lojaInfo(l).c}"></span>${l}`;
+  document.getElementById('hist-strip').innerHTML = !loja
+    ? cel('Total', fmt(tot), nV)
+      + canais.map(l => cel(nomeCanal(l), fmt(tLoja[l]), tot ? pct(tLoja[l] / tot) + ' do total' : '')).join('')
+      + cel('Ticket médio', txtTicket(geral), 'por venda')
+    : cel(nomeCanal(loja), fmt(tot), nV)
+      + cel('Ticket médio', txtTicket(geral), 'por venda')
+      + cel(`Média por ${nomeLinha}`, rows.length ? fmt(tot / rows.length) : '—', rows.length ? `${rows.length} ${nomeLinha === 'mês' ? (rows.length > 1 ? 'meses' : 'mês') : nomeLinha + (rows.length > 1 ? 's' : '')} com venda` : '')
+      + cel(`Melhor ${nomeLinha}`, melhor ? fmt(melhor.total) : '—', melhor ? rotulo(melhor) : '');
 
-  let q = sb.from('vendas').select('*').gte('data_venda', start).lte('data_venda', end);
-  if (loja) q = q.eq('loja', loja);
-  const [{ data: vendas }, reais] = await Promise.all([q, buscarVendasReais(start, end, loja)]);
-
-  histFiltraCards('hist-dia', loja);
-
-  LOJAS_HIST.forEach(([nome, suf]) => {
-    const tbody = document.getElementById(`hist-dia-tbody-${suf}`);
-    if (loja && loja !== nome) return;
-
-    // Agrupa o faturamento por data
-    const map = {};
-    (vendas || []).filter(v => v.loja === nome).forEach(v => {
-      if (!map[v.data_venda]) map[v.data_venda] = { data: v.data_venda, total: 0 };
-      map[v.data_venda].total += v.valor;
+  // ---- tabela principal
+  const varCel = (r, i) => {
+    const ant = rows[i + 1];
+    if (r.andamento) return '<td class="num muted">em andamento</td>';
+    if (!ant || !ant.total) return '<td class="num muted">—</td>';
+    const v = r.total / ant.total - 1;
+    return `<td class="num ${v >= 0 ? 'var-pos' : 'var-neg'}">${v >= 0 ? '+' : '−'}${Math.abs(v * 100).toFixed(0)}%</td>`;
+  };
+  const valCel = v => `<td class="num">${v ? fmt(v) : '<span class="z">—</span>'}</td>`;
+  let head, body, foot, subDia;
+  if (!loja) {
+    head = `<th>${nomeLinha[0].toUpperCase() + nomeLinha.slice(1)}</th>${canais.map(l => `<th class="num"><span class="dot ${lojaInfo(l).c}"></span> ${lojaInfo(l).curto}</th>`).join('')}<th class="num">Total</th><th class="num col-hide">Vendas</th><th class="num col-hide">Ticket</th>${comVar ? '<th class="num">Variação</th>' : ''}`;
+    body = rows.map((r, i) => `<tr><td>${rotulo(r)}</td>${canais.map(l => valCel(r.v[l])).join('')}<td class="num"><b>${fmt(r.total)}</b></td><td class="num col-hide">${txtNumVendas(r.reais)}</td><td class="num col-hide">${txtTicket(r.reais)}</td>${comVar ? varCel(r, i) : ''}</tr>`);
+    subDia = (d, x) => `<td>${histDia(d)}</td>${canais.map(l => valCel(x[l])).join('')}<td class="num">${fmt(somaObj(x))}</td><td class="num col-hide">${txtNumVendas(somaVendasReais(reais, vendas, y => y.data === d))}</td><td class="num col-hide">${txtTicket(somaVendasReais(reais, vendas, y => y.data === d))}</td>${comVar ? '<td></td>' : ''}`;
+    foot = `<td>Total</td>${canais.map(l => `<td class="num">${fmt(tLoja[l])}</td>`).join('')}<td class="num">${fmt(tot)}</td><td class="num col-hide">${txtNumVendas(geral)}</td><td class="num col-hide">${txtTicket(geral)}</td>${comVar ? '<td></td>' : ''}`;
+  } else {
+    const comMeta = comVar && rows.some(r => r.meta);
+    head = `<th>${nomeLinha[0].toUpperCase() + nomeLinha.slice(1)}</th><th class="num">Faturamento</th><th class="num">Vendas</th><th class="num">Ticket</th>${comMeta ? '<th class="num col-hide">Meta</th><th class="num">da meta</th><th>Situação</th>' : ''}${comVar ? '<th class="num col-hide">Variação</th>' : ''}`;
+    body = rows.map((r, i) => `<tr><td>${rotulo(r)}</td><td class="num"><b>${fmt(r.total)}</b></td><td class="num">${txtNumVendas(r.reais)}</td><td class="num">${txtTicket(r.reais)}</td>${comMeta ? (r.meta
+        ? `<td class="num col-hide">${fmt(r.meta.valor_meta)}</td><td class="num">${pct(r.total / r.meta.valor_meta)}</td><td>${tierBadgeHtml(calcTier(r.total, r.meta))}</td>`
+        : '<td class="num col-hide muted">—</td><td class="num muted">—</td><td></td>') : ''}${comVar ? varCel(r, i).replace('<td class="num', '<td class="num col-hide') : ''}</tr>`);
+    subDia = (d, x) => { const rd = somaVendasReais(reais, vendas, y => y.data === d);
+      return `<td>${histDia(d)}</td><td class="num">${fmt(somaObj(x))}</td><td class="num">${txtNumVendas(rd)}</td><td class="num">${txtTicket(rd)}</td>${comMeta ? '<td class="col-hide"></td><td></td><td></td>' : ''}${comVar ? '<td class="col-hide"></td>' : ''}`; };
+    foot = `<td>Total</td><td class="num">${fmt(tot)}</td><td class="num">${txtNumVendas(geral)}</td><td class="num">${txtTicket(geral)}</td>${comMeta ? '<td class="col-hide"></td><td></td><td></td>' : ''}${comVar ? '<td class="col-hide"></td>' : ''}`;
+  }  // Semana: separa por mês e cada semana abre os dias dela
+  if (histView === 'semanal') {
+    const nCol = (head.match(/<th/g) || []).length;
+    const mesDa = k => { const q = new Date(k + 'T12:00:00'); q.setDate(q.getDate() + 3); return q; };
+    let mesAtual = '';
+    body = rows.map((r, i) => {
+      const m = mesDa(r.k), chaveMes = m.getFullYear() + '-' + m.getMonth();
+      const sep = chaveMes !== mesAtual
+        ? `<tr class="grp"><td colspan="${nCol}">${m.toLocaleDateString('pt-BR', { month: 'long' }).replace(/^./, c => c.toUpperCase())}</td></tr>` : '';
+      mesAtual = chaveMes;
+      const dias = Object.keys(r.dias).sort().map(d => `<tr class="sub" data-w="${r.k}">${subDia(d, r.dias[d])}</tr>`).join('');
+      return sep + body[i].replace('<tr>', `<tr class="wrow" onclick="histAbrirSemana('${r.k}', this)">`).replace(`<td>${rotulo(r)}</td>`, `<td><i class="ti ti-chevron-right chev"></i>${rotulo(r)}</td>`) + dias;
     });
+  }
+  document.getElementById('hist-tbl').innerHTML = rows.length
+    ? `<thead><tr>${head}</tr></thead><tbody>${body.join('')}</tbody><tfoot><tr>${foot}</tr></tfoot>`
+    : '<tbody><tr><td class="empty">Nenhuma venda neste período</td></tr></tbody>';
 
-    const rows = Object.values(map).sort((a,b) => b.data.localeCompare(a.data));
-    if (!rows.length) { tbody.innerHTML = '<tr><td colspan="4" class="empty">Nenhum dado no período</td></tr>'; return; }
-
-    const totalGeral = rows.reduce((s,r) => s + r.total, 0);
-    const geral = somaVendasReais(reais, vendas, x => x.loja === nome);
-
-    tbody.innerHTML = rows.map(r => {
-      const dia = somaVendasReais(reais, vendas, x => x.loja === nome && x.data === r.data);
-      return `
-      <tr>
-        <td style="white-space:nowrap">${new Date(r.data+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'})}</td>
-        <td>${txtNumVendas(dia)}</td>
-        <td style="font-weight:600;color:var(--accent)">${fmt(r.total)}</td>
-        <td style="color:var(--text-muted)">${txtTicket(dia)}</td>
-      </tr>`; }).join('') +
-      `<tr style="border-top:2px solid var(--border)">
-        <td style="font-weight:600;color:var(--text-muted)">Total do período</td>
-        <td style="font-weight:600">${txtNumVendas(geral)}</td>
-        <td style="font-weight:700;color:var(--accent)">${fmt(totalGeral)}</td>
-        <td style="color:var(--text-muted)">${txtTicket(geral)}</td>
-      </tr>`;
+  // ---- por vendedora
+  const pv = {};
+  vendas.forEach(v => {
+    const k = v.funcionaria_id || 'sem|' + v.loja;
+    const p = pv[k] || (pv[k] = { nome: v.funcionarias?.nome || 'Sem vendedora', loja: v.loja, total: 0 });
+    p.total += Number(v.valor);
   });
-}
-
-async function loadHistSemanal() {
-  const loja  = document.getElementById('hist-sem-loja').value;
-  const ano   = parseInt(document.getElementById('hist-sem-ano').value);
-  const start = `${ano}-01-01`;
-  const end   = `${ano}-12-31`;
-
-  // Busca vendas, vendas reais e metas do período
-  let qm = sb.from('metas_semanais').select('*').gte('semana_inicio', start).lte('semana_inicio', end);
-  if (loja) qm = qm.eq('loja', loja);
-
-  const [vendas, reais, { data: metas }] = await Promise.all([buscarVendasPeriodo(start, end, loja), buscarVendasReais(start, end, loja), qm]);
-
-  // Agrupa o faturamento por semana+loja
-  const map = {};
-  (vendas || []).forEach(v => {
-    const monday = getMonday(v.data_venda);
-    const key = `${monday}__${v.loja}`;
-    if (!map[key]) map[key] = { monday, loja: v.loja, total: 0 };
-    map[key].total += v.valor;
-  });
-  // Garante que semanas com meta mas sem venda apareçam
-  (metas || []).forEach(m => {
-    const key = `${m.semana_inicio}__${m.loja}`;
-    if (!map[key]) map[key] = { monday: m.semana_inicio, loja: m.loja, total: 0 };
-  });
-
-  histFiltraCards('hist-sem', loja);
-
-  LOJAS_HIST.forEach(([nome, suf]) => {
-    const tbody = document.getElementById(`hist-sem-tbody-${suf}`);
-    if (loja && loja !== nome) return;
-
-    const rows = Object.values(map).filter(r => r.loja === nome).sort((a,b) => b.monday.localeCompare(a.monday));
-    if (!rows.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty">Nenhum dado no período</td></tr>'; return; }
-
-    tbody.innerHTML = rows.map(r => {
-      const meta = metas?.find(m => m.semana_inicio === r.monday && m.loja === r.loja);
-      const tier = calcTier(r.total, meta);
-      const domingo = getSunday(r.monday);
-      const sem = somaVendasReais(reais, vendas, x => x.loja === r.loja && x.data >= r.monday && x.data <= domingo);
-      return `<tr>
-        <td style="white-space:nowrap;font-size:0.8rem">${fmtDate(r.monday)} – ${fmtDate(domingo)}</td>
-        <td>${txtNumVendas(sem)}</td>
-        <td style="font-weight:600;color:var(--accent)">${fmt(r.total)}</td>
-        <td style="color:var(--text-muted)">${txtTicket(sem)}</td>
-        <td>${tierBadgeHtml(tier)}</td>
-        <td style="color:var(--meta-color)">${meta ? fmt(meta.valor_meta) : '—'}</td>
-        <td style="color:var(--super-color)">${meta ? fmt(meta.valor_super) : '—'}</td>
-        <td style="color:var(--mega-color)">${meta ? fmt(meta.valor_mega) : '—'}</td>
-      </tr>`;
-    }).join('');
-  });
-}
-
-async function loadHistMensal() {
-  const loja = document.getElementById('hist-men-loja').value;
-  const ano  = parseInt(document.getElementById('hist-men-ano').value);
-  const start = `${ano}-01-01`;
-  const end   = `${ano}-12-31`;
-
-  let qm = sb.from('metas_mensais').select('*').eq('ano', ano);
-  if (loja) qm = qm.eq('loja', loja);
-
-  const [vendas, reais, { data: metas }] = await Promise.all([buscarVendasPeriodo(start, end, loja), buscarVendasReais(start, end, loja), qm]);
-
-  // Agrupa o faturamento por mês+loja
-  const map = {};
-  (vendas || []).forEach(v => {
-    const mes = Number(v.data_venda.slice(5, 7));
-    const key = `${mes}__${v.loja}`;
-    if (!map[key]) map[key] = { mes, loja: v.loja, total: 0 };
-    map[key].total += v.valor;
-  });
-  (metas || []).forEach(m => {
-    const key = `${m.mes}__${m.loja}`;
-    if (!map[key]) map[key] = { mes: m.mes, loja: m.loja, total: 0 };
-  });
-
-  histFiltraCards('hist-men', loja);
-
-  LOJAS_HIST.forEach(([nome, suf]) => {
-    const tbody = document.getElementById(`hist-men-tbody-${suf}`);
-    if (loja && loja !== nome) return;
-
-    const rows = Object.values(map).filter(r => r.loja === nome).sort((a,b) => b.mes - a.mes);
-    if (!rows.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty">Nenhum dado no período</td></tr>'; return; }
-
-    tbody.innerHTML = rows.map(r => {
-      const meta = metas?.find(m => m.mes === r.mes && m.loja === r.loja);
-      const tier = calcTier(r.total, meta);
-      const mm = String(r.mes).padStart(2, '0');
-      const doMes = somaVendasReais(reais, vendas, x => x.loja === r.loja && x.data.slice(5, 7) === mm);
-      return `<tr>
-        <td>${monthLabel(ano, r.mes)}</td>
-        <td>${txtNumVendas(doMes)}</td>
-        <td style="font-weight:600;color:var(--accent)">${fmt(r.total)}</td>
-        <td style="color:var(--text-muted)">${txtTicket(doMes)}</td>
-        <td>${tierBadgeHtml(tier)}</td>
-        <td style="color:var(--meta-color)">${meta ? fmt(meta.valor_meta) : '—'}</td>
-        <td style="color:var(--super-color)">${meta ? fmt(meta.valor_super) : '—'}</td>
-        <td style="color:var(--mega-color)">${meta ? fmt(meta.valor_mega) : '—'}</td>
-      </tr>`;
-    }).join('');
-  });
-}
-
-async function loadHistPeriodo() {
-  const loja = document.getElementById('hist-per-loja').value;
-  const ini  = document.getElementById('hist-per-ini').value;
-  const fim  = document.getElementById('hist-per-fim').value;
-  if (!ini || !fim) { showToast('Selecione data início e fim', 'error'); return; }
-  if (ini > fim)    { showToast('Data início maior que data fim', 'error'); return; }
-
-  const [linhas, reaisLinhas] = await Promise.all([buscarVendasPeriodo(ini, fim, loja, '*, funcionarias(nome)'), buscarVendasReais(ini, fim, loja)]);
-  const vendas = linhas.reverse();
-
-  const total  = vendas.reduce((s,v) => s + v.valor, 0);
-  const reais  = somaVendasReais(reaisLinhas, vendas);
-
-  document.getElementById('per-total').textContent  = fmt(total);
-  document.getElementById('per-count').textContent  = reais.n ? `${txtNumVendas(reais)} venda${reais.n !== 1 ? 's' : ''}` : '—';
-  document.getElementById('per-ticket').textContent = txtTicket(reais);
-
-  const tbody = document.getElementById('hist-per-tbody');
-  if (!vendas.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Nenhuma venda no período</td></tr>'; return; }
-  tbody.innerHTML = vendas.map(v => `
-    <tr>
-      <td style="white-space:nowrap">${new Date(v.data_venda+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'})}</td>
-      <td>${v.funcionarias?.nome || '—'}</td>
-      <td><span class="badge badge-${v.loja==='Loja Areal'?'loja1':'loja2'}">${v.loja}</span></td>
-      <td style="color:var(--text-muted)">${v.descricao || '—'}</td>
-      <td style="font-weight:600;color:var(--accent)">${fmt(v.valor)}</td>
-    </tr>`).join('') +
-    `<tr style="border-top:2px solid var(--border)">
-      <td colspan="4" style="font-weight:600;color:var(--text-muted)">Total</td>
-      <td style="font-weight:700;color:var(--accent)">${fmt(total)}</td>
-    </tr>`;
+  const vend = Object.values(pv).sort((a, b) => b.total - a.total);
+  document.getElementById('hist-vend-titulo').innerHTML = `Por vendedora <span>${histView === 'diario' ? it.rotulo : histView === 'periodo' ? fmtDate(it.de) + ' a ' + fmtDate(it.ate) : 'no ano de ' + it.rotulo}</span>`;
+  document.getElementById('hist-vend').innerHTML = vend.length
+    ? `<thead><tr><th>Vendedora</th><th>Loja</th><th class="num">Vendido</th><th class="num">do total</th></tr></thead><tbody>${vend.map(p => `<tr><td>${p.nome}${p.nome === 'Sem vendedora' ? `<span class="muted small"> ${p.loja === 'Site' ? '(vendas do site)' : '(histórico do Zaal)'}</span>` : ''}</td><td>${lojaDot(p.loja)}</td><td class="num">${fmt(p.total)}</td><td class="num muted">${tot ? pct(p.total / tot) : '—'}</td></tr>`).join('')}</tbody>`
+    : '<tbody><tr><td class="empty">Nenhuma venda neste período</td></tr></tbody>';
 }
 
 // ===== INIT =====
