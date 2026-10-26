@@ -192,6 +192,11 @@ textarea.inp { padding: 10px 12px; }
 .acoes-mini { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 0; }
 .acoes-mini .btn { min-height: 38px; padding: 0 8px; font-size: .84rem; }
 .credito-troca:not(:empty) { margin-bottom: 12px; }
+/* sem o caixa do dia aberto, Vender e Trocas ficam travados */
+body.caixa-travado #tab-vender .pdv, body.caixa-travado #tab-trocas .grid-2 { display: none; }
+.bloqueio { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; max-width: 760px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--yellow); border-radius: 8px; padding: 18px 20px; font-size: .92rem; }
+.bloqueio.red { border-left-color: var(--red); }
+.bloqueio b { display: block; font-size: 1rem; margin-bottom: 2px; }
 
 /* ---------- modal / folhas ---------- */
 .modal-bg { position: fixed; inset: 0; background: rgba(29,25,21,.4); z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px; }
@@ -394,6 +399,7 @@ textarea.inp { padding: 10px 12px; }
 <main>
   <!-- ================= VENDER ================= -->
   <section class="tab" id="tab-vender">
+    <div id="bloq-vender"></div>
     <div class="pdv">
       <div>
         <div class="busca">
@@ -409,7 +415,6 @@ textarea.inp { padding: 10px 12px; }
           <button class="btn" onclick="abrirAvulso()">Peça sem etiqueta</button>
           <div id="espera" style="flex:1;min-width:0"></div>
         </div>
-        <div id="aviso-caixa" style="margin-top:12px"></div>
         <div class="carrinho" id="carrinho"></div>
       </div>
 
@@ -441,6 +446,7 @@ textarea.inp { padding: 10px 12px; }
   <section class="tab" id="tab-trocas">
     <h1 class="titulo">Trocas e devoluções</h1>
     <p class="sub">Bipe o comprovante da venda ou as etiquetas das peças que a cliente trouxe.</p>
+    <div id="bloq-trocas"></div>
     <div class="grid-2">
       <div>
         <div class="card">
@@ -556,6 +562,11 @@ const num = s => { if (typeof s === 'number') return s; const t = String(s ?? ''
 const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 const hojeSP = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
 const horaSP = d => new Date(d).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+const diaSP = d => new Date(d).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+const diaCurto = d => new Date(d).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', weekday: 'short', day: '2-digit', month: '2-digit' }).replace('.', '');
+// o caixa vale só para o dia em que foi aberto: virou o dia, fecha o anterior e abre outro (um dia não entra no outro)
+const caixaDeOntem = () => !!S.caixa && diaSP(S.caixa.aberto_em) !== hojeSP();
+const caixaOk = () => !!S.caixa && !caixaDeOntem();
 const dataBR = d => d.split('-').reverse().join('/');
 const uuid = () => crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); });
 const codigoVenda = id => 'PDV-' + id.replace(/-/g, '').slice(0, 12).toUpperCase();
@@ -1151,7 +1162,7 @@ async function abrirPagamento(valeBipado) {
   if (!cart.itens.length) return;
   if (!cart.vendedora) { toast('Escolha a vendedora', 'error'); $('resumo').classList.add('aberto'); bip(false); return; }
   if (cart.itens.some(i => !(i.preco > 0))) return toast('Há peça sem preço — corrija no Bling ou tire da venda', 'error');
-  if (!S.caixa) { toast('Abra o caixa antes da primeira venda', 'error'); irPara('caixa'); return; }
+  if (!caixaOk()) { atualizarCaixaPill(); toast(caixaDeOntem() ? 'Feche o caixa de ontem e abra o de hoje' : 'Abra o caixa antes da primeira venda', 'error'); irPara('caixa'); return; }
   if (!clienteCompleta(cart.cliente)) return abrirCliente(() => abrirPagamento(valeBipado));
   if (!(await conferirLimiteDesconto())) return;
   pag = { linhas: [] };
@@ -1238,6 +1249,7 @@ function pagRecebido(i, txt) {
 let finalizando = false;
 async function finalizarVenda() {
   if (finalizando) return;
+  if (!caixaOk()) { fecharModal(); atualizarCaixaPill(); toast('Virou o dia: feche o caixa de ontem e abra o de hoje', 'error'); irPara('caixa'); return; }
   const t = totais();
   if (Math.abs(pagFalta()) > 0.004) return;
   const din = pag.linhas.find(l => l.forma === 'dinheiro');
@@ -1523,7 +1535,7 @@ async function confirmarTroca() {
   if (!(total > 0)) return toast('Valor da troca é zero', 'error');
   if (troca.destino === 'dinheiro') {
     if (!troca.forma) return toast('Escolha como devolver', 'error');
-    if (troca.forma === 'dinheiro' && !S.caixa) return toast('Abra o caixa para devolver dinheiro', 'error');
+    if (troca.forma === 'dinheiro' && !caixaOk()) return toast('Abra o caixa de hoje para devolver dinheiro', 'error');
     if (!(await pedirSenhaGerente(`Devolver ${brl(total)} em ${troca.forma === 'cartao' ? 'estorno no cartão' : troca.forma}.`))) return;
   }
   $('tr-confirmar').disabled = true;
@@ -1574,10 +1586,14 @@ async function carregarCaixa() {
   atualizarCaixaPill();
 }
 function atualizarCaixaPill() {
-  const p = $('pill-caixa');
-  p.className = 'pill ' + (S.caixa ? 'ok' : 'warn');
-  $('pill-caixa-t').textContent = S.caixa ? 'Caixa aberto' : 'Caixa fechado';
-  $('aviso-caixa').innerHTML = S.caixa ? '' : `<div class="aviso"><i class="ti ti-lock"></i><div><b>Caixa fechado.</b> Abra o caixa com o troco do dia antes da primeira venda. <a href="#" onclick="irPara('caixa');return false">Abrir caixa</a></div></div>`;
+  const p = $('pill-caixa'), ok = caixaOk(), velho = caixaDeOntem();
+  p.className = 'pill ' + (ok ? 'ok' : velho ? 'err' : 'warn');
+  $('pill-caixa-t').textContent = ok ? 'Caixa aberto' : velho ? `Caixa de ${diaCurto(S.caixa.aberto_em)} aberto` : 'Caixa fechado';
+  document.body.classList.toggle('caixa-travado', !ok);
+  const html = ok ? '' : velho
+    ? `<div class="bloqueio red"><div><b>O caixa de ${diaCurto(S.caixa.aberto_em)} não foi fechado</b>Feche o caixa anterior e abra o de hoje para vender. Um dia não se mistura com o outro.</div><button class="btn btn-primary btn-lg" onclick="irPara('caixa')">Ir para o caixa</button></div>`
+    : `<div class="bloqueio"><div><b>Abra o caixa para começar o dia</b>Sem o caixa aberto não dá para vender nem fazer troca.</div><button class="btn btn-primary btn-lg" onclick="irPara('caixa')">Abrir o caixa</button></div>`;
+  $('bloq-vender').innerHTML = html; $('bloq-trocas').innerHTML = html;
 }
 async function resumoCaixa(cx) {
   const [{ data: vendas }, { data: movs }, { data: trocasDin }, { data: cred }] = await Promise.all([
@@ -1609,6 +1625,24 @@ async function renderCaixa() {
   if (!navigator.onLine && !S.treino) { box.innerHTML = `<div class="aviso"><i class="ti ti-wifi-off"></i><div>O caixa precisa de internet para abrir, lançar saídas e fechar. As vendas continuam funcionando sem internet.</div></div>`; return; }
   await carregarCaixa();
   const cx = S.caixa;
+  if (caixaDeOntem()) {
+    const r = await resumoCaixa(cx);
+    const dia = diaCurto(cx.aberto_em);
+    $('cx-sub').textContent = `Caixa de ${dia} ainda aberto · aberto às ${horaSP(cx.aberto_em)}${cx.aberto_por ? ' por ' + cx.aberto_por : ''}`;
+    box.innerHTML = `<div class="grid-2">
+      <div class="card"><div class="card-t">1. Fechar o caixa de ${dia}</div>
+        <div class="tot-linha"><span>Vendas desse dia</span><span>${r.nVendas}</span></div>
+        <div class="tot-linha"><span>Troco inicial</span><span>${brl(cx.troco_inicial)}</span></div>
+        ${r.sangria ? `<div class="tot-linha"><span>Sangrias</span><span>− ${brl(r.sangria)}</span></div>` : ''}
+        ${r.despesa ? `<div class="tot-linha"><span>Despesas</span><span>− ${brl(r.despesa)}</span></div>` : ''}
+        <div class="ph-meta" style="margin:8px 0 14px">Conte o dinheiro que ficou na gaveta desde ${dia}. As vendas de hoje não entram nesse caixa.</div>
+        <button class="btn btn-primary btn-lg btn-block" onclick="abrirFechamento()">Contar o dinheiro e fechar</button>
+        <button class="btn btn-block" style="margin-top:8px" onclick="fecharSemContar()">Fechar sem contar</button></div>
+      <div class="card"><div class="card-t">2. Abrir o caixa de hoje</div>
+        <div class="empty">Liberado assim que o caixa de ${dia} for fechado.</div></div>
+    </div>`;
+    return;
+  }
   if (!cx) {
     const { data: ult } = await db.from('pdv_caixas').select('*').eq('loja', S.loja).not('fechado_em', 'is', null).order('fechado_em', { ascending: false }).limit(1).maybeSingle();
     $('cx-sub').textContent = ult ? `Fechado desde ${dataHoraCurta(ult.fechado_em)}` : 'Fechado';
@@ -1648,7 +1682,7 @@ async function renderCaixa() {
 const dataHoraCurta = iso => new Date(iso).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(',', ' às');
 function resumoFechamento(f) {
   if (!f) return '<div class="empty">Nenhum fechamento ainda nesta loja</div>';
-  const e = f.esperado || {}, dif = Number(f.diferenca || 0);
+  const e = f.esperado || {}, dif = Number(f.diferenca || 0), semConta = !!e.sem_contagem;
   const linha = (l, v, cls = '') => `<div class="tot-linha ${cls}"><span>${l}</span><span>${v}</span></div>`;
   return `<div class="ph-meta" style="margin-bottom:8px">${dataHoraCurta(f.fechado_em)}${f.fechado_por ? ' · ' + esc(f.fechado_por) : ''}${f.aberto_por ? ' (aberto por ' + esc(f.aberto_por) + ')' : ''}</div>
     ${linha('Vendas', e.n_vendas ?? '—')}
@@ -1656,8 +1690,8 @@ function resumoFechamento(f) {
     ${e.sangria ? linha('Sangrias', '− ' + brl(e.sangria)) : ''}
     ${e.despesa ? linha('Despesas', '− ' + brl(e.despesa)) : ''}
     ${linha('Dinheiro esperado', brl(e.gaveta ?? 0))}
-    ${linha('Dinheiro contado', brl(f.contado?.gaveta ?? 0))}
-    <div class="tot-final"><span class="muted">Diferença</span><b class="mono" style="font-size:1.25rem;color:${Math.abs(dif) < 0.01 ? 'var(--green)' : 'var(--red)'}">${Math.abs(dif) < 0.01 ? 'Bateu' : (dif > 0 ? '+' : '') + brl(dif)}</b></div>
+    ${semConta ? '' : linha('Dinheiro contado', brl(f.contado?.gaveta ?? 0))}
+    <div class="tot-final"><span class="muted">Diferença</span><b class="mono" style="font-size:1.25rem;color:${semConta ? 'var(--yellow)' : Math.abs(dif) < 0.01 ? 'var(--green)' : 'var(--red)'}">${semConta ? 'Sem contagem' : Math.abs(dif) < 0.01 ? 'Bateu' : (dif > 0 ? '+' : '') + brl(dif)}</b></div>
     ${f.obs ? `<div class="ph-meta" style="margin-top:8px">Obs.: ${esc(f.obs)}</div>` : ''}`;
 }
 const chipsQuem = id => S.funcs.map(f => `<button class="chip" data-n="${esc(f.nome)}" onclick="document.querySelectorAll('#${id} .chip').forEach(c=>c.classList.toggle('on',c===this))">${esc(f.nome)}</button>`).join('');
@@ -1727,7 +1761,7 @@ async function salvarDespesa() {
 // ---------------- fechamento às cegas: conta primeiro, depois o app mostra o esperado ----------------
 async function abrirFechamento() {
   const pend = ler(K.fila, []).filter(v => v.caixa_id === S.caixa.id).length;
-  abrirModal('Fechar caixa — 1. Contagem', `
+  abrirModal(`Fechar caixa${caixaDeOntem() ? ' de ' + diaCurto(S.caixa.aberto_em) : ''} — 1. Contagem`, `
     ${pend ? `<div class="aviso red" style="margin-bottom:10px"><i class="ti ti-wifi-off"></i><div>${pend} venda(s) ainda neste aparelho, esperando internet. Elas entram no fechamento.</div></div>` : ''}
     <p style="font-size:.9rem">Conte todo o dinheiro da gaveta (troco inicial incluído) e digite o total. O valor esperado só aparece depois.</p>
     <div class="lbl">Dinheiro contado na gaveta</div><input class="inp big" id="fc-contado" inputmode="decimal" autofocus>
@@ -1768,6 +1802,30 @@ async function conferirFechamento() {
     ${r.formas.vale ? `<div class="tot-linha"><span>Pago com vale-troca</span><b class="mono">${brl(r.formas.vale)}</b></div>` : ''}
     <div class="lbl">Observação ${bateu ? '' : '(explique a diferença)'}</div><input class="inp" id="fc-obs">`,
     `<button class="btn" onclick="abrirFechamento()">Contar de novo</button><button class="btn btn-primary" id="fc-ok" onclick="fecharCaixa()"><i class="ti ti-lock"></i>Fechar e imprimir</button>`, { wide: true });
+}
+// caixa esquecido aberto de um dia anterior: fecha sem contagem, com motivo e senha da gerente
+function fecharSemContar() {
+  abrirModal(`Fechar o caixa de ${diaCurto(S.caixa.aberto_em)} sem contar`, `
+    <div class="aviso" style="margin-bottom:10px"><div>Use só se não der para contar o dinheiro agora. O caixa fica marcado como <b>fechado sem contagem</b> para os donos verem.</div></div>
+    <div class="lbl">Por que não foi fechado no dia?</div><textarea class="inp" id="fs-obs" rows="2" placeholder="Ex.: esqueci de fechar, dinheiro já foi para o cofre"></textarea>
+    <div class="lbl">Quem está fechando</div><div class="chips" id="fs-quem">${chipsQuem('fs-quem')}</div>`,
+    `<button class="btn" onclick="fecharModal()">Cancelar</button><button class="btn btn-primary" onclick="confirmarFecharSemContar()">Fechar sem contar</button>`);
+}
+async function confirmarFecharSemContar() {
+  const obs = $('fs-obs').value.trim(), quem = quemEscolhido('fs-quem');
+  if (!obs) return toast('Escreva o motivo', 'error');
+  if (!quem) return toast('Toque em quem está fechando', 'error');
+  if (!(await pedirSenhaGerente(`Fechar o caixa de ${diaCurto(S.caixa.aberto_em)} sem contar o dinheiro.`))) return;
+  const cx = S.caixa, r = await resumoCaixa(cx);
+  const { error } = await db.from('pdv_caixas').update({
+    fechado_em: new Date().toISOString(), fechado_por: quem,
+    esperado: { gaveta: r.esperado, vendas: r.formas, crediario_recebido: r.credRec, troco_inicial: Number(cx.troco_inicial), sangria: r.sangria, despesa: r.despesa, devolucao: r.devolucao, suprimento: r.suprimento, n_vendas: r.nVendas, sem_contagem: true },
+    contado: null, diferenca: null, obs: 'Fechado sem contagem: ' + obs,
+  }).eq('id', cx.id).is('fechado_em', null);
+  if (error) return toast('Erro: ' + error.message, 'error');
+  fecharModal();
+  S.caixa = null; gravar(K.caixa, null); atualizarCaixaPill(); renderCaixa();
+  toast('Caixa anterior fechado. Agora abra o caixa de hoje.', 'ok');
 }
 async function fecharCaixa() {
   const { r, contado, quem, dif } = window._fech;
@@ -1835,7 +1893,7 @@ function renderParcelas() {
   $('cr-ok').textContent = sel.size ? `Receber ${brl(total)}` : 'Receber';
 }
 async function receberParcelas() {
-  if (!S.caixa) return toast('Abra o caixa para receber', 'error');
+  if (!caixaOk()) return toast('Abra o caixa de hoje para receber', 'error');
   const forma = window._crForma, quem = quemEscolhido('cr-quem');
   if (!forma) return toast('Escolha como a cliente pagou', 'error');
   if (!quem) return toast('Toque em quem recebeu', 'error');
@@ -2279,6 +2337,7 @@ async function iniciarTreino(loja) {
   await Promise.all([carregarVendedoras(), carregarCaixa(), carregarConfig()]);
   S.catalogo = CATALOGO_TREINO.map(p => ({ ...p })); indexarCatalogo();
   renderCarrinho(); renderEspera(); atualizarPills();
+  setInterval(atualizarCaixaPill, 60000);
 }
 // etiquetas das peças de exemplo, no mesmo formato da etiqueta do Bling (EAN13 = código com zeros + dígito)
 function etiquetaTreinoHtml(p) {
@@ -2385,6 +2444,7 @@ async function iniciar() {
   renderCarrinho(); renderEspera(); atualizarPills();
   enviarFila();
   setInterval(carregarCatalogo, 10 * 60000);
+  setInterval(atualizarCaixaPill, 60000);
 }
 (async () => {
   const lojaTreino = ler(TREINO_FLAG, null);
