@@ -49,6 +49,8 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
 /* tela grande (TV, monitor 2K/4K): o app cresce junto com a tela. --escala vem do _ajustarEscala()
    (1 até 1440×810; acima disso, proporcional). O quadro do Planejar (#event-detail) tem ajuste próprio. */
 .header, .app-body, .bottom-nav, .modal-overlay .modal, #toast { zoom: var(--escala, 1); }
+/* quadro (semana/campanha): as barras crescem com a tela; a área de desenho cresce pelo _planZoom() */
+.ed-topbar, #ed-toolbar { zoom: var(--escala, 1); }
 /* janelas que ficam dentro do .app-body já herdam o zoom dele — sem isso cresceriam duas vezes */
 .app-body .modal-overlay .modal { zoom: 1; }
 .header {
@@ -4423,13 +4425,16 @@ function _canvasPoint(cx, cy) {
 }
 
 // quadro semanal no PC: a semana inteira ocupa a largura da tela (amplia em tela grande, reduz em notebook)
+// campanha: só cresce com a tela grande/TV (as colunas já se alargam para ocupar a largura)
 function _planZoom() {
-  if (!_modoPlanejamento() || _modoCampanha() || _planMobile()) return 1;
+  if (!_modoPlanejamento() || _planMobile()) return 1;
+  const esc = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--escala')) || 1;
+  if (_modoCampanha()) return esc;
   const canvas = document.getElementById('ed-canvas');
   const w = canvas ? canvas.clientWidth : 0;
   if (!w) return 1;
   const larg = PLAN_X0 + 5 * PLAN_COLW + 190 + PLAN_X0; // da margem até o fim do card de sábado
-  return Math.max(0.8, Math.min(1.35, w / larg));
+  return Math.max(0.8, Math.min(Math.max(1.35, esc * 1.15), w / larg));
 }
 
 // planejamento semanal: rolagem tipo página (trava no topo, desce conforme o conteúdo)
@@ -4458,7 +4463,7 @@ function _campColW() {
   if (!_modoCampanha() || _planMobile()) return PLAN_COLW;
   const canvas = document.getElementById('ed-canvas');
   const n = Math.max(1, ((edEvent && edEvent.canvas) || []).filter(e => e.tpl === 'cat').length);
-  const util = (canvas ? canvas.clientWidth : 0) - PLAN_X0 * 2;
+  const util = (canvas ? canvas.clientWidth : 0) / _planZoom() - PLAN_X0 * 2; // largura já descontando o zoom da TV
   return Math.max(PLAN_COLW, Math.min(380, Math.floor(util / n)));
 }
 
@@ -7850,6 +7855,18 @@ function _reflowCampanha() {
     });
     (cols[col] = cols[col] || []).push(e);
   });
+  // cada coluna fica com um só botão + (os que sobram de colunas apagadas caíam na vizinha)
+  let sobrou = false;
+  Object.keys(cols).forEach(c => {
+    const adds = cols[c].filter(e => e.type === 'add');
+    adds.slice(1).forEach(a => {
+      edEvent.canvas = edEvent.canvas.filter(e => e !== a);
+      const n = document.querySelector(`[data-id="${a.id}"]`); if (n) n.remove();
+      sobrou = true;
+    });
+    if (adds.length > 1) cols[c] = cols[c].filter(e => e.type !== 'add' || e === adds[0]);
+  });
+  if (sobrou) _scheduleCanvasSave();
   const mv = e => {
     const node = document.querySelector(`[data-id="${e.id}"]`);
     if (node) { node.style.left = e.x + 'px'; node.style.top = e.y + 'px'; }
@@ -7898,6 +7915,7 @@ function _campAoRedimensionar() {
   clearTimeout(_campResizeTimer);
   _campResizeTimer = setTimeout(() => {
     _renderCanvas();
+    _applyPan(); // o zoom da TV muda junto com a largura
     setTimeout(_reflowPlanejamento, 50); // garante o reflow mesmo se o do render se perder
   }, 150);
 }
