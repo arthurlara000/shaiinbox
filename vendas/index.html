@@ -2335,6 +2335,7 @@ async function iniciarTreino(loja) {
   $('faixa-treino').style.display = '';
   irPara('vender');
   await Promise.all([carregarVendedoras(), carregarCaixa(), carregarConfig()]);
+  if (!caixaOk()) irPara('caixa');
   S.catalogo = CATALOGO_TREINO.map(p => ({ ...p })); indexarCatalogo();
   renderCarrinho(); renderEspera(); atualizarPills();
   setInterval(atualizarCaixaPill, 60000);
@@ -2441,6 +2442,7 @@ async function iniciar() {
   renderCarrinho(); atualizarPills(); atualizarCaixaPill();
   irPara('vender');
   await Promise.all([carregarCatalogo(), carregarVendedoras(), carregarCaixa(), carregarConfig()]);
+  if (!caixaOk()) irPara('caixa');
   renderCarrinho(); renderEspera(); atualizarPills();
   enviarFila();
   setInterval(carregarCatalogo, 10 * 60000);
