@@ -1,7 +1,8 @@
 // Sincroniza pedidos de venda do Bling com o Shai Manager, separando por loja (pedido.loja.id).
 // Grava o fechamento do dia (fechamento_dia, fechamento_vendedoras, vendas) e as peças (vendas_itens).
 // Auth própria: exige ?key= igual ao sync_secret da bling_config (por isso verify_jwt off).
-// Parâmetros: ?de=YYYY-MM-DD&ate=YYYY-MM-DD (sem: ontem + hoje em São Paulo); ?dry=1 não grava nada.
+// Parâmetros: ?de=YYYY-MM-DD&ate=YYYY-MM-DD (sem: ontem + hoje em São Paulo); ?dry=1 não grava nada;
+// ?numeros=1 só preenche o nº do pedido e o cliente nas peças já gravadas do período.
 // enable-jwt: 1 vai no refresh e, quando o token já é JWT, nas chamadas à API (migração JWT do Bling).
 // O Bling limita 3 requisições/s: chamada recusada é repetida; se um pedido não puder ser lido,
 // nada é gravado (gravar o dia incompleto apagaria um fechamento correto).
@@ -12,7 +13,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 const API = 'https://api.bling.com.br/Api/v3';
 const pausa = (ms: number) => new Promise(r => setTimeout(r, ms));
 const ehJwt = (t?: string) => !!t && t.split('.').length === 3;
-const norm = (s: string) => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+const norm = (s: string) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 const primeiroNome = (s: string) => norm(s).split(/\s+/)[0] || '';
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -84,6 +85,25 @@ Deno.serve(async (req: Request) => {
       if (r.ok || tentativa >= 4 || (r.status !== 429 && r.status < 500)) return { ok: r.ok, status: r.status, json };
     }
   };
+
+  // ----- ?numeros=1: só preenche nº do pedido e cliente nas peças já gravadas (fechamentos não mudam) -----
+  if (url.searchParams.get('numeros') === '1') {
+    let pedidos = 0, pecas = 0;
+    for (let pag = 1; pag < 100; pag++) {
+      const rl = await blingGet(`/pedidos/vendas?dataInicial=${de}&dataFinal=${ate}&limite=100&pagina=${pag}`);
+      if (!rl.ok) return new Response(JSON.stringify({ erro: 'falha ao listar pedidos', status: rl.status, pagina: pag, pedidos, pecas }), { status: 503 });
+      const lote: { id: number; numero?: number; contato?: { nome?: string } }[] = rl.json.data || [];
+      pedidos += lote.length;
+      for (let i = 0; i < lote.length && !dry; i += 25) {
+        const rs = await Promise.all(lote.slice(i, i + 25).map(p => sb.from('vendas_itens')
+          .update({ numero_pedido: p.numero != null ? String(p.numero) : null, cliente: p.contato?.nome || null }, { count: 'exact' })
+          .eq('origem', 'bling').eq('venda_ref', String(p.id))));
+        for (const r of rs) pecas += r.count || 0;
+      }
+      if (lote.length < 100) break;
+    }
+    return new Response(JSON.stringify({ ok: true, dry, de, ate, pedidos, pecas }), { headers: { 'Content-Type': 'application/json' } });
+  }
 
   // ----- mapas: vendedores e formas de pagamento -----
   const vendedorNome: Record<number, string> = {};
@@ -182,6 +202,7 @@ Deno.serve(async (req: Request) => {
       const rateio = bruto > 0 ? descPedido * tabela / bruto : 0;
       dia.itens.push({
         loja, origem: 'bling', data: p.data, venda_ref: String(p.id), vendedora: nomeV || null,
+        numero_pedido: p.numero != null ? String(p.numero) : null, cliente: p.contato?.nome || null,
         codigo: it.codigo || null, descricao: it.descricao || null, quantidade: qtd,
         valor_tabela: r2(tabela), desconto: r2(descItem + rateio), valor: r2(tabela - descItem - rateio),
       });

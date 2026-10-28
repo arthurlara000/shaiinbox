@@ -730,7 +730,13 @@ table.tbl tr.sub td:first-child { padding-left: 34px; }
         <input type="date" class="form-input" id="hist-per-fim">
         <button class="btn btn-primary" onclick="loadHist()">Buscar</button>
       </div>
+      <form class="hist-datas" onsubmit="event.preventDefault(); buscarPedido()">
+        <input type="text" class="form-input" id="hist-pedido" placeholder="Nº do pedido" inputmode="numeric">
+        <button class="btn btn-ghost" type="submit"><i class="ti ti-search"></i>Buscar venda</button>
+      </form>
     </div>
+
+    <div id="hist-pedido-res"></div>
 
     <div class="stat-strip" id="hist-strip"></div>
 
@@ -2543,6 +2549,41 @@ function histAbrirSemana(k, tr) {
   const aberta = tr.classList.toggle('open');
   document.querySelectorAll(`#hist-tbl tr.sub[data-w="${k}"]`).forEach(x => x.classList.toggle('show', aberta));
 }
+// Busca uma venda do Bling pelo nº do pedido (o mesmo que aparece no PDV e no Bling)
+async function buscarPedido() {
+  const num = document.getElementById('hist-pedido').value.replace(/\D/g, '');
+  const box = document.getElementById('hist-pedido-res');
+  if (!num) { box.innerHTML = ''; return; }
+  const { data, error } = await sb.from('vendas_itens')
+    .select('loja,data,vendedora,cliente,codigo,descricao,quantidade,valor_tabela,desconto,valor')
+    .eq('numero_pedido', num).order('loja');
+  if (error) { showToast('Erro ao buscar o pedido', 'error'); return; }
+  const fechar = `<button class="btn btn-ghost" onclick="document.getElementById('hist-pedido-res').innerHTML=''">Fechar</button>`;
+  if (!data.length) {
+    box.innerHTML = `<div class="card" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:12px">
+      <span>Pedido <strong>${avEsc(num)}</strong> não encontrado. Pode estar cancelado no Bling, ser de antes da sincronização ou ainda não ter sincronizado (a cada 10 min).</span>${fechar}</div>`;
+    return;
+  }
+  // o nº do pedido pode se repetir entre lojas: um bloco por loja
+  const porLoja = {};
+  data.forEach(i => (porLoja[i.loja] ||= []).push(i));
+  box.innerHTML = Object.entries(porLoja).map(([loja, itens]) => {
+    const p = itens[0], tot = itens.reduce((s, i) => s + Number(i.valor), 0);
+    const desc = itens.reduce((s, i) => s + Number(i.desconto), 0);
+    return `<div class="card" style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+        <strong>Pedido ${avEsc(num)} · ${avEsc(loja)}</strong>${fechar}
+      </div>
+      <div class="muted" style="margin:4px 0 10px">${fmtDate(p.data)} · ${avEsc(p.vendedora || 'sem vendedora')}${p.cliente ? ' · Cliente: ' + avEsc(p.cliente) : ''}</div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>Peça</th><th>Qtd</th><th>Tabela</th><th>Desconto</th><th>Valor</th></tr></thead>
+        <tbody>${itens.map(i => `<tr><td>${avEsc(i.codigo ? i.codigo + ' · ' : '')}${avEsc(i.descricao)}</td><td>${Number(i.quantidade)}</td><td>${fmt(i.valor_tabela)}</td><td>${fmt(i.desconto)}</td><td>${fmt(i.valor)}</td></tr>`).join('')}</tbody>
+        <tfoot><tr><td>Total</td><td></td><td></td><td>${fmt(desc)}</td><td>${fmt(tot)}</td></tr></tfoot>
+      </table></div>
+    </div>`;
+  }).join('');
+}
+
 // Compatibilidade com quem chama os nomes antigos
 function initHistFilters() {}
 const loadHistDiario = () => loadHist();
