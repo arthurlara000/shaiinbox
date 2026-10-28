@@ -346,6 +346,8 @@ body.caixa-travado #tab-vender .pdv, body.caixa-travado #tab-trocas .grid-2 { di
   #print-area .l span:first-child { flex: 1; }
   #print-area svg { display: block; margin: 4px auto 0; max-width: 100%; }
   #print-area .peq { font-size: 10px; }
+  #print-area .cracha { border: 1.5px dashed #000; border-radius: 4mm; padding: 4mm 3mm; margin: 2mm 0 6mm; }
+  #print-area .cracha svg { margin: 3mm auto; }
 }
 </style>
 <style id="page-style">@page { size: 80mm auto; margin: 3mm 0; }</style>
@@ -489,6 +491,7 @@ body.caixa-travado #tab-vender .pdv, body.caixa-travado #tab-trocas .grid-2 { di
       <div><h1 class="titulo">Caixa</h1><div class="ph-meta" id="cx-sub"></div></div>
       <div class="ph-acoes">
         <button class="btn btn-sm" onclick="abrirSenhaGerente()">Senha da gerente</button>
+        <button class="btn btn-sm" onclick="abrirCracha()">Crachá da gerente</button>
         <button class="btn btn-sm" onclick="abrirDadosLoja()">Dados do comprovante</button>
       </div>
     </div>
@@ -663,6 +666,7 @@ async function carregarCatalogo() {
 const saldoLoja = p => p ? (S.loja === 'Loja Areal' ? p.saldo_areal : S.loja === 'Loja Três Rios' ? p.saldo_tres_rios : null) : null;
 
 // código lido -> produto. A etiqueta do Bling é EAN13 = código com zeros à esquerda + dígito verificador.
+const ehCracha = lido => /^77\d{14}$/.test(String(lido || '').trim());
 function acharPorCodigo(lido) {
   const t = String(lido || '').trim();
   if (!t) return null;
@@ -739,12 +743,15 @@ let scanBuf = '', scanT = 0;
 document.addEventListener('keydown', e => {
   const alvo = e.target;
   if (alvo && (alvo.tagName === 'INPUT' || alvo.tagName === 'TEXTAREA' || alvo.tagName === 'SELECT')) return;
-  if (modalAberto()) return;
+  const pedindoSenha = modalAberto() && $('sg');
+  if (modalAberto() && !pedindoSenha) return;
   const agora = Date.now();
   if (agora - scanT > 80) scanBuf = '';
   scanT = agora;
   if (e.key === 'Enter') {
-    if (scanBuf.length >= 4) { e.preventDefault(); const aba = document.querySelector('.tab.active')?.id; lerCodigo(scanBuf, aba === 'tab-trocas' ? 'trocas' : 'vender'); }
+    // janela da senha aberta sem o foco no campo: o crachá bipado vai direto para a conferência
+    if (pedindoSenha && scanBuf.length >= 4) { e.preventDefault(); $('sg').value = scanBuf; conferirSenhaGerente(); }
+    else if (!pedindoSenha && scanBuf.length >= 4) { e.preventDefault(); const aba = document.querySelector('.tab.active')?.id; lerCodigo(scanBuf, aba === 'tab-trocas' ? 'trocas' : 'vender'); }
     scanBuf = ''; return;
   }
   if (e.key.length === 1) scanBuf += e.key;
@@ -752,6 +759,7 @@ document.addEventListener('keydown', e => {
 
 async function lerCodigo(lido, destino) {
   lido = String(lido).trim();
+  if (ehCracha(lido)) { bip(false); return toast('Crachá da gerente: só vale quando o caixa pedir a senha', 'error'); }
   if (destino === 'trocas') { $('tr-busca').value = lido; return trocaLer(lido); }
   if (/^PDV-/i.test(lido)) { irPara('trocas'); return trocaLer(lido); }
   let p = acharPorCodigo(lido);
@@ -1004,17 +1012,19 @@ function pedirSenhaGerente(motivo) {
     if (!navigator.onLine) { toast('Sem internet: não dá para conferir a senha da gerente agora', 'error'); return resolve(false); }
     window._senhaResolve = resolve;
     abrirModal('Senha da gerente', `<p style="font-size:.9rem;margin-bottom:10px">${esc(motivo)}</p>
+      <div class="lbl" style="margin-top:0">Bipe o crachá ou digite a senha</div>
       <input type="password" class="inp big" id="sg" inputmode="numeric" autocomplete="off" autofocus onkeydown="if(event.key==='Enter')conferirSenhaGerente()">
       <div class="gate-err" id="sg-erro"></div>`,
       `<button class="btn" onclick="window._senhaResolve(false);fecharModal()">Cancelar</button><button class="btn btn-primary" onclick="conferirSenhaGerente()">Autorizar</button>`, { preso: true });
   });
 }
 async function conferirSenhaGerente() {
-  const senha = $('sg').value;
+  const senha = $('sg').value.trim();
+  if (!senha) return;
   const { data: tem } = await db.rpc('pdv_tem_senha', { p_loja: S.loja });
   if (!tem) { $('sg-erro').textContent = 'A loja ainda não tem senha da gerente. Cadastre em Caixa → Senha da gerente.'; return; }
   const { data, error } = await db.rpc('pdv_conferir_senha', { p_loja: S.loja, p_senha: senha });
-  if (error || !data) { $('sg-erro').textContent = 'Senha incorreta'; bip(false); return; }
+  if (error || !data) { $('sg-erro').textContent = 'Senha ou crachá não confere'; $('sg').value = ''; $('sg').focus(); bip(false); return; }
   const r = window._senhaResolve; window._senhaResolve = null; fecharModal(); r?.(true);
 }
 
@@ -1362,6 +1372,9 @@ function imprimir(html) {
   $('print-area').innerHTML = html;
   if (typeof JsBarcode !== 'undefined') $('print-area').querySelectorAll('svg[data-cod]').forEach(svg => {
     try { JsBarcode(svg, svg.dataset.cod, { format: 'CODE128', width: 1.5, height: 42, fontSize: 12, margin: 0, displayValue: true }); } catch (e) {}
+  });
+  if (typeof JsBarcode !== 'undefined') $('print-area').querySelectorAll('svg[data-cracha]').forEach(svg => {
+    try { JsBarcode(svg, svg.dataset.cracha, { format: 'CODE128', width: 2, height: 64, margin: 0, displayValue: false }); } catch (e) {}
   });
   setTimeout(() => window.print(), 80);
 }
@@ -1939,6 +1952,36 @@ function cabecalhoLoja() {
   const i = S.lojaInfo || {};
   return `<div class="c">${esc(S.loja)}</div>${i.endereco ? `<div class="c peq">${esc(i.endereco)}</div>` : ''}${i.telefone || i.instagram ? `<div class="c peq">${[i.telefone, i.instagram].filter(Boolean).map(esc).join(' · ')}</div>` : ''}`;
 }
+// crachá da gerente: código de barras que vale como a senha (bipa quando o caixa pedir, igual caixa de mercado)
+async function abrirCracha() {
+  const { data: tem } = await db.rpc('pdv_tem_senha', { p_loja: S.loja });
+  if (!tem) return toast('Cadastre primeiro a senha da gerente', 'error');
+  const { data: info } = await db.rpc('pdv_cracha_info', { p_loja: S.loja });
+  abrirModal('Crachá da gerente', `
+    ${info?.em ? `<div class="aviso" style="margin-bottom:10px"><div>Crachá atual${info.nome ? ' de <b>' + esc(info.nome) + '</b>' : ''}, impresso em ${new Date(info.em).toLocaleDateString('pt-BR')}. Imprimir um novo <b>cancela o atual</b>.</div></div>` : ''}
+    <p style="font-size:.88rem">Quando o caixa pedir a senha da gerente, é só bipar o crachá. Vale para desconto, peça sem etiqueta, sangria, despesa, cancelamento e fechamento.</p>
+    <div class="lbl">Nome da gerente</div><input class="inp" id="cr-nome" autocomplete="off" value="${esc(info?.nome || '')}">
+    <div class="lbl">Senha atual da gerente</div><input type="password" class="inp" id="cr-senha" inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter')gerarCracha()">`,
+    `<button class="btn" onclick="fecharModal()">Cancelar</button><button class="btn btn-primary" onclick="gerarCracha()">${info?.em ? 'Imprimir crachá novo' : 'Imprimir crachá'}</button>`);
+  setTimeout(() => $(info?.nome ? 'cr-senha' : 'cr-nome')?.focus(), 60);
+}
+async function gerarCracha() {
+  const nome = nomeProprio($('cr-nome').value || '');
+  if (!nome) { $('cr-nome').focus(); return toast('Informe o nome da gerente', 'error'); }
+  const { data: cod, error } = await db.rpc('pdv_gerar_cracha', { p_loja: S.loja, p_senha: $('cr-senha').value, p_nome: nome });
+  if (error) return toast('Erro: ' + error.message, 'error');
+  if (!cod) { $('cr-senha').value = ''; $('cr-senha').focus(); bip(false); return toast('Senha da gerente incorreta', 'error'); }
+  fecharModal();
+  imprimir(`<div class="cracha">
+      <div class="c t">Shai</div>
+      <div class="c b">CRACHÁ DA GERENTE</div>
+      <div class="c g">${esc(nome)}</div>
+      <div class="c">${esc(S.loja)}</div>
+      <svg data-cracha="${cod}"></svg>
+      <div class="c peq">Bipe quando o caixa pedir a senha da gerente.<br>Perdeu? Imprima outro no app: este deixa de valer.</div>
+    </div>`);
+  toast('Crachá impresso', 'ok');
+}
 async function abrirSenhaGerente() {
   const { data: tem } = await db.rpc('pdv_tem_senha', { p_loja: S.loja });
   abrirModal('Senha da gerente', `<p style="font-size:.88rem">Autoriza desconto acima do limite, peça sem cadastro, devolução em dinheiro, cancelamento de venda, sangria, despesa, reforço de troco e fechamento do caixa.</p>
@@ -2253,7 +2296,13 @@ function bancoTreino(loja) {
     from: consulta,
     rpc: async (fn, a) => {
       if (fn === 'pdv_tem_senha') return { data: true, error: null };
-      if (fn === 'pdv_conferir_senha') return { data: a.p_senha === '1234', error: null };
+      if (fn === 'pdv_conferir_senha') return { data: a.p_senha === '1234' || (!!base.cracha && a.p_senha === base.cracha.cod), error: null };
+      if (fn === 'pdv_gerar_cracha') {
+        if (a.p_senha !== '1234') return { data: null, error: null };
+        base.cracha = { cod: '77' + Array.from({ length: 14 }, () => Math.floor(Math.random() * 10)).join(''), nome: a.p_nome, em: new Date().toISOString() }; salvar();
+        return { data: base.cracha.cod, error: null };
+      }
+      if (fn === 'pdv_cracha_info') return { data: base.cracha ? { nome: base.cracha.nome, em: base.cracha.em } : null, error: null };
       if (fn === 'pdv_definir_senha') return { data: true, error: null };
       if (fn === 'pdv_salvar_loja_info') { if (a.p_senha !== '1234') return { data: false, error: null }; base.lojas_info[a.p_loja] = a.p_info; salvar(); return { data: true, error: null }; }
       if (fn === 'pdv_criar_vale') {
