@@ -1037,6 +1037,81 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
 /* ── PRÉVIA DO FEED (grade do perfil do Instagram) ── */
 /* aba Planejar: a grade do Instagram */
 .grade-wrap { max-width: 480px; margin: 0 auto; padding: 16px 0 28px; }
+.grade-wrap.larga { max-width: 1600px; padding: 16px 24px 28px; }
+.grade-wrap.larga .plan-modo { max-width: 420px; }
+/* Planejar · Semana: dia × horário (estilo Metricool) */
+.ps-top { display: flex; align-items: center; gap: 10px 18px; flex-wrap: wrap; margin-bottom: 12px; }
+.ps-nav { display: flex; align-items: center; gap: 8px; }
+.ps-titulo { font-size: 1rem; font-weight: 600; min-width: 140px; font-variant-numeric: tabular-nums; }
+.ps-hoje { border: 1px solid var(--border-strong); background: var(--surface); border-radius: var(--r); padding: 5px 11px; font: inherit; font-size: .78rem; cursor: pointer; color: var(--text-2); }
+.ps-hoje:hover { border-color: var(--caramel); color: var(--text); }
+.ps-legenda { flex: 1; display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: .72rem; color: var(--text-2); }
+.ps-cor { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.ps-cor.sugestao { background: var(--caramel); }
+.ps-cor.gravar { background: #cdbba7; }
+.ps-cor.pronto { background: var(--choco); }
+.ps-cor.postado { background: var(--green); }
+.ps-montar { display: inline-flex; align-items: center; gap: 5px; }
+.ps-grade {
+  display: grid; grid-template-columns: 54px repeat(7, minmax(0, 1fr));
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+}
+.ps-dia {
+  display: flex; align-items: baseline; gap: 6px; padding: 9px 8px; border-left: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted);
+}
+.ps-dia b { font-size: 1.05rem; color: var(--text); letter-spacing: 0; font-variant-numeric: tabular-nums; }
+.ps-dia.hoje { color: var(--choco); }
+.ps-dia.hoje b { color: #fff; background: var(--choco); border-radius: 50%; min-width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; font-size: .9rem; }
+.ps-canto { border-bottom: 1px solid var(--border); }
+.ps-hora { padding: 5px 7px 0 0; border-bottom: 1px solid var(--border); text-align: right; font-size: .66rem; color: var(--text-muted); font-variant-numeric: tabular-nums; line-height: 1.2; }
+.ps-cel {
+  min-width: 0; min-height: 30px; padding: 3px; display: flex; flex-direction: column; gap: 3px;
+  border-left: 1px solid var(--border); border-bottom: 1px solid var(--border); cursor: pointer;
+}
+.ps-cel:hover { background: var(--surface2); }
+.ps-cel.hoje { background: #fbf8f4; }
+.ps-cel.semhora { min-height: 52px; background: var(--surface2); }
+.ps-cel.domingo { background: #f9f8f6; cursor: default; }
+.ps-cel.alvo { background: #f3e9dc; outline: 2px dashed var(--caramel); outline-offset: -3px; }
+.ps-card {
+  display: flex; align-items: center; gap: 6px; min-width: 0; padding: 3px 6px 3px 3px; text-align: left;
+  background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--border-strong); border-radius: 4px;
+  font-size: .72rem; cursor: pointer; box-shadow: 0 1px 2px rgba(43,33,24,.06);
+}
+.ps-card:hover { border-color: var(--border-strong); }
+.ps-card[draggable="true"] { cursor: grab; }
+.ps-card.arrastando { opacity: .4; }
+.ps-card img, .ps-ico {
+  width: 26px; height: 34px; flex-shrink: 0; border-radius: 3px; object-fit: cover;
+  background: #2b2420; color: #fff; display: flex; align-items: center; justify-content: center; font-size: .8rem;
+}
+.ps-card-txt { min-width: 0; display: flex; flex-direction: column; }
+.ps-card-txt b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ps-card-txt span { font-size: .64rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ps-card.sugestao { border-left-color: var(--caramel); background: #fcf8f3; border-style: dashed; border-left-style: solid; }
+.ps-card.gravar { border-left-color: #cdbba7; }
+.ps-card.pronto { border-left-color: var(--choco); }
+.ps-card.postado { border-left-color: var(--green); }
+/* celular: a semana vira lista por dia */
+.ps-grade.lista { display: block; }
+.ps-ldia { padding: 10px 12px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 5px; }
+.ps-ldia:last-child { border-bottom: none; }
+.ps-ldia.hoje { background: #fbf8f4; }
+.ps-ldia-tit { display: flex; align-items: center; justify-content: space-between; font-size: .8rem; font-weight: 600; }
+.ps-ldia.hoje .ps-ldia-tit span { color: var(--choco); }
+.ps-ldia .ps-card { font-size: .8rem; padding: 4px 8px 4px 4px; }
+.ps-ldia .ps-card img, .ps-ldia .ps-ico { width: 34px; height: 44px; }
+.ps-mais { border: none; background: none; color: var(--caramel); font: inherit; font-size: .76rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
+.ps-nada { font-size: .74rem; color: var(--text-muted); }
+@media (max-width: 767px) {
+  .grade-wrap.larga { padding: 12px 0 20px; }
+  .grade-wrap.larga .plan-modo { max-width: none; }
+  .ps-top { padding: 0 14px; }
+  .ps-legenda { display: none; }
+  .ps-montar { flex: 1; justify-content: center; }
+  .ps-grade { border-radius: 0; border-left: none; border-right: none; }
+}
 .grade-ph { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
 .feed-top-info { flex: 1; min-width: 0; }
 .feed-titulo { font-size: 1rem; font-weight: 600; }
@@ -1278,6 +1353,7 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
 .sl-ref .form-input { flex: 1; min-width: 0; }
 .sl-ref .btn-sm-choco { flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; }
 .sl-ajuda { font-size: .7rem; color: var(--text-muted); margin-top: 5px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .sl-prev { margin-top: 8px; display: flex; align-items: center; gap: 10px; font-size: .78rem; color: var(--text-2); }
 .sl-prev:empty { display: none; }
 .sl-prev img { width: 54px; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 4px; }
@@ -2251,10 +2327,30 @@ textarea.form-input { resize: none; height: 76px; }
 
 <!-- VIEW: PLANEJAR = GRADE DO INSTAGRAM (o que vai ao ar em cima, o que já está no ar embaixo) -->
 <div id="view-grade" style="display:none">
-  <div class="grade-wrap">
+  <div class="grade-wrap larga">
     <div class="seg plan-modo" id="plan-modo">
-      <button data-m="grade" class="on" onclick="setPlanModo('grade')"><i class="ti ti-layout-grid"></i> Grade</button>
+      <button data-m="semana" class="on" onclick="setPlanModo('semana')"><i class="ti ti-calendar-week"></i> Semana</button>
+      <button data-m="grade" onclick="setPlanModo('grade')"><i class="ti ti-layout-grid"></i> Grade</button>
       <button data-m="ideias" onclick="setPlanModo('ideias')"><i class="ti ti-bulb"></i> Ideias <span class="plan-modo-n" id="ideias-n"></span></button>
+    </div>
+    <!-- SEMANA: os posts por dia e horário (estilo Metricool); no PC dá para arrastar para outro dia/hora -->
+    <div id="semana-conteudo">
+      <div class="ps-top">
+        <div class="ps-nav">
+          <button class="nav-arrow" onclick="psMudarSemana(-1)" aria-label="Semana anterior"><i class="ti ti-chevron-left"></i></button>
+          <button class="nav-arrow" onclick="psMudarSemana(1)" aria-label="Próxima semana"><i class="ti ti-chevron-right"></i></button>
+          <div class="ps-titulo" id="ps-titulo"></div>
+          <button class="ps-hoje" onclick="psMudarSemana(0)">Hoje</button>
+        </div>
+        <div class="ps-legenda">
+          <span><span class="ps-cor sugestao"></span>sugestão</span>
+          <span><span class="ps-cor gravar"></span>a gravar</span>
+          <span><span class="ps-cor pronto"></span>pronto</span>
+          <span><span class="ps-cor postado"></span>no Instagram</span>
+        </div>
+        <button class="btn-sm-choco ps-montar" id="ps-montar" onclick="abrirMontar()"><i class="ti ti-sparkles"></i> Montar minha semana</button>
+      </div>
+      <div class="ps-grade" id="ps-grade"></div>
     </div>
     <!-- IDEIAS: vídeos mandados pelo botão Compartilhar do Instagram -->
     <div id="ideias-conteudo" style="display:none">
@@ -2274,7 +2370,7 @@ textarea.form-input { resize: none; height: 76px; }
       <div class="ideias-grid" id="ideias-grid"></div>
       <button class="ideias-usadas-btn" id="ideias-usadas-btn" onclick="ideiasVerUsadas=!ideiasVerUsadas;renderIdeias()"></button>
     </div>
-    <div id="grade-conteudo">
+    <div id="grade-conteudo" style="display:none">
     <div class="grade-ph">
       <div class="feed-top-info">
         <div class="feed-titulo">Grade do Instagram</div>
@@ -2453,9 +2549,15 @@ textarea.form-input { resize: none; height: 76px; }
 <div class="modal-overlay center" id="modal-slot">
   <div class="modal slot-modal">
     <div class="modal-title" style="margin-bottom:12px">Planejar post</div>
-    <div class="form-group">
-      <label class="form-label">Dia</label>
-      <input type="date" class="form-input" id="sl-data">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Dia</label>
+        <input type="date" class="form-input" id="sl-data">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Horário <span style="font-weight:400">(opcional)</span></label>
+        <input type="time" class="form-input" id="sl-hora">
+      </div>
     </div>
     <div class="form-group">
       <label class="form-label">Formato</label>
@@ -5795,7 +5897,8 @@ function _feedAgrupar(els) {
   return auto(els);
 }
 
-function _feedPosts() {
+// todos os posts dos quadros semanais (foto/vídeo + o texto junto), de qualquer semana
+function _feedPlanejados() {
   const posts = [];
   eventosLoja.filter(b => b.titulo === 'Planejamento semanal' && Array.isArray(b.canvas)).forEach(b => {
     const [y, m, d] = b.data.split('-').map(Number);
@@ -5820,6 +5923,11 @@ function _feedPosts() {
       });
     });
   });
+  return posts;
+}
+
+function _feedPosts() {
+  const posts = _feedPlanejados();
   // mais novo primeiro (no mesmo dia, o último da coluna vem antes)
   const conectado = feedReais && feedReais.length;
   // com o Instagram conectado: o planejado de hoje em diante que ainda não foi ao ar fica em cima, e embaixo o feed
@@ -5837,8 +5945,11 @@ function _feedPosts() {
   }
   plan.sort((a, b) => b.data.localeCompare(a.data) || b.ordem - a.ordem);
   if (!conectado) return plan;
-  const reais = feedReais.map(r => ({ real: true, data: iso(new Date(r.publicado_em)), legenda: (r.legenda || '').split('\n')[0],
-    capa: r.capa_url, link: r.link, formato: r.formato, tipo: r.tipo }));
+  const reais = feedReais.map(r => {
+    const t = new Date(r.publicado_em);
+    return { real: true, data: iso(t), hora: `${pad(t.getHours())}:${pad(t.getMinutes())}`, legenda: (r.legenda || '').split('\n')[0],
+      capa: r.capa_url, link: r.link, formato: r.formato, tipo: r.tipo, views: r.visualizacoes };
+  });
   return plan.concat(reais);
 }
 
@@ -6012,6 +6123,7 @@ function renderFeed() {
   document.getElementById('feed-grid').innerHTML = n
     ? _feedLista.map(_feedCellHTML).join('')
     : '<div class="feed-vazio">Nenhuma foto ou vídeo planejado ainda. Adicione caixas de foto ou vídeo no Planejar.</div>';
+  if (planModo === 'semana') _psRender(); // as ações (aprovar, apagar, mover…) chamam renderFeed: a semana redesenha junto
 }
 
 // botão de grade dentro do quadro: salva o quadro aberto e vai para a aba Planejar (grade)
@@ -6117,7 +6229,7 @@ function _verReferencia(p, i) {
 }
 
 // ── IDEIAS (vídeos mandados pelo Compartilhar do Instagram) ─────────
-let ideiasLista = null, ideiasVerUsadas = false, planModo = 'grade';
+let ideiasLista = null, ideiasVerUsadas = false, planModo = 'semana';
 
 async function _ideiasCarrega(forcar) {
   if (ideiasLista !== null && !forcar) return;
@@ -6128,8 +6240,12 @@ async function _ideiasCarrega(forcar) {
 function setPlanModo(m) {
   planModo = m;
   document.querySelectorAll('#plan-modo button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+  document.getElementById('semana-conteudo').style.display = m === 'semana' ? '' : 'none';
   document.getElementById('grade-conteudo').style.display = m === 'grade' ? '' : 'none';
   document.getElementById('ideias-conteudo').style.display = m === 'ideias' ? '' : 'none';
+  // a semana usa a largura toda da tela; grade e ideias ficam na coluna estreita do celular
+  document.querySelector('#view-grade .grade-wrap').classList.toggle('larga', m === 'semana');
+  if (m === 'semana') { _feedTrocando = false; _feedAtualizarModo(); renderFeed(); }
   if (m === 'ideias') { renderIdeias(); _ideiasCarrega(true).then(() => { if (planModo === 'ideias') renderIdeias(); _ideiasRecapar(); }); }
 }
 
@@ -6370,8 +6486,10 @@ async function _receberCompartilhado() {
 let _slotFormato = 'reel', _slotCapa = null, _slotBuscando = null, _slotIdeia = null;
 
 // ideiaId: veio do "Usar num dia" de uma ideia salva — já entra com a referência preenchida
-function abrirSlot(ds, ideiaId) {
+// hora: veio de um horário vazio da Semana
+function abrirSlot(ds, ideiaId, hora) {
   document.getElementById('sl-data').value = ds;
+  document.getElementById('sl-hora').value = hora || '';
   document.getElementById('sl-ref').value = '';
   document.getElementById('sl-ideia').value = '';
   document.getElementById('sl-prev').innerHTML = '';
@@ -6477,6 +6595,8 @@ async function salvarSlot() {
       ? { id: _uid(), type: 'video', x, y: yBase, w: 190, h: 250, url: ref, ref: true, formato: _slotFormato, st: 'ideia' }
       : { id: _uid(), type: _slotFormato === 'reel' ? 'video' : 'photo', x, y: yBase, w: 190, h: 250, url: '', formato: _slotFormato, st: 'ideia' };
     if (ref && _slotCapa) midia.capa = _slotCapa;
+    const hora = document.getElementById('sl-hora').value;
+    if (hora) midia.hora = hora;
     novos.push(midia);
     const canvas = (b.canvas || []).concat(novos);
     const { error } = await sb.from('eventos_loja').update({ canvas }).eq('id', b.id);
@@ -6491,7 +6611,7 @@ async function salvarSlot() {
       if (planModo === 'ideias') renderIdeias();
     }
     closeModal('modal-slot');
-    showToast(`Post planejado para ${_ROT_DIA(ds)}`);
+    showToast(`Post planejado para ${_ROT_DIA(ds)}${hora ? ' às ' + hora : ''}`);
     renderFeed();
   } catch (e) {
     showToast('Erro ao salvar: ' + (e.message || e), 'error');
@@ -6506,6 +6626,157 @@ function _ehTplElSemanal(e) {
   const t = (e.content || '').trim().toLowerCase();
   return t === 'planejamento semanal' || DIAS_TPL.some(n => n.toLowerCase() === t);
 }
+
+// ── PLANEJAR · SEMANA (dia × horário, estilo Metricool) ──────────
+// mostra os posts da semana em colunas de dia e linhas de horário (midia.hora; post já no ar usa a hora em que saiu).
+// Usa os mesmos índices do _feedLista, então o toque abre o mesmo que na grade (roteiro, player, quadro).
+// No PC o post planejado pode ser arrastado para outro dia/horário; no celular a semana vira lista por dia.
+let _psSemana = null, _psArrastado = null, _psResizeTimer = null;
+const _psMobile = () => window.matchMedia('(max-width: 767px)').matches;
+const _psHora = p => (p.real ? p.hora : p.midia.hora) || '';
+const _psFormato = p => p.real ? (p.formato === 'REELS' ? 'Reel' : p.tipo === 'CAROUSEL_ALBUM' ? 'Carrossel' : 'Foto')
+  : _FMT_SUG[p.midia.formato] || (p.midia.type === 'video' ? 'Reel' : 'Foto');
+const _psStatus = p => p.real ? 'postado' : (p.midia.sug && !p.midia.sug.ok) ? 'sugestao' : _feedStatus(p.midia);
+const _PS_ROT = { sugestao: 'sugestão', gravar: 'a gravar', pronto: 'pronto', postado: '' };
+
+function psMudarSemana(d) {
+  _psSemana = d === 0 ? _segundaDe(today) : _somaDias(_psSemana || _segundaDe(today), 7 * d);
+  _psRender();
+}
+
+function _psCard(p, i) {
+  const st = _psStatus(p);
+  const capa = p.real ? p.capa : p.midia.type === 'photo' ? p.midia.url : p.midia.capa;
+  const titulo = p.real ? (p.legenda || 'Post')
+    : (p.midia.sug && p.midia.sug.titulo) || p.legenda || (p.midia.ref ? 'Referência' : _psFormato(p));
+  const info = [_psHora(p), _psFormato(p), p.real && p.views != null ? _fmtMil(p.views) + ' views' : _PS_ROT[st]].filter(Boolean).join(' · ');
+  const arrasta = !p.real && !_psMobile();
+  return `<div class="ps-card ${st}" onclick="event.stopPropagation();feedToque(${i})" title="${_attr(titulo)}"
+    ${arrasta ? `draggable="true" ondragstart="psArrastar(event, ${i})" ondragend="this.classList.remove('arrastando');_psArrastado=null"` : ''}>
+    ${capa ? `<img src="${_attr(capa)}" alt="" loading="lazy">`
+      : `<span class="ps-ico"><i class="ti ${!p.real && p.midia.type === 'photo' ? 'ti-camera' : 'ti-movie'}"></i></span>`}
+    <span class="ps-card-txt"><b>${_esc(titulo)}</b><span>${_esc(info)}</span></span></div>`;
+}
+
+function _psRender() {
+  if (!_psSemana) _psSemana = _segundaDe(today);
+  const dias = [...Array(7).keys()].map(k => _somaDias(_psSemana, k));
+  // a grade só traz o planejado de hoje em diante; a semana também mostra o que passou e não foi ao ar
+  const ja = new Set(_feedLista.filter(p => !p.real && !p.vazio).map(p => p.midia));
+  const conectado = feedReais && feedReais.length;
+  _feedPlanejados().forEach(p => {
+    if (!ja.has(p.midia) && dias.includes(p.data) && !(conectado && p.midia.st === 'postado')) _feedLista.push(p);
+  });
+  const daSemana = _feedLista.map((p, i) => ({ p, i })).filter(({ p }) => !p.vazio && dias.includes(p.data));
+  const ord = (a, b) => _psHora(a.p).localeCompare(_psHora(b.p)) || (a.p.ordem || 0) - (b.p.ordem || 0);
+  const domingo = ds => { const [y, m, d] = ds.split('-').map(Number); return new Date(y, m - 1, d).getDay() === 0; };
+
+  const [, m1, d1] = dias[0].split('-').map(Number), [, m7, d7] = dias[6].split('-').map(Number);
+  document.getElementById('ps-titulo').textContent = m1 === m7
+    ? `${d1} – ${d7} ${MESES_ABREV[m7 - 1]}` : `${d1} ${MESES_ABREV[m1 - 1]} – ${d7} ${MESES_ABREV[m7 - 1]}`;
+  document.getElementById('ps-montar').style.display = _mtVazios().length ? '' : 'none';
+  const grade = document.getElementById('ps-grade');
+
+  if (_psMobile()) {
+    grade.classList.add('lista');
+    grade.style.height = grade.style.gridTemplateRows = '';
+    grade.innerHTML = dias.map(ds => {
+      const aqui = daSemana.filter(x => x.p.data === ds).sort(ord);
+      return `<div class="ps-ldia${ds === today ? ' hoje' : ''}"><div class="ps-ldia-tit"><span>${_ROT_DIA(ds)}</span>
+          ${domingo(ds) ? '' : `<button class="ps-mais" onclick="abrirSlot('${ds}')"><i class="ti ti-plus"></i> Post</button>`}</div>
+        ${aqui.length ? aqui.map(x => _psCard(x.p, x.i)).join('') : '<div class="ps-nada">Nada planejado</div>'}</div>`;
+    }).join('');
+    return;
+  }
+
+  // PC: das 8h às 22h (estica se algum post estiver fora disso) + a linha "sem horário" em cima
+  const horas = daSemana.map(x => _psHora(x.p)).filter(Boolean).map(h => Number(h.slice(0, 2)));
+  const h0 = Math.min(8, ...horas), h1 = Math.max(22, ...horas);
+  const linha = (rot, h) => `<div class="ps-hora">${rot}</div>` + dias.map(ds => {
+    const aqui = daSemana.filter(x => x.p.data === ds
+      && (h === null ? !_psHora(x.p) : _psHora(x.p) && Number(_psHora(x.p).slice(0, 2)) === h)).sort(ord);
+    const hs = h === null ? '' : `${pad(h)}:00`;
+    const dom = domingo(ds);
+    return `<div class="ps-cel${h === null ? ' semhora' : ''}${ds === today ? ' hoje' : ''}${dom ? ' domingo' : ''}" data-ds="${ds}" data-h="${hs}"
+      ${dom ? '' : `onclick="abrirSlot('${ds}', null, '${hs}')" ondragover="psSobre(event)" ondragleave="this.classList.remove('alvo')" ondrop="psSoltar(event)"`}>
+      ${aqui.map(x => _psCard(x.p, x.i)).join('')}</div>`;
+  }).join('');
+  let html = '<div class="ps-canto"></div>' + dias.map(ds => {
+    const [y, m, d] = ds.split('-').map(Number);
+    return `<div class="ps-dia${ds === today ? ' hoje' : ''}">${DOWS[new Date(y, m - 1, d).getDay()]} <b>${d}</b></div>`;
+  }).join('');
+  html += linha('sem<br>horário', null);
+  for (let h = h0; h <= h1; h++) html += linha(`${pad(h)}h`, h);
+  grade.classList.remove('lista');
+  grade.innerHTML = html;
+  // ocupa a altura que sobra da tela (sem rolar); se nem no tamanho mínimo couber, fica no natural e a página rola
+  grade.style.height = grade.style.gridTemplateRows = '';
+  const z = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--escala')) || 1;
+  const r = grade.getBoundingClientRect();
+  const sobra = Math.floor((window.innerHeight - (r.top + window.scrollY) - 16) / z);
+  if (r.height / z < sobra) {
+    grade.style.height = sobra + 'px';
+    grade.style.gridTemplateRows = `auto minmax(52px, auto) repeat(${h1 - h0 + 1}, minmax(auto, 1fr))`;
+  }
+}
+
+function psArrastar(ev, i) {
+  _psArrastado = i;
+  ev.dataTransfer.effectAllowed = 'move';
+  ev.dataTransfer.setData('text/plain', String(i));
+  ev.currentTarget.classList.add('arrastando');
+}
+function psSobre(ev) {
+  if (_psArrastado === null) return;
+  ev.preventDefault();
+  ev.currentTarget.classList.add('alvo');
+}
+async function psSoltar(ev) {
+  ev.preventDefault();
+  const cel = ev.currentTarget;
+  cel.classList.remove('alvo');
+  const i = _psArrastado;
+  _psArrastado = null;
+  if (i !== null) await moverPost(i, cel.dataset.ds, cel.dataset.h);
+}
+
+// leva o post para outro dia e/ou horário: a hora fica na caixa de foto/vídeo; trocando de dia, o texto e a mídia
+// vão para a coluna do novo dia (que pode ser o quadro de outra semana)
+async function moverPost(i, ds, hora) {
+  const p = _feedLista[i];
+  if (!p || p.real || p.vazio) return;
+  if (ds === p.data && (hora || '') === (p.midia.hora || '')) return;
+  const [y, m, d] = ds.split('-').map(Number);
+  if (new Date(y, m - 1, d).getDay() === 0) { showToast('O quadro vai de segunda a sábado', 'error'); return; }
+  try {
+    const destino = ds === p.data ? p.board : await _quadroSemanaDe(ds);
+    if (hora) p.midia.hora = hora; else delete p.midia.hora;
+    if (ds !== p.data) {
+      const { x, y: y0 } = _lugarNoDia((destino.canvas || []).filter(e => !p.els.includes(e)), ds);
+      const base = Math.min(...p.els.map(e => e.y || 0));
+      p.els.forEach(e => { e.x = x; e.y = y0 + ((e.y || 0) - base); });
+      if (destino !== p.board) {
+        p.board.canvas = p.board.canvas.filter(e => !p.els.includes(e));
+        destino.canvas = (destino.canvas || []).concat(p.els);
+      }
+    }
+    for (const q of new Set([p.board, destino])) {
+      const { error } = await sb.from('eventos_loja').update({ canvas: q.canvas }).eq('id', q.id);
+      if (error) throw error;
+    }
+    showToast(`Post em ${_ROT_DIA(ds)}${hora ? ' às ' + hora : ''}`);
+  } catch (e) {
+    showToast('Erro ao mover: ' + (e.message || e), 'error');
+    await loadEventosLoja(); // volta para o que está gravado
+  }
+  renderFeed();
+}
+
+window.addEventListener('resize', () => {
+  if (currentView !== 'grade' || planModo !== 'semana') return;
+  clearTimeout(_psResizeTimer);
+  _psResizeTimer = setTimeout(_psRender, 200);
+});
 
 // onde entra um post novo no quadro da semana: coluna do dia, embaixo do que já existe (o quadro reorganiza ao abrir)
 function _lugarNoDia(canvas, ds) {
