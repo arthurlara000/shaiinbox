@@ -1,14 +1,19 @@
 // ig-sync — busca os números do Instagram da loja (somente leitura) e grava no banco:
 //   ig_conta_dia → alcance, visualizações, interações, seguidores ganhos/perdidos e total de seguidores por dia
 //   ig_posts     → posts recentes com capa, legenda e números de cada um
-// Roda todo dia de madrugada (pg_cron) e pode ser chamada na mão com ?key=<sync_secret>&dias=N.
+// Roda a cada 3 horas (pg_cron, com ?key=<sync_secret>; aceita &dias=N) e pelo botão "Atualizar do Instagram"
+// do Planejar (usuário logado — se já sincronizou há menos de 10 min, devolve o último resultado sem chamar a Meta).
 // A chave do Instagram vem do Secret IG_TOKEN; a função renova a chave toda semana e guarda a renovada em ig_token.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const GRAPH = "https://graph.instagram.com/v23.0";
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 const json = (o: unknown, status = 200) =>
-  new Response(JSON.stringify(o, null, 2), { status, headers: { "Content-Type": "application/json" } });
+  new Response(JSON.stringify(o, null, 2), { status, headers: { ...CORS, "Content-Type": "application/json" } });
 
 // chamada à API do Instagram; a mensagem de erro da Meta não inclui a chave
 async function ig(caminho: string, params: Record<string, string>, token: string) {
@@ -99,9 +104,20 @@ async function insightsDoPost(id: string, token: string) {
 }
 
 Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   const url = new URL(req.url);
   const { data: cfg } = await sb.from("bling_config").select("sync_secret").eq("id", 1).maybeSingle();
-  if (!cfg?.sync_secret || url.searchParams.get("key") !== cfg.sync_secret) return json({ erro: "não autorizado" }, 401);
+  const pelaChave = !!cfg?.sync_secret && url.searchParams.get("key") === cfg.sync_secret;
+  if (!pelaChave) {
+    const jwt = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
+    const { data: quem } = jwt ? await sb.auth.getUser(jwt) : { data: null };
+    if (!quem?.user) return json({ erro: "não autorizado" }, 401);
+    // botão do app: sincronizou há pouco? devolve o que já tem (evita gastar o limite de chamadas da Meta)
+    const { data: ultimo } = await sb.from("ig_sync_log").select("rodou_em, ok, resumo").order("id", { ascending: false }).limit(1).maybeSingle();
+    if (ultimo?.ok && Date.now() - Date.parse(ultimo.rodou_em) < 10 * 60e3) {
+      return json({ ok: true, recente: true, rodou_em: ultimo.rodou_em, ...ultimo.resumo });
+    }
+  }
 
   const resumo: Record<string, unknown> = {};
   try {

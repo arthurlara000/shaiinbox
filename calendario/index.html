@@ -1041,10 +1041,13 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
 .grade-wrap.larga .plan-modo { max-width: 420px; }
 /* Planejar · Semana: dia × horário (estilo Metricool) */
 .ps-top { display: flex; align-items: center; gap: 10px 18px; flex-wrap: wrap; margin-bottom: 12px; }
-.ps-nav { display: flex; align-items: center; gap: 8px; }
+.ps-nav { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .ps-titulo { font-size: 1rem; font-weight: 600; min-width: 140px; font-variant-numeric: tabular-nums; }
 .ps-hoje { border: 1px solid var(--border-strong); background: var(--surface); border-radius: var(--r); padding: 5px 11px; font: inherit; font-size: .78rem; cursor: pointer; color: var(--text-2); }
 .ps-hoje:hover { border-color: var(--caramel); color: var(--text); }
+.ps-atualizar { display: inline-flex; align-items: center; gap: 5px; }
+.ps-atualizar:disabled { opacity: .7; cursor: default; }
+.ps-sync { font-size: .7rem; color: var(--text-muted); white-space: nowrap; }
 .ps-legenda { flex: 1; display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: .72rem; color: var(--text-2); }
 .ps-cor { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
 .ps-cor.sugestao { background: var(--caramel); }
@@ -2353,6 +2356,8 @@ textarea.form-input { resize: none; height: 76px; }
           <button class="nav-arrow" onclick="psMudarSemana(1)" aria-label="Próxima semana"><i class="ti ti-chevron-right"></i></button>
           <div class="ps-titulo" id="ps-titulo"></div>
           <button class="ps-hoje" onclick="psMudarSemana(0)">Hoje</button>
+          <button class="ps-hoje ps-atualizar" id="ps-atualizar" onclick="atualizarInstagram()" title="Buscar agora os posts e números do Instagram"><i class="ti ti-refresh"></i> Atualizar do Instagram</button>
+          <span class="ps-sync" id="ps-sync"></span>
         </div>
         <div class="ps-legenda">
           <span><span class="ps-cor sugestao"></span>sugestão</span>
@@ -6159,8 +6164,8 @@ async function renderGrade() {
   _feedSel = null;
   _feedAtualizarModo();
   renderFeed();
-  if (feedReais === null || gradeConta === null || ideiasLista === null || psHorarios === null) {
-    await Promise.all([_feedCarregaReais(), _gradeCarregaConta(), _ideiasCarrega(), _psCarregaHorarios()]);
+  if (feedReais === null || gradeConta === null || ideiasLista === null || psHorarios === null || psSync === null) {
+    await Promise.all([_feedCarregaReais(), _gradeCarregaConta(), _ideiasCarrega(), _psCarregaHorarios(), _psCarregaSync()]);
     if (currentView === 'grade') renderFeed();
   }
   _ideiasContador();
@@ -6693,6 +6698,41 @@ function _psCalcHorarios(posts) {
   return { horas, top, melhorDia: dias.length && dias[0].vezes > 1.1 ? dias[0].d : null, total: validos.length };
 }
 
+// última sincronização com o Instagram (roda sozinha às 6, 9, 12, 15, 18 e 21h; o botão puxa na hora)
+let psSync = null;
+async function _psCarregaSync() {
+  if (psSync !== null) return;
+  const { data } = await sb.from('ig_sync_log').select('rodou_em').eq('ok', true).order('id', { ascending: false }).limit(1).maybeSingle();
+  psSync = (data && data.rodou_em) || '';
+}
+function _psSyncTxt() {
+  if (!psSync) return '';
+  const t = new Date(psSync), ds = iso(t), hm = `${pad(t.getHours())}:${pad(t.getMinutes())}`;
+  return 'atualizado ' + (ds === today ? 'hoje' : ds === _somaDias(today, -1) ? 'ontem' : _ROT_DIA(ds)) + ' às ' + hm;
+}
+
+async function atualizarInstagram() {
+  const btn = document.getElementById('ps-atualizar');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2 girando"></i> Buscando no Instagram…';
+  try {
+    const { data, error } = await sb.functions.invoke('ig-sync', { body: {} });
+    let msg = data && (data.erro || data.mensagem);
+    try { if (!msg && error && error.context) { const c = await error.context.json(); msg = c.erro || c.mensagem; } } catch (e) { /* sem corpo */ }
+    if (error || !data || !data.ok) throw new Error(msg || 'o Instagram não respondeu');
+    feedReais = gradeConta = psHorarios = psSync = null;
+    await Promise.all([_feedCarregaReais(), _gradeCarregaConta(), _psCarregaHorarios(), _psCarregaSync()]);
+    renderFeed();
+    showToast(data.recente ? 'Já estava atualizado (há menos de 10 minutos)' : 'Instagram atualizado ✓');
+  } catch (e) {
+    showToast('Não consegui atualizar: ' + (e.message || e), 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-refresh"></i> Atualizar do Instagram';
+  }
+}
+
 // "19h, 12h e 20h"
 const _psTopTxt = () => {
   const t = ((psHorarios && psHorarios.top) || []).map(h => h + 'h');
@@ -6735,6 +6775,7 @@ function _psRender() {
   document.getElementById('ps-titulo').textContent = m1 === m7
     ? `${d1} – ${d7} ${MESES_ABREV[m7 - 1]}` : `${d1} ${MESES_ABREV[m1 - 1]} – ${d7} ${MESES_ABREV[m7 - 1]}`;
   document.getElementById('ps-montar').style.display = _mtVazios().length ? '' : 'none';
+  document.getElementById('ps-sync').textContent = _psSyncTxt();
   const hz = psHorarios || { horas: {}, top: [] };
   document.getElementById('ps-melhores').innerHTML = hz.top.length
     ? `<i class="ti ti-flame"></i> Melhores horários da Shai: <b>${_psTopTxt()}</b>
