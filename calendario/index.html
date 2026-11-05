@@ -1074,6 +1074,18 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
 .ps-cel.semhora { min-height: 52px; background: var(--surface2); }
 .ps-cel.domingo { background: #f9f8f6; cursor: default; }
 .ps-cel.alvo { background: #f3e9dc; outline: 2px dashed var(--caramel); outline-offset: -3px; }
+/* melhores horários: a cor por cima do fundo do dia (hoje continua aparecendo) */
+.ps-cel.q1 { background-image: linear-gradient(rgba(165,113,61,.05), rgba(165,113,61,.05)); }
+.ps-cel.q2 { background-image: linear-gradient(rgba(165,113,61,.11), rgba(165,113,61,.11)); }
+.ps-cel.q3 { background-image: linear-gradient(rgba(165,113,61,.2), rgba(165,113,61,.2)); }
+.ps-hora.top { color: var(--caramel); font-weight: 700; }
+.ps-cor.quente { background: rgba(165,113,61,.35); }
+.ps-melhores { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 6px; margin: -4px 0 10px; font-size: .78rem; color: var(--text-2); }
+.ps-melhores:empty { display: none; }
+.ps-melhores .ti { color: var(--caramel); align-self: center; }
+.ps-melhores b { color: var(--text); }
+.ps-melhores span { color: var(--text-muted); font-size: .72rem; }
+.ps-melhor-dia { margin-left: auto; padding: 1px 6px; border-radius: 3px; background: rgba(165,113,61,.14); color: var(--caramel); font-size: .58rem; letter-spacing: .03em; }
 .ps-card {
   display: flex; align-items: center; gap: 6px; min-width: 0; padding: 3px 6px 3px 3px; text-align: left;
   background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--border-strong); border-radius: 4px;
@@ -1107,7 +1119,7 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
 @media (max-width: 767px) {
   .grade-wrap.larga { padding: 12px 0 20px; }
   .grade-wrap.larga .plan-modo { max-width: none; }
-  .ps-top { padding: 0 14px; }
+  .ps-top, .ps-melhores { padding: 0 14px; }
   .ps-legenda { display: none; }
   .ps-montar { flex: 1; justify-content: center; }
   .ps-grade { border-radius: 0; border-left: none; border-right: none; }
@@ -2347,9 +2359,11 @@ textarea.form-input { resize: none; height: 76px; }
           <span><span class="ps-cor gravar"></span>a gravar</span>
           <span><span class="ps-cor pronto"></span>pronto</span>
           <span><span class="ps-cor postado"></span>no Instagram</span>
+          <span><span class="ps-cor quente"></span>horário forte</span>
         </div>
         <button class="btn-sm-choco ps-montar" id="ps-montar" onclick="abrirMontar()"><i class="ti ti-sparkles"></i> Montar minha semana</button>
       </div>
+      <div class="ps-melhores" id="ps-melhores"></div>
       <div class="ps-grade" id="ps-grade"></div>
     </div>
     <!-- IDEIAS: vídeos mandados pelo botão Compartilhar do Instagram -->
@@ -2557,6 +2571,7 @@ textarea.form-input { resize: none; height: 76px; }
       <div class="form-group">
         <label class="form-label">Horário <span style="font-weight:400">(opcional)</span></label>
         <input type="time" class="form-input" id="sl-hora">
+        <div class="sl-ajuda" id="sl-hora-dica"></div>
       </div>
     </div>
     <div class="form-group">
@@ -6144,8 +6159,8 @@ async function renderGrade() {
   _feedSel = null;
   _feedAtualizarModo();
   renderFeed();
-  if (feedReais === null || gradeConta === null || ideiasLista === null) {
-    await Promise.all([_feedCarregaReais(), _gradeCarregaConta(), _ideiasCarrega()]);
+  if (feedReais === null || gradeConta === null || ideiasLista === null || psHorarios === null) {
+    await Promise.all([_feedCarregaReais(), _gradeCarregaConta(), _ideiasCarrega(), _psCarregaHorarios()]);
     if (currentView === 'grade') renderFeed();
   }
   _ideiasContador();
@@ -6490,6 +6505,7 @@ let _slotFormato = 'reel', _slotCapa = null, _slotBuscando = null, _slotIdeia = 
 function abrirSlot(ds, ideiaId, hora) {
   document.getElementById('sl-data').value = ds;
   document.getElementById('sl-hora').value = hora || '';
+  document.getElementById('sl-hora-dica').textContent = _psTopTxt() ? 'Melhores: ' + _psTopTxt() : '';
   document.getElementById('sl-ref').value = '';
   document.getElementById('sl-ideia').value = '';
   document.getElementById('sl-prev').innerHTML = '';
@@ -6639,6 +6655,50 @@ const _psFormato = p => p.real ? (p.formato === 'REELS' ? 'Reel' : p.tipo === 'C
 const _psStatus = p => p.real ? 'postado' : (p.midia.sug && !p.midia.sug.ok) ? 'sugestao' : _feedStatus(p.midia);
 const _PS_ROT = { sugestao: 'sugestão', gravar: 'a gravar', pronto: 'pronto', postado: '' };
 
+// melhores horários da Shai: o alcance de cada post comparado ao normal do formato dele (Reel com Reel, foto com
+// foto), agrupado pela hora em que saiu. Cada hora soma meio peso das vizinhas — com poucos posts por hora o mapa
+// ficaria aos saltos — e só vale com pelo menos 3 de peso. Viral conta no máximo 3× para não puxar sozinho.
+let psHorarios = null;
+async function _psCarregaHorarios() {
+  if (psHorarios !== null) return;
+  const desde = new Date(Date.now() - 120 * 864e5).toISOString();
+  const { data, error } = await sb.from('ig_posts').select('formato, tipo, alcance, publicado_em').gte('publicado_em', desde).limit(500);
+  psHorarios = _psCalcHorarios(error ? [] : (data || []));
+}
+
+function _psCalcHorarios(posts) {
+  const fmt = p => p.formato === 'REELS' ? 'reel' : p.tipo === 'CAROUSEL_ALBUM' ? 'carrossel' : 'foto';
+  const mediana = v => { const s = [...v].sort((a, b) => a - b), k = s.length >> 1; return s.length % 2 ? s[k] : (s[k - 1] + s[k]) / 2; };
+  const validos = posts.filter(p => p.alcance > 0);
+  const normal = {};
+  validos.forEach(p => (normal[fmt(p)] = normal[fmt(p)] || []).push(p.alcance));
+  Object.keys(normal).forEach(f => { normal[f] = mediana(normal[f]); });
+  const porHora = {}, porDia = {};
+  validos.forEach(p => {
+    const t = new Date(p.publicado_em), x = Math.min(3, p.alcance / normal[fmt(p)]);
+    (porHora[t.getHours()] = porHora[t.getHours()] || []).push(x);
+    (porDia[t.getDay()] = porDia[t.getDay()] || []).push(x);
+  });
+  const horas = {};
+  for (let h = 0; h < 24; h++) {
+    let soma = 0, peso = 0;
+    [[h, 1], [h - 1, .5], [h + 1, .5]].forEach(([k, w]) => (porHora[k] || []).forEach(x => { soma += x * w; peso += w; }));
+    if (peso >= 3 && porHora[h]) horas[h] = { vezes: soma / peso, n: porHora[h].length };
+  }
+  const top = Object.entries(horas).filter(([, v]) => v.n >= 2 && v.vezes > 1)
+    .sort((a, b) => b[1].vezes - a[1].vezes).slice(0, 3).map(([h]) => Number(h));
+  const dias = Object.entries(porDia).filter(([, v]) => v.length >= 3)
+    .map(([d, v]) => ({ d: Number(d), vezes: v.reduce((s, x) => s + x, 0) / v.length }))
+    .sort((a, b) => b.vezes - a.vezes);
+  return { horas, top, melhorDia: dias.length && dias[0].vezes > 1.1 ? dias[0].d : null, total: validos.length };
+}
+
+// "19h, 12h e 20h"
+const _psTopTxt = () => {
+  const t = ((psHorarios && psHorarios.top) || []).map(h => h + 'h');
+  return t.length > 1 ? t.slice(0, -1).join(', ') + ' e ' + t[t.length - 1] : t[0] || '';
+};
+
 function psMudarSemana(d) {
   _psSemana = d === 0 ? _segundaDe(today) : _somaDias(_psSemana || _segundaDe(today), 7 * d);
   _psRender();
@@ -6675,6 +6735,10 @@ function _psRender() {
   document.getElementById('ps-titulo').textContent = m1 === m7
     ? `${d1} – ${d7} ${MESES_ABREV[m7 - 1]}` : `${d1} ${MESES_ABREV[m1 - 1]} – ${d7} ${MESES_ABREV[m7 - 1]}`;
   document.getElementById('ps-montar').style.display = _mtVazios().length ? '' : 'none';
+  const hz = psHorarios || { horas: {}, top: [] };
+  document.getElementById('ps-melhores').innerHTML = hz.top.length
+    ? `<i class="ti ti-flame"></i> Melhores horários da Shai: <b>${_psTopTxt()}</b>
+       <span>pelo alcance dos ${hz.total} posts dos últimos 4 meses</span>` : '';
   const grade = document.getElementById('ps-grade');
 
   if (_psMobile()) {
@@ -6682,7 +6746,9 @@ function _psRender() {
     grade.style.height = grade.style.gridTemplateRows = '';
     grade.innerHTML = dias.map(ds => {
       const aqui = daSemana.filter(x => x.p.data === ds).sort(ord);
-      return `<div class="ps-ldia${ds === today ? ' hoje' : ''}"><div class="ps-ldia-tit"><span>${_ROT_DIA(ds)}</span>
+      const [y, m, d] = ds.split('-').map(Number);
+      const melhor = new Date(y, m - 1, d).getDay() === hz.melhorDia ? '<span class="ps-melhor-dia">melhor dia</span>' : '';
+      return `<div class="ps-ldia${ds === today ? ' hoje' : ''}"><div class="ps-ldia-tit"><span>${_ROT_DIA(ds)} ${melhor}</span>
           ${domingo(ds) ? '' : `<button class="ps-mais" onclick="abrirSlot('${ds}')"><i class="ti ti-plus"></i> Post</button>`}</div>
         ${aqui.length ? aqui.map(x => _psCard(x.p, x.i)).join('') : '<div class="ps-nada">Nada planejado</div>'}</div>`;
     }).join('');
@@ -6692,18 +6758,27 @@ function _psRender() {
   // PC: das 8h às 22h (estica se algum post estiver fora disso) + a linha "sem horário" em cima
   const horas = daSemana.map(x => _psHora(x.p)).filter(Boolean).map(h => Number(h.slice(0, 2)));
   const h0 = Math.min(8, ...horas), h1 = Math.max(22, ...horas);
-  const linha = (rot, h) => `<div class="ps-hora">${rot}</div>` + dias.map(ds => {
+  // cor da linha pelo desempenho da hora: q3 = bem acima do normal … q1 = na média
+  const nivel = h => { const q = hz.horas[h]; return !q ? 0 : q.vezes >= 1.3 ? 3 : q.vezes >= 1.1 ? 2 : q.vezes >= .95 ? 1 : 0; };
+  const rotulo = (rot, h) => {
+    const q = h === null ? null : hz.horas[h];
+    const dica = q ? `${h}h: alcance ${_fmt1(q.vezes)}× o normal (${q.n} ${q.n === 1 ? 'post' : 'posts'} nessa hora)` : '';
+    return `<div class="ps-hora${hz.top.includes(h) ? ' top' : ''}"${dica ? ` title="${dica}"` : ''}>${rot}</div>`;
+  };
+  const linha = (rot, h) => rotulo(rot, h) + dias.map(ds => {
     const aqui = daSemana.filter(x => x.p.data === ds
       && (h === null ? !_psHora(x.p) : _psHora(x.p) && Number(_psHora(x.p).slice(0, 2)) === h)).sort(ord);
     const hs = h === null ? '' : `${pad(h)}:00`;
     const dom = domingo(ds);
-    return `<div class="ps-cel${h === null ? ' semhora' : ''}${ds === today ? ' hoje' : ''}${dom ? ' domingo' : ''}" data-ds="${ds}" data-h="${hs}"
+    const q = h === null || dom ? 0 : nivel(h);
+    return `<div class="ps-cel${h === null ? ' semhora' : ''}${ds === today ? ' hoje' : ''}${dom ? ' domingo' : ''}${q ? ' q' + q : ''}" data-ds="${ds}" data-h="${hs}"
       ${dom ? '' : `onclick="abrirSlot('${ds}', null, '${hs}')" ondragover="psSobre(event)" ondragleave="this.classList.remove('alvo')" ondrop="psSoltar(event)"`}>
       ${aqui.map(x => _psCard(x.p, x.i)).join('')}</div>`;
   }).join('');
   let html = '<div class="ps-canto"></div>' + dias.map(ds => {
     const [y, m, d] = ds.split('-').map(Number);
-    return `<div class="ps-dia${ds === today ? ' hoje' : ''}">${DOWS[new Date(y, m - 1, d).getDay()]} <b>${d}</b></div>`;
+    const dw = new Date(y, m - 1, d).getDay();
+    return `<div class="ps-dia${ds === today ? ' hoje' : ''}">${DOWS[dw]} <b>${d}</b>${dw === hz.melhorDia ? '<span class="ps-melhor-dia">melhor dia</span>' : ''}</div>`;
   }).join('');
   html += linha('sem<br>horário', null);
   for (let h = h0; h <= h1; h++) html += linha(`${pad(h)}h`, h);
@@ -6860,7 +6935,8 @@ const _sugTexto = s => [s.titulo, 'Gancho: ' + s.gancho, ...(s.cenas || []).map(
 function _sugElementos(canvas, s, ideia) {
   const { x, y } = _lugarNoDia(canvas, s.data);
   const sug = { titulo: s.titulo, gancho: s.gancho, cenas: s.cenas, legenda: s.legenda, peca: s.peca, porque: s.porque, ok: false };
-  const base = { id: _uid(), x, y: y + 74, w: 190, h: 250, formato: s.formato, st: 'ideia', sug };
+  const base = { id: _uid(), x, y: y + 74, w: 190, h: 250, formato: s.formato, st: 'ideia', sug,
+    ...(/^\d{2}:\d{2}$/.test(s.hora || '') ? { hora: s.hora } : {}) };
   const midia = ideia
     ? { ...base, type: 'video', url: ideia.link, ref: true, ...(ideia.capa ? { capa: ideia.capa } : {}) }
     : { ...base, type: s.formato === 'reel' ? 'video' : 'photo', url: '' };
@@ -6902,7 +6978,7 @@ async function montarSemana() {
     document.getElementById('mt-corpo').innerHTML = `
       <div class="modal-title" style="margin-bottom:10px">Semana montada ✓</div>
       ${plano.leitura ? `<div class="mt-leitura"><span>O que está funcionando na Shai</span>${_esc(plano.leitura)}</div>` : ''}
-      <div class="mt-lista">${plano.posts.map(s => `<div><b>${_ROT_DIA(s.data)}</b><span>${_esc(s.titulo)} · ${_FMT_SUG[s.formato] || ''}</span></div>`).join('')}</div>
+      <div class="mt-lista">${plano.posts.map(s => `<div><b>${_ROT_DIA(s.data)}</b><span>${s.hora ? _esc(s.hora) + ' · ' : ''}${_esc(s.titulo)} · ${_FMT_SUG[s.formato] || ''}</span></div>`).join('')}</div>
       <div class="ajuda-sub" style="margin:10px 0 0">Os posts entraram na grade como sugestão. Toque em cada um para ver o roteiro e aprovar ou pedir outra ideia.</div>
       <div class="btn-row"><button class="btn btn-primary" onclick="closeModal('modal-montar')">Ver na grade</button></div>`;
   } catch (e) {
@@ -6925,7 +7001,7 @@ function abrirSug(i) {
   document.getElementById('sug-corpo').innerHTML = `
     <div class="sug-top"><div class="modal-title">${_esc(s.titulo)}</div>
       <button class="ver-x" onclick="closeModal('modal-sug')" aria-label="Fechar"><i class="ti ti-x"></i></button></div>
-    <div class="sug-sub"><span>${_ROT_DIA(p.data)}</span><span>${_FMT_SUG[p.midia.formato] || ''}</span>
+    <div class="sug-sub"><span>${_ROT_DIA(p.data)}${p.midia.hora ? ' · ' + p.midia.hora : ''}</span><span>${_FMT_SUG[p.midia.formato] || ''}</span>
       ${s.ok ? '<span style="color:var(--green)">✓ aprovado</span>' : '<span><i class="ti ti-sparkles"></i> sugestão da IA</span>'}</div>
     ${bloco(p.midia.formato === 'reel' ? 'Gancho — primeiros 3 segundos' : 'Capa', `<div class="sug-gancho">${_esc(s.gancho)}</div>`)}
     ${bloco(p.midia.formato === 'reel' ? 'Cenas para gravar' : 'Fotos', `<ol class="sug-cenas">${(s.cenas || []).map(c => `<li>${_esc(c)}</li>`).join('')}</ol>`)}

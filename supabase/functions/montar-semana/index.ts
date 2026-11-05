@@ -1,6 +1,6 @@
 // montar-semana — a IA monta os posts dos dias vazios da grade do Planejar.
 // Lê o que deu certo no Instagram da Shai (ig_posts), as ideias salvas pela equipe e a agenda (campanhas,
-// eventos e datas que o app manda) e devolve, para cada dia: formato, gancho, cenas, legenda, peça e o porquê.
+// eventos e datas que o app manda) e devolve, para cada dia: horário, formato, gancho, cenas, legenda, peça e o porquê.
 // Só para quem está logado no calendário. A chave da IA fica no secret ANTHROPIC_API_KEY.
 // Corpo: { dias: ['2026-10-27', …], pedido?, datas?: [{data, titulo, desc}], planejados?: [{data, texto}], evitar?: [texto] }
 import Anthropic from "npm:@anthropic-ai/sdk@1.3.0";
@@ -37,6 +37,8 @@ Como decidir:
   (ex.: "blusa de renda dos lançamentos"). Nunca invente preço.
 
 Formato de cada post:
+- hora: horário de postar (HH:MM), escolhido entre os melhores horários da Shai (tabela no pedido); varie entre eles
+  conforme o dia e o formato. Sem dados de horário, use entre 19:00 e 21:00.
 - titulo: até 6 palavras, para reconhecer o post na grade.
 - gancho: a frase falada ou escrita nos 3 primeiros segundos (para Reel) ou a capa (carrossel/foto).
 - cenas: de 3 a 6 tomadas curtas, na ordem, cada uma com o que filmar (para carrossel/foto: o que fotografar em cada imagem).
@@ -57,9 +59,10 @@ const SCHEMA = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["data", "formato", "titulo", "gancho", "cenas", "legenda", "peca", "ideia_id", "porque"],
+        required: ["data", "hora", "formato", "titulo", "gancho", "cenas", "legenda", "peca", "ideia_id", "porque"],
         properties: {
           data: { type: "string", description: "AAAA-MM-DD, um dos dias pedidos" },
+          hora: { type: "string", description: "HH:MM, horário de postar" },
           formato: { type: "string", enum: ["reel", "carrossel", "foto"] },
           titulo: { type: "string" },
           gancho: { type: "string" },
@@ -115,6 +118,25 @@ Deno.serve(async (req) => {
     const lm = Object.entries(medias).map(([f, v]) =>
       `${f}: ${v.length} posts, alcance médio ${Math.round(v.reduce((s, x) => s + x, 0) / v.length)}`);
 
+    // melhores horários: alcance de cada post ÷ mediana do formato, por hora (Brasília), com meio peso das horas
+    // vizinhas e viral limitado a 3× — o mesmo cálculo que a Semana do Planejar mostra pintado
+    const mediana = (v: number[]) => { const s = [...v].sort((a, b) => a - b), k = s.length >> 1; return s.length % 2 ? s[k] : (s[k - 1] + s[k]) / 2; };
+    const normal: Record<string, number> = {};
+    Object.entries(medias).forEach(([f, v]) => { const pos = v.filter((x) => x > 0); if (pos.length) normal[f] = mediana(pos); });
+    const porHora: Record<number, number[]> = {};
+    (posts.data || []).forEach((p) => {
+      const fmt = p.formato === "REELS" ? "reel" : p.tipo === "CAROUSEL_ALBUM" ? "carrossel" : "foto";
+      if (!(p.alcance > 0) || !normal[fmt]) return;
+      const h = brt(p.publicado_em).getUTCHours();
+      (porHora[h] = porHora[h] || []).push(Math.min(3, p.alcance / normal[fmt]));
+    });
+    const lh: string[] = [];
+    for (let h = 0; h < 24; h++) {
+      let soma = 0, peso = 0;
+      ([[h, 1], [h - 1, .5], [h + 1, .5]] as [number, number][]).forEach(([k, w]) => (porHora[k] || []).forEach((x) => { soma += x * w; peso += w; }));
+      if (peso >= 3 && porHora[h]) lh.push(`${h}h: ${(soma / peso).toFixed(2).replace(".", ",")}× o normal (${(porHora[h] || []).length} posts)`);
+    }
+
     const li = (ideias.data || []).map((x) =>
       `id ${x.id} | de ${x.autor || "?"} | ${x.link}` +
       (x.prazo === "tendencia" ? " | TENDÊNCIA" : "") +
@@ -140,6 +162,7 @@ Deno.serve(async (req) => {
       corpo.pedido ? `Pedido de foco da equipe: ${corta(corpo.pedido, 400)}` : "",
       `\n## Posts da Shai nos últimos 60 dias (mais novo primeiro)\n${lp.join("\n") || "(nenhum)"}`,
       `\n## Médias por formato\n${lm.join("\n") || "(sem dados)"}`,
+      `\n## Alcance por horário de postagem (Brasília; acima de 1× = melhor que o normal)\n${lh.join("\n") || "(poucos dados)"}`,
       `\n## Ideias salvas pela equipe (ainda não usadas)\n${li.join("\n") || "(nenhuma)"}`,
       `\n## Agenda dos próximos dias\n${la.join("\n") || "(nada marcado)"}`,
       `\n## Já planejado (não repetir)\n${lj.join("\n") || "(nada)"}`,
