@@ -6791,7 +6791,8 @@ function _psRender() {
   const sobra = Math.floor((window.innerHeight - (r.top + window.scrollY) - 16) / z);
   if (r.height / z < sobra) {
     grade.style.height = sobra + 'px';
-    grade.style.gridTemplateRows = `auto minmax(52px, auto) repeat(${h1 - h0 + 1}, minmax(auto, 1fr))`;
+    // min-content (e não auto): com auto o mínimo da linha vira o min-height da célula e o cartão era cortado
+    grade.style.gridTemplateRows = `auto minmax(52px, min-content) repeat(${h1 - h0 + 1}, minmax(min-content, 1fr))`;
   }
 }
 
