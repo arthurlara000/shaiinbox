@@ -48,7 +48,7 @@ body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', 
 /* HEADER */
 /* tela grande (TV, monitor 2K/4K): o app cresce junto com a tela. --escala vem do _ajustarEscala()
    (1 até 1440×810; acima disso, proporcional). O quadro do Planejar (#event-detail) tem ajuste próprio. */
-.header, .app-body, .bottom-nav, .modal-overlay .modal, #toast { zoom: var(--escala, 1); }
+.header, .app-body, .modal-overlay .modal, #toast { zoom: var(--escala, 1); }
 /* quadro (semana/campanha): as barras crescem com a tela; a área de desenho cresce pelo _planZoom() */
 .ed-topbar, #ed-toolbar { zoom: var(--escala, 1); }
 /* janelas que ficam dentro do .app-body já herdam o zoom dele — sem isso cresceriam duas vezes */
@@ -1973,6 +1973,30 @@ textarea.form-input { resize: none; height: 76px; }
 }
 .nav-item.active { color: var(--accent); }
 .nav-icon { font-size: 1.25rem; line-height: 1; }
+.add-btn-txt { display: none; }
+
+/* PC/TV: o menu sobe para uma barra escura em cima (estilo Metricool) — logo, abas com ícone e texto, ação à direita */
+@media (min-width: 768px) {
+  body { padding-bottom: 28px; }
+  .header {
+    background: #2a2019; border-bottom: none; height: 60px; padding: 0 24px;
+    justify-content: flex-start; gap: 28px;
+  }
+  .header-logo { color: #f3ead9; font-size: 1.45rem; }
+  .header-sub { display: none; }
+  .bottom-nav { position: static; flex: 1; gap: 4px; background: none; border: none; padding: 0; }
+  .nav-item {
+    flex: 0 0 auto; flex-direction: row; gap: 8px; padding: 9px 14px; border-radius: var(--r);
+    color: rgba(243,234,217,.75); font-size: .88rem; transition: background .15s, color .15s;
+  }
+  .nav-item:hover { background: rgba(255,255,255,.06); color: #fff; }
+  .nav-item.active { background: rgba(255,255,255,.12); color: #fff; }
+  .nav-icon { font-size: 1.15rem; }
+  .add-btn { width: auto; height: 36px; padding: 0 14px; gap: 6px; background: var(--caramel); font: inherit; font-size: .86rem; font-weight: 600; }
+  .add-btn:hover { background: #b8824b; }
+  .add-btn-txt { display: inline; }
+  #toast { bottom: 28px; }
+}
 
 /* ── RESPONSIVO: NOTEBOOK (768px+) ── */
 @media (min-width: 768px) {
@@ -2163,13 +2187,32 @@ textarea.form-input { resize: none; height: 76px; }
 <body>
 
 <!-- HEADER -->
+<!-- PC: barra de cima escura com o menu (estilo Metricool); celular: logo em cima e o menu fixo embaixo -->
 <div class="header">
-  <div>
+  <div class="header-marca">
     <div class="header-logo">Shai</div>
     <div class="header-sub" id="header-sub">Calendário da Loja</div>
   </div>
+  <nav class="bottom-nav">
+    <!-- Calendário é a aba principal: vem primeiro, é onde o app abre e para onde o Esc volta -->
+    <button class="nav-item active" id="nav-mensal" onclick="setView('mensal')">
+      <span class="nav-icon"><i class="ti ti-calendar-month"></i></span>Calendário
+    </button>
+    <button class="nav-item" id="nav-planejar" onclick="setView('grade')">
+      <span class="nav-icon"><i class="ti ti-layout-board-split"></i></span>Planejar
+    </button>
+    <button class="nav-item" id="nav-tarefas" onclick="setView('tarefas')">
+      <span class="nav-icon"><i class="ti ti-circle-check"></i></span>Tarefas
+    </button>
+    <button class="nav-item" id="nav-campanhas" onclick="setView('campanhas')">
+      <span class="nav-icon"><i class="ti ti-speakerphone"></i></span>Campanhas
+    </button>
+    <button class="nav-item" id="nav-metricas" onclick="setView('metricas')">
+      <span class="nav-icon"><i class="ti ti-chart-line"></i></span>Métricas
+    </button>
+  </nav>
   <button class="add-btn" onclick="openModal('modal-add')" title="Novo evento">
-    <i class="ti ti-plus"></i>
+    <i class="ti ti-plus"></i><span class="add-btn-txt">Novo evento</span>
   </button>
 </div>
 
@@ -2772,26 +2815,6 @@ textarea.form-input { resize: none; height: 76px; }
 <div id="toast"></div>
 <div class="cal-tooltip" id="cal-tooltip"></div>
 <div id="print-camp"></div>
-
-<!-- BOTTOM NAV -->
-<div class="bottom-nav">
-  <!-- Calendário é a aba principal: vem primeiro, é onde o app abre e para onde o Esc volta -->
-  <button class="nav-item active" id="nav-mensal" onclick="setView('mensal')">
-    <span class="nav-icon"><i class="ti ti-calendar-month"></i></span>Calendário
-  </button>
-  <button class="nav-item" id="nav-planejar" onclick="setView('grade')">
-    <span class="nav-icon"><i class="ti ti-layout-board-split"></i></span>Planejar
-  </button>
-  <button class="nav-item" id="nav-tarefas" onclick="setView('tarefas')">
-    <span class="nav-icon"><i class="ti ti-circle-check"></i></span>Tarefas
-  </button>
-  <button class="nav-item" id="nav-campanhas" onclick="setView('campanhas')">
-    <span class="nav-icon"><i class="ti ti-speakerphone"></i></span>Campanhas
-  </button>
-  <button class="nav-item" id="nav-metricas" onclick="setView('metricas')">
-    <span class="nav-icon"><i class="ti ti-chart-line"></i></span>Métricas
-  </button>
-</div>
 
 <script>
 const SB_URL = 'https://ofoljmhfnohxwswskplx.supabase.co';
@@ -3888,17 +3911,19 @@ function renderAgendaDia(ds) {
 }
 
 // ── BARRAS DE CAMPANHA NA GRADE (preparação → dia D) ──
-// PC/TV: as semanas do mês dividem a altura que sobra entre o topo da grade e a barra de baixo — o mês inteiro
+// PC/TV: as semanas do mês dividem a altura que sobra entre o topo da grade e o fim da tela — o mês inteiro
 // aparece sem rolar (a agenda do dia fica logo abaixo). A semana com o dia mais cheio estica até mostrar tudo,
 // e as mais vazias cedem espaço; só rola se nem assim couber.
 function _mesCabeNaTela() {
   const grid = document.getElementById('cal-grid');
   grid.style.gridTemplateRows = '';
   const z = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--escala')) || 1;
-  const nav = document.querySelector('.bottom-nav').getBoundingClientRect();
+  // fim da área útil: o menu, se ele estiver embaixo (celular); no PC ele fica na barra de cima
+  const nav = document.querySelector('.bottom-nav');
+  const fim = getComputedStyle(nav).position === 'fixed' ? nav.getBoundingClientRect().top : window.innerHeight;
   const dow = grid.children[0].getBoundingClientRect();
   // posição na tela (já com zoom, contando a rolagem) → px de CSS dentro da área com zoom; 30px ficam pra legenda
-  const sobra = (nav.top - (dow.bottom + window.scrollY) - 14) / z - 30;
+  const sobra = (fim - (dow.bottom + window.scrollY) - 14) / z - 30;
   const cells = [...grid.children].slice(7).filter(c => c.classList.contains('cal-day'));
   const semanas = Math.ceil(cells.length / 7);
   // quanto cada semana precisa: o dia mais cheio (conteúdo + espaço das barras de campanha), no mínimo 70px
