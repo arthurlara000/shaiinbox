@@ -1,6 +1,7 @@
 // ig-sync — busca os números do Instagram da loja (somente leitura) e grava no banco:
 //   ig_conta_dia → alcance, visualizações, interações, seguidores ganhos/perdidos e total de seguidores por dia
 //   ig_posts     → posts recentes com capa, legenda e números de cada um
+//   ig_stories   → stories no ar (24h), com a última leitura dos números e uma cópia da imagem
 // Roda a cada 3 horas (pg_cron, com ?key=<sync_secret>; aceita &dias=N) e pelo botão "Atualizar do Instagram"
 // do Planejar (usuário logado — se já sincronizou há menos de 10 min, devolve o último resultado sem chamar a Meta).
 // A chave do Instagram vem do Secret IG_TOKEN; a função renova a chave toda semana e guarda a renovada em ig_token.
@@ -103,6 +104,40 @@ async function insightsDoPost(id: string, token: string) {
   return {};
 }
 
+// números de um story (só enquanto está no ar); navegação vem separada, quebrada por tipo de toque
+async function insightsDoStory(id: string, token: string) {
+  const o: Record<string, number> = {};
+  for (const metric of ["reach,views,replies,shares,total_interactions,follows,profile_visits", "reach,replies,shares,total_interactions", "reach"]) {
+    try {
+      const j = await ig(`/${id}/insights`, { metric }, token);
+      for (const m of j.data || []) o[m.name] = m.values?.[0]?.value ?? m.total_value?.value ?? 0;
+      break;
+    } catch { /* tenta o conjunto menor */ }
+  }
+  try {
+    const j = await ig(`/${id}/insights`, { metric: "navigation", breakdown: "story_navigation_action_type", metric_type: "total_value" }, token);
+    for (const r of j.data?.[0]?.total_value?.breakdowns?.[0]?.results || []) {
+      o["nav_" + String(r.dimension_values?.[0] || "").toUpperCase()] = r.value;
+    }
+  } catch { /* conta sem essa métrica: fica sem navegação */ }
+  return o;
+}
+
+// cópia da imagem do story (o link da Meta expira): vídeo usa a miniatura
+async function capaDoStory(id: string, url: string | null) {
+  if (!url) return null;
+  const caminho = `stories/${id}.jpg`;
+  const { data: pub } = sb.storage.from("produto-fotos").getPublicUrl(caminho);
+  try {
+    if ((await fetch(pub.publicUrl, { method: "HEAD" })).ok) return pub.publicUrl;
+    const img = await fetch(url);
+    if (!img.ok) return null;
+    const { error } = await sb.storage.from("produto-fotos")
+      .upload(caminho, await img.arrayBuffer(), { contentType: img.headers.get("content-type") || "image/jpeg", upsert: true });
+    return error ? null : pub.publicUrl;
+  } catch { return null; }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   const url = new URL(req.url);
@@ -183,6 +218,31 @@ Deno.serve(async (req) => {
       if (ePosts) erros.push("gravar posts: " + ePosts.message);
     }
     resumo.posts = posts.length;
+
+    // stories no ar agora (a API só mostra as últimas 24h): a cada sincronização regrava a leitura mais recente,
+    // então o que fica no banco é o número de pouco antes de o story sumir
+    try {
+      const st = await ig("/me/stories", { fields: "id,media_type,media_url,thumbnail_url,permalink,timestamp" }, token);
+      const stories = [];
+      for (const s of st.data || []) {
+        const n = await insightsDoStory(s.id, token);
+        stories.push({
+          id: s.id, tipo: s.media_type, capa_url: await capaDoStory(s.id, s.thumbnail_url || s.media_url || null),
+          link: s.permalink || null, publicado_em: s.timestamp,
+          alcance: n.reach ?? null, visualizacoes: n.views ?? null, respostas: n.replies ?? null,
+          compartilhamentos: n.shares ?? null, interacoes: n.total_interactions ?? null, seguiram: n.follows ?? null,
+          visitas_perfil: n.profile_visits ?? null, avancou: n.nav_TAP_FORWARD ?? null, voltou: n.nav_TAP_BACK ?? null,
+          saiu: n.nav_TAP_EXIT ?? null, pulou: n.nav_SWIPE_FORWARD ?? null, atualizado_em: new Date().toISOString(),
+        });
+      }
+      if (stories.length) {
+        const { error: eSt } = await sb.from("ig_stories").upsert(stories);
+        if (eSt) erros.push("gravar stories: " + eSt.message);
+      }
+      resumo.stories = stories.length;
+    } catch (e) {
+      erros.push("stories: " + (e as Error).message);
+    }
     if (erros.length) resumo.erros = erros.slice(0, 8);
 
     const ok = !erros.some((e) => e.startsWith("gravar"));
