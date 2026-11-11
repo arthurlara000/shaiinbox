@@ -184,6 +184,7 @@ textarea.inp { padding: 10px 12px; }
 .res-sec { padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border); }
 .tot-linha { display: flex; justify-content: space-between; font-size: .875rem; padding: 3px 0; color: var(--text-2); font-variant-numeric: tabular-nums; }
 .tot-linha.desc { color: var(--green); }
+.tot-linha .tirar { color: var(--text-2); font-size: .8rem; margin-left: 6px; text-underline-offset: 2px; }
 .tot-final { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--border); margin-top: 8px; padding-top: 10px; }
 .tot-final .muted { color: var(--text-2); font-size: .875rem; }
 .tot-final b { font-size: 1.75rem; font-weight: 600; letter-spacing: -.01em; color: var(--text); font-variant-numeric: tabular-nums; }
@@ -434,7 +435,7 @@ body.caixa-travado #tab-vender .pdv, body.caixa-travado #tab-trocas .grid-2 { di
             <button class="btn btn-ghost" onclick="limparVenda(true)"><i class="ti ti-trash"></i>Limpar</button>
           </div>
           <div class="tot-linha"><span>Subtotal (<span id="r-pecas">0</span> peças)</span><span class="mono" id="r-sub">R$ 0,00</span></div>
-          <div class="tot-linha desc" id="r-desc-l" style="display:none"><span>Descontos</span><span class="mono" id="r-desc">— R$ 0,00</span></div>
+          <div class="tot-linha desc" id="r-desc-l" style="display:none"><span>Descontos <a href="#" class="tirar" onclick="tirarDescontos();return false">tirar</a></span><span class="mono" id="r-desc">— R$ 0,00</span></div>
         </div>
         <div class="tot-final" onclick="if(innerWidth<900)$('resumo').classList.toggle('aberto')">
           <span class="muted">Total<span class="so-cel"> · ver detalhes</span></span><b class="mono" id="r-total">R$ 0,00</b>
@@ -984,6 +985,12 @@ function aplicarDescVenda(forcar) {
   if (v < 0 || v >= base) return toast('Desconto inválido', 'error');
   cart.descVenda = v; salvarCart(); fecharModal(); renderResumo();
 }
+function tirarDescontos() {
+  cart.descVenda = 0; cart.autorizadoPct = 0;
+  for (const i of cart.itens) i.desc = 0;
+  salvarCart(); renderCarrinho();
+  toast('Desconto retirado');
+}
 // desconto acima do limite da vendedora pede a senha da gerente
 async function conferirLimiteDesconto() {
   const t = totais();
@@ -991,18 +998,20 @@ async function conferirLimiteDesconto() {
   const f = S.funcs.find(x => x.id === cart.vendedora);
   const limite = Number(f?.desconto_limite) || 0;
   if (t.pct <= limite + 0.01 || t.pct <= cart.autorizadoPct + 0.01) return true;
-  const ok = await pedirSenhaGerente(`Desconto de ${t.pct.toFixed(1).replace('.', ',')}% passa do limite de ${f?.nome || 'a vendedora'} (${limite}%).`);
+  const ok = await pedirSenhaGerente(`Desconto de ${t.pct.toFixed(1).replace('.', ',')}% passa do limite de ${f?.nome || 'a vendedora'} (${limite}%).`, { tirarDesconto: true });
+  if (ok === 'tirar') { tirarDescontos(); return true; } // segue para o pagamento sem o desconto
   if (ok) { cart.autorizadoPct = t.pct; salvarCart(); }
-  return ok;
+  return !!ok;
 }
-function pedirSenhaGerente(motivo) {
+function pedirSenhaGerente(motivo, opts = {}) {
   return new Promise(resolve => {
     if (!navigator.onLine) { toast('Sem internet: não dá para conferir a senha da gerente agora', 'error'); return resolve(false); }
     window._senhaResolve = resolve;
     abrirModal('Senha da gerente', `<p style="font-size:.9rem;margin-bottom:10px">${esc(motivo)}</p>
       <div class="lbl" style="margin-top:0">Bipe o crachá ou digite a senha</div>
       <input type="password" class="inp big" id="sg" inputmode="numeric" autocomplete="off" autofocus onkeydown="if(event.key==='Enter')conferirSenhaGerente()">
-      <div class="gate-err" id="sg-erro"></div>`,
+      <div class="gate-err" id="sg-erro"></div>
+      ${opts.tirarDesconto ? `<button class="btn btn-block" style="margin-top:12px" onclick="const r=window._senhaResolve;window._senhaResolve=null;fecharModal();r('tirar')">Tirar o desconto e continuar</button>` : ''}`,
       `<button class="btn" onclick="window._senhaResolve(false);fecharModal()">Cancelar</button><button class="btn btn-primary" onclick="conferirSenhaGerente()">Autorizar</button>`, { preso: true });
   });
 }
