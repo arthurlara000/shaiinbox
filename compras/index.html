@@ -490,8 +490,6 @@ table.sheet tr:hover td .btn-icon, table.sheet td .btn-icon:focus-visible { opac
       </div>
     </div>
 
-    <div id="rc-num"></div>
-
     <div class="sheet-card">
       <table class="sheet">
         <thead><tr>
@@ -539,6 +537,7 @@ table.sheet tr:hover td .btn-icon, table.sheet td .btn-icon:focus-visible { opac
         <option value="">Todos os produtos</option>
         <option value="cd">Com estoque no CD</option>
         <option value="zero">Sem estoque</option>
+        <option value="semcusto">Sem custo cadastrado</option>
         <option value="inativos">Inativos</option>
       </select>
     </div>
@@ -679,7 +678,7 @@ function dinheiroSai(el) { const t = el.value.trim(); if (!t) return; const v = 
 function dinheiroEntra(el) { el.value = el.value.replace(/^R\$\s*/, ''); try { el.select(); } catch (e) {} }
 const hojeSP = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
 const fmtData = d => d ? d.slice(0, 10).split('-').reverse().join('/') : '';
-const cod = c => String(c); // código numérico, mesma sequência do Bling
+const cod = c => String(c); // código numérico da sequência própria (novos a partir de 3000)
 // compara nomes sem acento, maiúscula ou espaço sobrando
 // padrão de escrita dos nomes: cada palavra com inicial maiúscula, ligações em minúsculo (estilo loja online)
 const LIGACOES = new Set(['de', 'da', 'do', 'das', 'dos', 'e', 'com', 'sem', 'em', 'na', 'no', 'nas', 'nos', 'para', 'por', 'ou', 'a', 'o', 'as', 'os', 'ao', 'à', 'às']);
@@ -1217,54 +1216,11 @@ function resumoGrade(g) {
   for (const [k, n] of g.grade) { const [c, t] = k.split('|'); (porCor[c] ||= []).push([t, n]); }
   return Object.entries(porCor).map(([c, ts]) => `${esc(c)}: ${ts.sort((a, b) => ordTam(a[0], b[0])).map(([t, n]) => `${esc(t)}&nbsp;<b>${n}</b>`).join(' · ')}`).join('<br>');
 }
-// ---------- conferência da numeração dos códigos com o Bling ----------
-// Produto novo só é cadastrado depois de conferir, no mesmo dia, o último código usado no Bling.
-// Hoje a conferência é manual; quando o app tiver permissão de leitura de Produtos no Bling, passa a ser automática.
-let numeracao = { hoje: false, ultima: null, proximo: null };
-const hojeSPDe = ts => new Date(ts).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+// ---------- próximo código (sequência própria do sistema) ----------
+let numeracao = { proximo: null };
 async function carregarNumeracao() {
-  const [u, p] = await Promise.all([
-    sb.from('compras_codigo_conferencias').select('*').order('id', { ascending: false }).limit(1),
-    sb.rpc('compras_proximo_codigo'),
-  ]);
-  const ultima = u.data?.[0] || null;
-  numeracao = { ultima, proximo: p.data, hoje: !!ultima && hojeSPDe(ultima.criado_em) === hojeSP() };
-  renderNumeracao();
-}
-function renderNumeracao() {
-  const n = numeracao, el = $('rc-num'); if (!el) return;
-  if (n.hoje) {
-    const hora = new Date(n.ultima.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
-    el.innerHTML = `<div class="num-bar ok"><div><i class="ti ti-circle-check"></i>Numeração conferida hoje às ${hora} (Bling até <b>${n.ultima.ultimo_bling}</b>) · próximo código: <b>${n.proximo ?? '—'}</b></div>
-      <button class="btn btn-ghost btn-sm" onclick="abrirConferencia()">Conferir de novo</button></div>`;
-  } else {
-    el.innerHTML = `<div class="num-bar pend"><div><i class="ti ti-alert-triangle"></i>Antes de cadastrar <b>produtos novos</b>, confira a numeração dos códigos com o Bling.${n.ultima ? ` <span class="muted small">Última conferência: ${fmtData(hojeSPDe(n.ultima.criado_em))}.</span>` : ''}</div>
-      <button class="btn btn-primary btn-sm" onclick="abrirConferencia()">Conferir numeração</button></div>`;
-  }
-}
-function abrirConferencia() {
-  abrirModal('Conferir numeração', `
-    <p style="margin-bottom:12px">Para os códigos novos não baterem com os do Bling, informe o <b>último código usado no Bling</b>.</p>
-    <ol class="small muted" style="margin:0 0 14px 18px;line-height:1.7">
-      <li>No Bling, abra <b>Cadastros → Produtos</b>.</li>
-      <li>Com o filtro <b>Últimos incluídos</b>, o primeiro da lista é o mais recente.</li>
-      <li>Copie o número da coluna <b>Código</b>.</li>
-    </ol>
-    <label class="form-label">Último código no Bling</label>
-    <input class="form-input" id="cf-ultimo" inputmode="numeric" placeholder="Ex.: 1990" onkeydown="if(event.key==='Enter')conferirNumeracao()">
-    <p class="small muted" style="margin-top:10px">O app passa a usar números maiores que esse e maiores que os que ele próprio já usou. A numeração nunca volta para trás.</p>`,
-    `<button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-primary" id="bt-cf" onclick="conferirNumeracao()">Conferir</button>`);
-  setTimeout(() => $('cf-ultimo')?.focus(), 50);
-}
-async function conferirNumeracao() {
-  const v = parseInt(String($('cf-ultimo').value).replace(/\D/g, ''));
-  if (!v) return toast('Informe o último código do Bling.', 'error');
-  $('bt-cf').disabled = true;
-  const { data, error } = await sb.rpc('compras_conferir_codigos', { p_ultimo_bling: v, p_origem: 'manual' });
-  if (error) { $('bt-cf').disabled = false; return toast(error.message, 'error'); }
-  fecharModal();
-  toast(data > v + 1 ? `Conferido. O app já tinha usado códigos maiores, então o próximo é ${data}.` : `Conferido. Próximo código: ${data}.`);
-  carregarNumeracao();
+  const { data } = await sb.rpc('compras_proximo_codigo');
+  numeracao.proximo = data ?? null;
 }
 
 function revisarRecebimento() {
@@ -1290,7 +1246,6 @@ function revisarRecebimento() {
     avisos.push(fp ? `Fornecedor "${fn}" é novo, mas é parecido com "${fp.nome}". Se for o mesmo, volte e escolha da lista.` : `Fornecedor novo: "${fn}" será cadastrado.`);
   }
   const temNovo = grupos.some(g => !g.produto);
-  if (temNovo && !numeracao.hoje) erros.push('NUMERACAO');
 
   let pecas = 0, custo = 0;
   const linhas = grupos.map(g => {
@@ -1303,10 +1258,8 @@ function revisarRecebimento() {
   }).join('');
 
   abrirModal('Confirmar recebimento', `
-    ${erros.map(e => e === 'NUMERACAO'
-      ? `<div class="errbox" style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span><i class="ti ti-alert-circle"></i> Confira a numeração dos códigos com o Bling antes de cadastrar produtos novos.</span><button class="btn btn-primary btn-sm" onclick="fecharModal();abrirConferencia()">Conferir agora</button></div>`
-      : `<div class="errbox"><i class="ti ti-alert-circle"></i> ${esc(e)}</div>`).join('')}
-    ${temNovo && numeracao.hoje && numeracao.proximo ? `<p class="small muted" style="margin:4px 0">Os produtos novos vão receber códigos a partir de <b>${numeracao.proximo}</b>.</p>` : ''}
+    ${erros.map(e => `<div class="errbox"><i class="ti ti-alert-circle"></i> ${esc(e)}</div>`).join('')}
+    ${temNovo && numeracao.proximo ? `<p class="small muted" style="margin:4px 0">Os produtos novos vão receber códigos a partir de <b>${numeracao.proximo}</b>.</p>` : ''}
     ${avisos.map(a => `<div class="warn"><i class="ti ti-alert-triangle"></i> ${esc(a)}</div>`).join('')}
     <p class="small muted" style="margin:6px 0 10px">${fmtData(draft.data)} · ${esc(draft.fornecedor || 'sem fornecedor')}</p>
     <table class="list">
@@ -1314,7 +1267,7 @@ function revisarRecebimento() {
       ${linhas}
       <tr><td><b>Total</b></td><td class="num"><b>${pecas}</b></td><td></td><td></td><td class="num"><b>${brl(custo)}</b></td></tr>
     </table>
-    <p class="small muted" style="margin-top:12px">Ao confirmar, as peças entram no estoque do <b>CD</b>. Por enquanto nada é enviado ao Bling.</p>`,
+    <p class="small muted" style="margin-top:12px">Ao confirmar, as peças entram no estoque do <b>CD</b>.</p>`,
     `<button class="btn btn-ghost" onclick="fecharModal()">Voltar e ajustar</button>
      <button class="btn btn-choco" id="bt-conf-rc" ${erros.length ? 'disabled' : ''} onclick="confirmarRecebimento()">Dar entrada no CD</button>`);
 }
@@ -1371,6 +1324,7 @@ function renderEstoque() {
     const s = somaVars(p);
     if (f === 'cd' && !s.cd) return false;
     if (f === 'zero' && totalVars(s)) return false;
+    if (f === 'semcusto' && Number(p.custo) > 0) return false;
     return true;
   });
   $('es-meta').textContent = produtos.length ? `${lista.length} de ${produtos.length} produtos` : '';
@@ -2196,7 +2150,7 @@ async function reimprimirDist(id, numero, origem) {
 }
 
 // =====================================================================
-// ETIQUETAS — mesmo formato do Bling: rolo térmico 40×25 mm, 2 colunas (página 80×25)
+// ETIQUETAS — rolo térmico 40×25 mm, 2 colunas (página 80×25), o mesmo rolo usado nas lojas
 // código de barras EAN-13 do código + nome + cor/tamanho + preço
 // =====================================================================
 const ETQ_PADRAO = { larg: 40, alt: 25, cols: 2, gap: 0 };
@@ -2231,7 +2185,7 @@ function abrirEtiquetas(itens, titulo) {
         <div><label class="form-label">Colunas</label><input class="form-input" id="etq-cols" inputmode="numeric" value="${c.cols}"></div>
         <div><label class="form-label">Espaço entre (mm)</label><input class="form-input" id="etq-gap" inputmode="decimal" value="${c.gap}"></div>
       </div>
-      <p class="small muted" style="margin-top:6px">Padrão igual ao modelo do Bling "Etiqueta Rolo 40x25 2 Colunas". Na janela de impressão, escolha a impressora de etiquetas e deixe margens em "Nenhuma" e escala 100%.</p>
+      <p class="small muted" style="margin-top:6px">Padrão: rolo térmico 40×25 mm com 2 colunas. Na janela de impressão, escolha a impressora de etiquetas e deixe margens em "Nenhuma" e escala 100%.</p>
     </details>`,
     `<span class="muted small" id="etq-total" style="margin-right:auto"></span>
      <button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button>
