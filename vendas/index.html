@@ -550,7 +550,7 @@ let db = sb; // no modo treino vira um banco de mentira guardado só no aparelho
 
 const LOJA_EMAIL = { 'Loja Areal': 'lojaareal@shai.local', 'Loja Três Rios': 'lojatresrios@shai.local' };
 const DONOS_EMAIL = 'donos@shai.local';
-const K = { cat: 'shai-pdv-catalogo-v1', fila: 'shai-pdv-fila-v1', cart: 'shai-pdv-carrinho-v1', funcs: 'shai-pdv-vendedoras-v1', loja: 'shai-pdv-loja', caixa: 'shai-pdv-caixa-v1', trocasFila: 'shai-pdv-trocas-fila-v1', espera: 'shai-pdv-espera-v1', lojaInfo: 'shai-pdv-loja-info-v1' };
+const K = { cat: 'shai-pdv-catalogo-v1', fila: 'shai-pdv-fila-v1', cart: 'shai-pdv-carrinho-v1', funcs: 'shai-pdv-vendedoras-v1', loja: 'shai-pdv-loja', caixa: 'shai-pdv-caixa-v1', trocasFila: 'shai-pdv-trocas-fila-v1', espera: 'shai-pdv-espera-v1', caixaPend: 'shai-pdv-caixa-pend-v1', lojaInfo: 'shai-pdv-loja-info-v1' };
 const FORMAS = {
   dinheiro: { nome: 'Dinheiro', icon: 'ti-cash' },
   pix: { nome: 'Pix', icon: 'ti-qrcode' },
@@ -1040,7 +1040,7 @@ async function conferirSenhaGerente() {
   const { data: tem } = await db.rpc('pdv_tem_senha', { p_loja: S.loja });
   if (!tem) { $('sg-erro').textContent = 'A loja ainda não tem senha da gerente. Cadastre em Caixa → Senha da gerente.'; return; }
   const { data, error } = await db.rpc('pdv_conferir_senha', { p_loja: S.loja, p_senha: senha });
-  if (error || !data) { $('sg-erro').textContent = 'Senha ou crachá não confere'; $('sg').value = ''; $('sg').focus(); bip(false); return; }
+  if (error || !data) { $('sg-erro').textContent = /tentativas/i.test(error?.message || '') ? error.message : 'Senha ou crachá não confere'; $('sg').value = ''; $('sg').focus(); bip(false); return; }
   const r = window._senhaResolve; window._senhaResolve = null; fecharModal(); r?.(true);
 }
 
@@ -1319,8 +1319,9 @@ async function finalizarVenda() {
     }
     const fila = ler(K.fila, []); fila.push(venda); gravar(K.fila, fila);
     ajustarSaldoLocal(venda.itens, -1);
-    const sobraVale = cart.vale && pagamentos.find(p => p.vale === cart.vale.codigo) ? r2(cart.vale.saldo - pagamentos.find(p => p.vale === cart.vale.codigo).valor) : 0;
-    const valeSobra = sobraVale > 0 ? cart.vale.codigo : null;
+    const linhaSobra = pag.linhas.find(l => l.forma === 'vale' && r2((Number(l.saldoVale) || 0) - l.valor) > 0);
+    const sobraVale = linhaSobra ? r2(linhaSobra.saldoVale - linhaSobra.valor) : 0;
+    const valeSobra = linhaSobra ? linhaSobra.vale : null;
     cart = carrinhoVazio(); salvarCart(); pag = null;
     fecharModal(); renderCarrinho();
     imprimirComprovante(venda);
@@ -1346,6 +1347,7 @@ async function enviarFila() {
   if (enviandoFila || !navigator.onLine || !S.loja) return;
   enviandoFila = true;
   try {
+    if (ler(K.caixaPend, null)) await carregarCaixa(); // registra antes o caixa aberto sem internet
     const fila = ler(K.fila, []);
     for (const v of fila) {
       const { error } = await db.from('pdv_vendas').upsert(v, { onConflict: 'id', ignoreDuplicates: true });
@@ -1567,7 +1569,7 @@ async function confirmarTroca() {
   }
   $('tr-confirmar').disabled = true;
   try {
-    const id = uuid();
+    const id = troca.id || (troca.id = uuid()); // o mesmo id se precisar repetir
     const motivo = $('tr-motivo')?.value?.trim() || null;
     const cliente = $('tr-cliente')?.value?.trim() || troca.venda?.cliente?.nome || null;
     const reg = {
@@ -1575,7 +1577,7 @@ async function confirmarTroca() {
       itens: troca.itens.map(({ semComprovante, ...i }) => i), valor: total, destino: troca.destino,
       forma_reembolso: troca.destino === 'dinheiro' ? troca.forma : null, motivo,
     };
-    const { error } = await db.from('pdv_trocas').insert(reg);
+    const { error } = await db.from('pdv_trocas').upsert(reg, { onConflict: 'id', ignoreDuplicates: true });
     if (error) throw error;
     let vale = null;
     if (troca.destino !== 'dinheiro') {
@@ -1584,8 +1586,13 @@ async function confirmarTroca() {
       vale = codigo;
       await db.from('pdv_trocas').update({ vale_codigo: codigo }).eq('id', id);
     } else if (troca.forma === 'dinheiro') {
-      await db.from('pdv_caixa_movs').insert({ caixa_id: S.caixa.id, loja: S.loja, tipo: 'devolucao', valor: total, descricao: motivo || 'Devolução em dinheiro', troca_id: id });
+      if (!troca.movOk) {
+        const { error: e3 } = await db.from('pdv_caixa_movs').insert({ caixa_id: S.caixa.id, loja: S.loja, tipo: 'devolucao', valor: total, descricao: motivo || 'Devolução em dinheiro', troca_id: id });
+        if (e3) throw e3;
+        troca.movOk = true;
+      }
     }
+    ajustarSaldoLocal(troca.itens.filter(i => i.volta_estoque), 1);
     const destino = troca.destino;
     novaTroca();
     if (destino === 'troca') {
@@ -1607,7 +1614,23 @@ async function confirmarTroca() {
 // =====================================================================
 async function carregarCaixa() {
   if (!navigator.onLine) { S.caixa = ler(K.caixa, null); atualizarCaixaPill(); return; }
-  const { data } = await db.from('pdv_caixas').select('*').eq('loja', S.loja).is('fechado_em', null).maybeSingle();
+  let { data, error } = await db.from('pdv_caixas').select('*').eq('loja', S.loja).is('fechado_em', null).maybeSingle();
+  if (error) { S.caixa = ler(K.caixa, null); atualizarCaixaPill(); return; } // sem resposta do banco: fica com o que o aparelho sabe
+  // caixa aberto sem internet neste aparelho: registra agora
+  const pend = ler(K.caixaPend, null);
+  if (pend && pend.loja === S.loja) {
+    if (!data) {
+      const { data: novo, error: e2 } = await db.from('pdv_caixas').insert({ id: pend.id, loja: pend.loja, troco_inicial: pend.troco_inicial, aberto_por: pend.aberto_por, aberto_em: pend.aberto_em }).select().single();
+      if (!e2) { data = novo; gravar(K.caixaPend, null); }
+      else if (e2.code === '23505') gravar(K.caixaPend, null); // já tinha sido registrado
+    } else if (data.id === pend.id) gravar(K.caixaPend, null);
+    else if (diaSP(data.aberto_em) === diaSP(pend.aberto_em)) {
+      // outro aparelho abriu o caixa do mesmo dia: vale o dele, e as vendas daqui passam para ele
+      gravar(K.fila, ler(K.fila, []).map(v => v.caixa_id === pend.id ? { ...v, caixa_id: data.id } : v));
+      gravar(K.caixaPend, null);
+    }
+    // senão: o caixa de um dia anterior ainda está aberto no banco. O de hoje espera o anterior ser fechado.
+  }
   S.caixa = data || null; gravar(K.caixa, S.caixa);
   atualizarCaixaPill();
 }
@@ -1648,7 +1671,22 @@ async function resumoCaixa(cx) {
 }
 async function renderCaixa() {
   const box = $('cx-corpo');
-  if (!navigator.onLine && !S.treino) { box.innerHTML = `<div class="aviso"><i class="ti ti-wifi-off"></i><div>O caixa precisa de internet para abrir, lançar saídas e fechar. As vendas continuam funcionando sem internet.</div></div>`; return; }
+  if (!navigator.onLine && !S.treino) {
+    S.caixa = ler(K.caixa, null); atualizarCaixaPill();
+    if (caixaOk()) {
+      $('cx-sub').textContent = `Aberto às ${horaSP(S.caixa.aberto_em)}${S.caixa.aberto_por ? ' por ' + S.caixa.aberto_por : ''} · sem internet`;
+      box.innerHTML = `<div class="aviso"><div><b>Sem internet.</b> As vendas continuam funcionando e sobem sozinhas quando a conexão voltar. Sangria, despesa, crediário e fechamento precisam de internet.</div></div>`;
+      return;
+    }
+    const velho = caixaDeOntem();
+    $('cx-sub').textContent = velho ? `Caixa de ${diaCurto(S.caixa.aberto_em)} ainda aberto · sem internet` : 'Fechado · sem internet';
+    box.innerHTML = `<div class="grid-2"><div class="card"><div class="card-t">Abrir o caixa de hoje (sem internet)</div>
+        <div class="aviso" style="margin-bottom:10px"><div>Sem conexão agora. O caixa abre neste aparelho e é registrado quando a internet voltar.${velho ? ` O caixa de ${diaCurto(S.caixa.aberto_em)} terá de ser fechado assim que a conexão voltar.` : ''}</div></div>
+        <div class="lbl" style="margin-top:0">Troco na gaveta</div><input class="inp big" id="cx-troco" inputmode="decimal" placeholder="R$ 0,00">
+        <div class="lbl">Quem está abrindo</div><div class="chips" id="cx-quem">${chipsQuem('cx-quem')}</div>
+        <button class="btn btn-primary btn-lg btn-block" style="margin-top:16px" onclick="abrirCaixa()">Abrir caixa</button></div></div>`;
+    return;
+  }
   await carregarCaixa();
   const cx = S.caixa;
   if (caixaDeOntem()) {
@@ -1726,6 +1764,13 @@ async function abrirCaixa() {
   const troco = r2(num($('cx-troco').value));
   const quem = quemEscolhido('cx-quem');
   if (!quem) return toast('Toque em quem está abrindo', 'error');
+  if (!navigator.onLine && !S.treino) {
+    // sem internet: abre no aparelho para a loja não ficar parada; sobe quando a conexão voltar
+    const cx = { id: uuid(), loja: S.loja, troco_inicial: troco, aberto_por: quem, aberto_em: new Date().toISOString(), fechado_em: null };
+    gravar(K.caixaPend, cx); S.caixa = cx; gravar(K.caixa, cx); atualizarCaixaPill();
+    toast('Caixa aberto sem internet. Será registrado quando a conexão voltar.', 'ok'); renderCaixa(); irPara('vender');
+    return;
+  }
   const { error } = await db.from('pdv_caixas').insert({ loja: S.loja, troco_inicial: troco, aberto_por: quem });
   if (error) return toast(error.code === '23505' ? 'O caixa já foi aberto em outro aparelho' : 'Erro: ' + error.message, 'error');
   toast('Caixa aberto', 'ok'); renderCaixa(); irPara('vender');
@@ -1771,8 +1816,8 @@ async function salvarDespesa() {
   const foto = despFoto, cat = despCat;
   if (!(await pedirSenhaGerente(`Despesa de ${brl(valor)} (${descricao}) paga com dinheiro do caixa.`))) return;
   try {
-    const ext = (foto.name.split('.').pop() || 'jpg').toLowerCase();
-    const caminho = `${S.loja}/${hojeSP()}/${uuid()}.${ext}`;
+    const ext = (String(foto.name || '').split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    const caminho = `${norm(S.loja).replace(/\s+/g, '-')}/${hojeSP()}/${uuid()}.${ext}`; // sem acento: o armazenamento recusa
     const { error: e1 } = await db.storage.from('notas-despesas').upload(caminho, foto);
     if (e1) throw e1;
     const foto_url = db.storage.from('notas-despesas').getPublicUrl(caminho).data.publicUrl;
@@ -2131,6 +2176,10 @@ async function executarCancelamento(idx, refazer) {
   if (!v._local && v.pagamentos.some(p => p.forma === 'crediario')) {
     const { data: pagas } = await db.from('pdv_crediario').select('id').eq('venda_id', v.id).not('pago_em', 'is', null);
     if (pagas?.length) return toast('Essa venda já tem parcela de crediário paga — use a troca', 'error');
+  }
+  if (!v._local) {
+    const { data: tr } = await db.from('pdv_trocas').select('id').eq('venda_origem', v.id);
+    if (tr?.length) return toast('Essa venda já teve troca: não dá para cancelar.', 'error');
   }
   if (!(await pedirSenhaGerente(`Cancelar a venda de ${brl(v.total)}: ${motivo}`))) return;
   try {
