@@ -193,6 +193,7 @@ textarea.inp { padding: 10px 12px; }
 .acoes-mini { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 0; }
 .acoes-mini .btn { min-height: 38px; padding: 0 8px; font-size: .84rem; }
 .credito-troca:not(:empty) { margin-bottom: 12px; }
+.cred-nota { margin: 6px 16px 0; font-size: .82rem; color: var(--text-2); }
 /* sem o caixa do dia aberto, Vender e Trocas ficam travados */
 body.caixa-travado #tab-vender .pdv, body.caixa-travado #tab-trocas .grid-2 { display: none; }
 .bloqueio { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; max-width: 760px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--yellow); border-radius: 8px; padding: 18px 20px; font-size: .92rem; }
@@ -436,10 +437,13 @@ body.caixa-travado #tab-vender .pdv, body.caixa-travado #tab-trocas .grid-2 { di
           </div>
           <div class="tot-linha"><span>Subtotal (<span id="r-pecas">0</span> peças)</span><span class="mono" id="r-sub">R$ 0,00</span></div>
           <div class="tot-linha desc" id="r-desc-l" style="display:none"><span>Descontos <a href="#" class="tirar" onclick="tirarDescontos();return false">tirar</a></span><span class="mono" id="r-desc">— R$ 0,00</span></div>
+          <div class="tot-linha" id="r-pecas-l" style="display:none"><span>Total das peças</span><span class="mono" id="r-pecas-v"></span></div>
+          <div class="tot-linha desc" id="r-cred-l" style="display:none"><span>Crédito da troca</span><span class="mono" id="r-cred"></span></div>
         </div>
         <div class="tot-final" onclick="if(innerWidth<900)$('resumo').classList.toggle('aberto')">
-          <span class="muted">Total<span class="so-cel"> · ver detalhes</span></span><b class="mono" id="r-total">R$ 0,00</b>
+          <span class="muted"><span id="r-total-l">Total</span><span class="so-cel"> · ver detalhes</span></span><b class="mono" id="r-total">R$ 0,00</b>
         </div>
+        <div class="cred-nota" id="r-cred-nota" style="display:none"></div>
         <button class="btn btn-primary btn-lg btn-block" id="bt-pagar" onclick="abrirPagamento()" disabled><i class="ti ti-cash"></i>Pagar</button>
       </aside>
     </div>
@@ -863,12 +867,27 @@ function renderResumo() {
   $('r-sub').textContent = brl(t.subtotal);
   $('r-desc-l').style.display = t.desconto ? '' : 'none';
   $('r-desc').textContent = '− ' + brl(t.desconto) + (t.pct ? ` (${t.pct.toFixed(1).replace('.', ',')}%)` : '');
-  $('r-total').textContent = brl(t.total);
-  $('bt-pagar').disabled = !cart.itens.length;
-  $('bt-pagar').textContent = `Pagar ${cart.itens.length ? brl(t.total) : ''}`;
+  // troca na hora: o crédito das peças devolvidas abate do total e fica claro quanto falta ou sobra
+  const emTroca = !!cart.vale, temPecas = cart.itens.length > 0;
+  const cred = emTroca ? Number(cart.vale.saldo) || 0 : 0;
+  const usado = r2(Math.min(cred, t.total)), aPagar = r2(t.total - usado), sobra = r2(cred - usado);
+  $('r-pecas-l').style.display = emTroca && temPecas && t.desconto ? '' : 'none'; // sem desconto é igual ao subtotal
+  $('r-pecas-v').textContent = brl(t.total);
+  $('r-cred-l').style.display = emTroca && temPecas ? '' : 'none';
+  $('r-cred').textContent = '− ' + brl(usado);
+  $('r-total-l').textContent = emTroca ? 'A cliente paga' : 'Total';
+  $('r-total').textContent = brl(emTroca ? aPagar : t.total);
+  const nota = $('r-cred-nota');
+  nota.style.display = emTroca ? '' : 'none';
+  nota.textContent = !emTroca ? '' : !temPecas ? 'Bipe as peças que a cliente vai levar.'
+    : aPagar > 0 ? `As peças passam ${brl(aPagar)} do crédito: a cliente paga a diferença.`
+    : sobra > 0 ? `Sobram ${brl(sobra)} de crédito: ficam no vale nº ${cart.vale.codigo} para ela usar depois.`
+    : 'O crédito cobre a troca certinho.';
+  $('bt-pagar').disabled = !temPecas;
+  $('bt-pagar').textContent = !temPecas ? 'Pagar' : emTroca ? (aPagar > 0 ? `Pagar a diferença ${brl(aPagar)}` : 'Concluir a troca') : `Pagar ${brl(t.total)}`;
   $('bt-cliente').textContent = cart.cliente?.nome ? cart.cliente.nome.split(' ')[0] : 'Cliente';
   renderVendedoras();
-  $('credito-troca').innerHTML = cart.vale ? `<div class="aviso green"><i class="ti ti-ticket"></i><div><b>Crédito de troca ${brl(cart.vale.saldo)}</b><br>Entra automático no pagamento (vale ${esc(cart.vale.codigo)}). <a href="#" onclick="tirarCreditoTroca();return false">tirar</a></div></div>` : '';
+  $('credito-troca').innerHTML = cart.vale ? `<div class="aviso green"><div><b>Troca em andamento</b><br>A cliente tem ${brl(cart.vale.saldo)} de crédito das peças devolvidas (vale nº ${esc(cart.vale.codigo)}). <a href="#" onclick="tirarCreditoTroca();return false">não usar agora</a></div></div>` : '';
 }
 function renderVendedoras() {
   const box = $('vendedoras');
