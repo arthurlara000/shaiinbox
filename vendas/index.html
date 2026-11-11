@@ -1466,6 +1466,12 @@ async function trocaLer(lido) {
     if (idx < 0) { bip(false); return toast('Essa peça não está nesta venda', 'error'); }
     if (!trocaAddDaVenda(idx)) { bip(false); return; }
   } else {
+    // sem comprovante não dá para conferir o prazo: com prazo de troca definido, só com a gerente (uma vez por troca)
+    const prazo = Number(S.cfg?.prazo_troca_dias) || 0;
+    if (prazo && !troca.semComprovanteOk) {
+      if (!(await pedirSenhaGerente(`Troca sem comprovante: não dá para conferir o prazo de ${prazo} dias.`))) return;
+      troca.semComprovanteOk = true;
+    }
     troca.itens.push({ vid: p.vid, codigo: p.codigo, nome: p.nome, qtd: 1, preco: Number(p.preco) || 0, volta_estoque: true, semComprovante: true });
   }
   bip(true); renderTroca();
@@ -1505,7 +1511,7 @@ function renderTroca() {
       const pn = partesNome(it.nome), ja = troca.jaDevolvido[chaveItem(it, idx)] || 0;
       return `<div class="lista-l" style="cursor:pointer" onclick="trocaAddDaVenda(${idx})"><div class="sp"><b>${esc(pn.nome)}</b><small>${pn.tam ? 'Tam ' + esc(pn.tam) + ' · ' : ''}${it.qtd} un · pago ${brl((it.pago ?? it.preco * it.qtd) / it.qtd)} cada${ja ? ` · <span style="color:var(--red)">${ja} já devolvida(s)</span>` : ''}</small></div><i class="ti ti-plus" style="color:var(--accent);font-size:1.3rem"></i></div>`;
     }).join('')}</div>`
-    : `<div class="aviso"><i class="ti ti-info-circle"></i><div>Sem comprovante, a peça volta pelo <b>preço atual</b>. Com o comprovante, volta pelo valor que a cliente pagou (com desconto).</div></div>`;
+    : `<div class="aviso"><i class="ti ti-info-circle"></i><div>Sem comprovante, a peça volta pelo <b>preço atual</b>${Number(S.cfg?.prazo_troca_dias) ? ' e a troca precisa da autorização da gerente' : ''}. Com o comprovante, volta pelo valor que a cliente pagou (com desconto).</div></div>`;
   $('tr-itens').innerHTML = troca.itens.length ? troca.itens.map((i, idx) => {
     const pn = partesNome(i.nome);
     return `<div class="troca-item"><input type="checkbox" ${i.volta_estoque ? 'checked' : ''} ${i.vid ? '' : 'disabled'} title="Volta para o estoque" onchange="troca.itens[${idx}].volta_estoque=this.checked;renderTroca()">
