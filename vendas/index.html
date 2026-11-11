@@ -372,7 +372,7 @@ body.caixa-travado #tab-vender .pdv, body.caixa-travado #tab-trocas .grid-2 { di
     <div class="gate-err" id="gate-erro"></div>
     <div style="text-align:center;margin-top:6px"><button class="btn-sair" id="gate-modo" onclick="gateModoEquipe()">Entrar com a senha dos donos</button></div>
   </div>
-  <button class="btn btn-ghost" style="margin-top:16px" onclick="entrarTreino()"><i class="ti ti-school"></i>Testar no modo treino (sem senha, nada vai para o Bling)</button>
+  <button class="btn btn-ghost" style="margin-top:16px" onclick="entrarTreino()"><i class="ti ti-school"></i>Testar no modo treino (sem senha, nada fica gravado)</button>
 </div>
 
 <!-- ================= TOPO ================= -->
@@ -385,7 +385,7 @@ body.caixa-travado #tab-vender .pdv, body.caixa-travado #tab-trocas .grid-2 { di
   <button class="btn-sair" onclick="sair()">sair</button>
 </header>
 <div id="faixa-treino" style="display:none">
-  <i class="ti ti-school"></i><span><b>Modo treino</b> — peças de exemplo, nada vai para o Bling. Senha da gerente: <b>1234</b>. Códigos: 900101 a 900171 ou busque por nome.</span>
+  <i class="ti ti-school"></i><span><b>Modo treino</b> — peças de exemplo, nada fica gravado de verdade. Senha da gerente: <b>1234</b>. Códigos: 900101 a 900171 ou busque por nome.</span>
   <button onclick="etiquetasTreino()">Etiquetas de teste</button><button onclick="zerarTreino()">Zerar treino</button><button onclick="sairTreino()">Sair do treino</button>
 </div>
 <aside class="side">
@@ -533,10 +533,10 @@ body.caixa-travado #tab-vender .pdv, body.caixa-travado #tab-trocas .grid-2 { di
 
 <script>
 // =====================================================================
-// SHAI CAIXA — PDV das lojas. O Bling é a base (produto, preço, venda,
-// pagamento, estoque); este app é a tela da vendedora. Cada venda é gravada
-// primeiro no aparelho, depois no Supabase (pdv_vendas) e a Edge Function
-// `pdv` lança no Bling. Sem internet a venda fica na fila e sai depois.
+// SHAI CAIXA — PDV das lojas. Tudo no nosso banco (Supabase): produtos e
+// estoque vêm do Shai Compras; cada venda é gravada primeiro no aparelho e
+// depois no banco (pdv_vendas), que baixa o estoque e alimenta o Manager.
+// Sem internet a venda fica na fila e sobe depois. Sem Bling na rotina.
 // =====================================================================
 const SB_URL = 'https://ofoljmhfnohxwswskplx.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mb2xqbWhmbm9oeHdzd3NrcGx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTQzMjIsImV4cCI6MjA5NTM5MDMyMn0.IRfqUSxOLuYBlE79gdCdHaMrtuoYwNrprw6FaXj_7K8';
@@ -621,51 +621,45 @@ const S = {
   vendasDia: [], diaVendas: hojeSP(),
 };
 let cart = ler(K.cart, null) || carrinhoVazio();
+cart.itens = (cart.itens || []).filter(i => i.vid || i.avulso);
 function carrinhoVazio() { return { itens: [], descVenda: 0, vendedora: null, cliente: null, autorizadoPct: 0, vale: null }; }
 const salvarCart = () => gravar(K.cart, cart);
 
 // =====================================================================
-// CATÁLOGO (espelho do Bling)
+// CATÁLOGO (produtos e estoque do nosso banco)
 // =====================================================================
 function indexarCatalogo() {
   S.porCodigo = new Map(); S.porId = new Map();
   for (const p of S.catalogo) {
-    S.porId.set(p.bling_id, p);
+    S.porId.set(p.vid, p);
     if (p.codigo) S.porCodigo.set(String(p.codigo).trim(), p);
     if (p.gtin) S.porCodigo.set(String(p.gtin).trim(), p);
     p._busca = norm(`${p.nome} ${p.codigo || ''}`);
   }
 }
+let catalogoEm = 0;
 async function carregarCatalogo() {
   const cache = ler(K.cat, null);
-  if (cache?.linhas?.length) { S.catalogo = cache.linhas; indexarCatalogo(); }
-  if (!navigator.onLine) return;
+  if (cache?.linhas?.length && cache.linhas[0].vid) { S.catalogo = cache.linhas; indexarCatalogo(); }
+  if (!navigator.onLine || S.treino) return;
   try {
-    // incremental: só o que mudou desde a última carga
-    const desde = cache?.em && cache.linhas?.length ? cache.em : null;
-    const novas = [];
-    for (let de = 0; ; de += 1000) {
-      let q = db.from('pdv_catalogo').select('bling_id,codigo,gtin,nome,preco,situacao,saldo_areal,saldo_tres_rios,saldo_cd,atualizado_em').neq('formato', 'V').order('bling_id').range(de, de + 999);
-      if (desde) q = q.gt('atualizado_em', desde);
-      const { data, error } = await q;
-      if (error) throw error;
-      novas.push(...data);
-      if (data.length < 1000) break;
-    }
-    if (desde) {
-      const mapa = new Map(S.catalogo.map(p => [p.bling_id, p]));
-      for (const p of novas) mapa.set(p.bling_id, p);
-      S.catalogo = [...mapa.values()];
-    } else S.catalogo = novas;
-    S.catalogo = S.catalogo.filter(p => p.situacao !== 'I');
-    const maisNovo = novas.reduce((m, p) => p.atualizado_em > m ? p.atualizado_em : m, desde || '');
-    gravar(K.cat, { em: maisNovo || new Date().toISOString(), linhas: S.catalogo.map(({ _busca, ...p }) => p) });
+    const { data, error } = await db.rpc('pdv_catalogo_erp');
+    if (error) throw error;
+    if (!Array.isArray(data)) return;
+    S.catalogo = data; catalogoEm = Date.now();
+    gravar(K.cat, { em: new Date().toISOString(), linhas: data });
     indexarCatalogo();
   } catch (e) { console.warn('catálogo', e); }
 }
-const saldoLoja = p => p ? (S.loja === 'Loja Areal' ? p.saldo_areal : S.loja === 'Loja Três Rios' ? p.saldo_tres_rios : null) : null;
+const campoSaldo = () => S.loja === 'Loja Areal' ? 'saldo_areal' : S.loja === 'Loja Três Rios' ? 'saldo_tres_rios' : null;
+const saldoLoja = p => p && campoSaldo() ? p[campoSaldo()] ?? null : null;
+// a venda baixa o estoque no banco; aqui só acerta o número mostrado até a próxima carga do catálogo
+function ajustarSaldoLocal(itens, sinal) {
+  const c = campoSaldo(); if (!c) return;
+  for (const i of itens || []) { const pr = i.vid && S.porId.get(i.vid); if (pr && pr[c] != null) pr[c] += sinal * (Number(i.qtd) || 0); }
+}
 
-// código lido -> produto. A etiqueta do Bling é EAN13 = código com zeros à esquerda + dígito verificador.
+// código lido -> produto. A etiqueta é EAN13 = código com zeros à esquerda + dígito verificador.
 const ehCracha = lido => /^77\d{14}$/.test(String(lido || '').trim());
 function acharPorCodigo(lido) {
   const t = String(lido || '').trim();
@@ -679,15 +673,10 @@ function codigoDaEtiqueta(lido) {
   const t = String(lido || '').trim();
   return /^\d{13}$/.test(t) ? String(parseInt(t.slice(0, 12), 10)) : /^\d+$/.test(t) ? String(parseInt(t, 10)) : t;
 }
-async function buscarNoBling(lido) {
-  if (!navigator.onLine) return null;
-  try {
-    const { data, error } = await db.functions.invoke('pdv', { body: { acao: 'buscar', codigo: codigoDaEtiqueta(lido) } });
-    if (error || !data?.produtos?.length) return null;
-    for (const p of data.produtos) { if (!S.porId.has(p.bling_id)) S.catalogo.push(p); }
-    indexarCatalogo();
-    return acharPorCodigo(lido) || data.produtos[0];
-  } catch (e) { return null; }
+async function acharRecarregando(lido) {
+  if (!navigator.onLine || S.treino || Date.now() - catalogoEm < 60000) return null;
+  await carregarCatalogo();
+  return acharPorCodigo(lido);
 }
 function buscarTexto(t) {
   const palavras = norm(t).split(/\s+/).filter(Boolean);
@@ -769,8 +758,7 @@ async function lerCodigo(lido, destino) {
       const { data: vale } = navigator.onLine ? await db.from('pdv_vales').select('codigo').eq('codigo', lido).maybeSingle() : { data: null };
       if (vale) { if (!cart.itens.length) return toast('Bipe as peças primeiro; o vale entra no pagamento.', 'error'); abrirPagamento(lido); return; }
     }
-    toast('Procurando no Bling…');
-    p = await buscarNoBling(lido);
+    p = await acharRecarregando(lido);
   }
   if (!p) { bip(false); toast(`Código ${lido} não encontrado`, 'error'); return; }
   addProduto(p);
@@ -834,11 +822,11 @@ function carregarScript(src) {
 // =====================================================================
 function addProduto(p) {
   if (!p) return;
-  const it = cart.itens.find(i => i.bling_id && i.bling_id === p.bling_id);
+  const it = cart.itens.find(i => i.vid && i.vid === p.vid);
   if (it) it.qtd++;
-  else cart.itens.push({ bling_id: p.bling_id, codigo: p.codigo || null, nome: p.nome, preco: Number(p.preco) || 0, qtd: 1, desc: 0 });
-  if (!(Number(p.preco) > 0)) toast('Atenção: peça sem preço no Bling', 'error'); else bip(true);
-  salvarCart(); renderCarrinho(p.bling_id);
+  else cart.itens.push({ vid: p.vid, codigo: p.codigo || null, nome: p.nome, preco: Number(p.preco) || 0, qtd: 1, desc: 0 });
+  if (!(Number(p.preco) > 0)) toast('Atenção: peça sem preço no cadastro', 'error'); else bip(true);
+  salvarCart(); renderCarrinho(p.vid);
 }
 function totais() {
   const subtotal = r2(cart.itens.reduce((s, i) => s + i.preco * i.qtd, 0));
@@ -855,9 +843,9 @@ function renderCarrinho(novoId) {
     box.innerHTML = `<div class="cart-vazio"><b>Nenhuma peça na venda</b>Bipe a etiqueta, use a câmera ou digite o código ou o nome.</div>`;
   } else {
     box.innerHTML = `<div class="cart-lista"><div class="cart-cab"><span>Peça</span><span>Qtd</span><span>Valor</span><span></span></div>` + cart.itens.map((i, idx) => {
-      const pn = partesNome(i.nome), p = S.porId.get(i.bling_id), s = saldoLoja(p);
+      const pn = partesNome(i.nome), p = S.porId.get(i.vid), s = saldoLoja(p);
       const bruto = i.preco * i.qtd, liq = bruto - (i.desc || 0);
-      return `<div class="item ${i.bling_id === novoId ? 'novo' : ''}">
+      return `<div class="item ${i.vid === novoId ? 'novo' : ''}">
         <div class="item-n" onclick="editarItem(${idx})"><span class="nm">${esc(pn.nome)}</span>
           <small><span class="cod">${esc(i.codigo || '—')}</span>${pn.tam ? ' · Tam <b>' + esc(pn.tam) + '</b>' : ''} · ${brl(i.preco)}${i.qtd > 1 ? ' cada' : ''}${s != null ? ' · ' + s + ' na loja' : ''}${i.desc ? ` · <span class="desc">desconto ${brl(i.desc)}</span>` : ''}</small></div>
         <div class="qtd"><button onclick="mudarQtd(${idx},-1)">−</button><span>${i.qtd}</span><button onclick="mudarQtd(${idx},1)">+</button></div>
@@ -884,7 +872,7 @@ function renderResumo() {
 function renderVendedoras() {
   const box = $('vendedoras');
   if (!S.funcs.length) { box.innerHTML = '<span class="muted" style="font-size:.85rem">Nenhuma vendedora ativa nesta loja</span>'; return; }
-  box.innerHTML = S.funcs.map(f => `<button class="chip ${cart.vendedora === f.id ? 'on' : ''}" onclick="escolherVendedora('${f.id}')">${esc(f.nome)}${f.bling_vendedor_id ? '' : '<small>sem cadastro no Bling</small>'}</button>`).join('');
+  box.innerHTML = S.funcs.map(f => `<button class="chip ${cart.vendedora === f.id ? 'on' : ''}" onclick="escolherVendedora('${f.id}')">${esc(f.nome)}</button>`).join('');
 }
 function escolherVendedora(id) { cart.vendedora = cart.vendedora === id ? null : id; salvarCart(); renderResumo(); focarBusca(); }
 function mudarQtd(idx, d) {
@@ -903,10 +891,10 @@ function limparVenda(perguntar) {
   salvarCart(); renderCarrinho(); focarBusca();
 }
 // ---------------- peça sem etiqueta ou sem cadastro (senha da gerente) ----------------
-// vai para o Bling sem produto: registra a venda, mas não mexe em estoque
+// registra a venda, mas não mexe em estoque
 function abrirAvulso() {
   abrirModal('Peça sem etiqueta ou sem cadastro', `
-    <p class="muted" style="font-size:.84rem;margin-bottom:6px">Use só quando a peça não aparece na busca. Ela é vendida sem baixar estoque no Bling.</p>
+    <p class="muted" style="font-size:.84rem;margin-bottom:6px">Use só quando a peça não aparece na busca. Ela é vendida sem baixar estoque.</p>
     <div class="lbl">O que é a peça</div><input class="inp" id="av-nome" placeholder="Ex.: Blusa listrada azul M" autofocus>
     <div class="lbl">Preço</div><input class="inp big" id="av-preco" inputmode="decimal" placeholder="R$ 0,00">`,
     `<button class="btn" onclick="fecharModal()">Cancelar</button><button class="btn btn-primary" onclick="addAvulso()">Adicionar</button>`);
@@ -916,7 +904,7 @@ async function addAvulso() {
   if (!nome) return toast('Descreva a peça', 'error');
   if (!(preco > 0)) return toast('Informe o preço', 'error');
   if (!(await pedirSenhaGerente(`Vender "${nome}" por ${brl(preco)} sem cadastro.`))) return;
-  cart.itens.push({ bling_id: null, codigo: null, nome: 'AVULSO: ' + nome.toUpperCase(), preco, qtd: 1, desc: 0, avulso: true });
+  cart.itens.push({ vid: null, codigo: null, nome: 'AVULSO: ' + nome.toUpperCase(), preco, qtd: 1, desc: 0, avulso: true });
   salvarCart(); renderCarrinho(); bip(true);
 }
 
@@ -996,7 +984,7 @@ function aplicarDescVenda(forcar) {
   if (v < 0 || v >= base) return toast('Desconto inválido', 'error');
   cart.descVenda = v; salvarCart(); fecharModal(); renderResumo();
 }
-// desconto acima do limite da vendedora (cadastro de vendedor no Bling) pede a senha da gerente
+// desconto acima do limite da vendedora pede a senha da gerente
 async function conferirLimiteDesconto() {
   const t = totais();
   if (t.desconto <= 0) return true;
@@ -1171,7 +1159,7 @@ let pag = null; // { linhas: [{forma, valor, recebido, parcelas, vale, saldoVale
 async function abrirPagamento(valeBipado) {
   if (!cart.itens.length) return;
   if (!cart.vendedora) { toast('Escolha a vendedora', 'error'); $('resumo').classList.add('aberto'); bip(false); return; }
-  if (cart.itens.some(i => !(i.preco > 0))) return toast('Há peça sem preço — corrija no Bling ou tire da venda', 'error');
+  if (cart.itens.some(i => !(i.preco > 0))) return toast('Há peça sem preço — corrija no cadastro ou tire da venda', 'error');
   if (!caixaOk()) { atualizarCaixaPill(); toast(caixaDeOntem() ? 'Feche o caixa de ontem e abra o de hoje' : 'Abra o caixa antes da primeira venda', 'error'); irPara('caixa'); return; }
   if (!clienteCompleta(cart.cliente)) return abrirCliente(() => abrirPagamento(valeBipado));
   if (!(await conferirLimiteDesconto())) return;
@@ -1280,7 +1268,7 @@ async function finalizarVenda() {
       let parte = baseRateio > 0 ? r2(t.descVenda * liqItem / baseRateio) : 0;
       if (idx === cart.itens.length - 1) parte = r2(t.descVenda - rateado);
       rateado = r2(rateado + parte);
-      return { bling_id: i.bling_id, codigo: i.codigo, nome: i.nome, qtd: i.qtd, preco: i.preco, desconto: r2((i.desc || 0) + parte), pago: r2(liqItem - parte) };
+      return { vid: i.vid, codigo: i.codigo, nome: i.nome, qtd: i.qtd, preco: i.preco, desconto: r2((i.desc || 0) + parte), pago: r2(liqItem - parte) };
     });
     const pagamentos = pag.linhas.map(l => {
       const p = { forma: l.forma === 'credito' && (l.parcelas || 1) > 1 ? 'credito_parcelado' : l.forma, valor: r2(l.valor) };
@@ -1302,6 +1290,7 @@ async function finalizarVenda() {
       if (error) throw new Error('Vale ' + p.vale + ': ' + error.message);
     }
     const fila = ler(K.fila, []); fila.push(venda); gravar(K.fila, fila);
+    ajustarSaldoLocal(venda.itens, -1);
     const sobraVale = cart.vale && pagamentos.find(p => p.vale === cart.vale.codigo) ? r2(cart.vale.saldo - pagamentos.find(p => p.vale === cart.vale.codigo).valor) : 0;
     const valeSobra = sobraVale > 0 ? cart.vale.codigo : null;
     cart = carrinhoVazio(); salvarCart(); pag = null;
@@ -1322,7 +1311,7 @@ function oferecerSobraVale(codigo, saldo) {
 }
 
 // =====================================================================
-// FILA DE ENVIO (aparelho -> Supabase -> Bling)
+// FILA DE ENVIO (aparelho -> banco)
 // =====================================================================
 let enviandoFila = false;
 async function enviarFila() {
@@ -1334,7 +1323,7 @@ async function enviarFila() {
       const { error } = await db.from('pdv_vendas').upsert(v, { onConflict: 'id', ignoreDuplicates: true });
       if (error) { console.warn('fila', error); break; }
       gravar(K.fila, ler(K.fila, []).filter(x => x.id !== v.id));
-      db.functions.invoke('pdv', { body: { acao: 'enviar', venda: v.id } }).then(() => { if (document.querySelector('#tab-vendas.active')) carregarVendas(); atualizarPills(); });
+      if (document.querySelector('#tab-vendas.active')) carregarVendas();
     }
   } finally { enviandoFila = false; atualizarPills(); }
 }
@@ -1344,22 +1333,13 @@ setInterval(() => { enviarFila(); atualizarPills(); }, 30000);
 
 async function atualizarPills() {
   const naFila = ler(K.fila, []).length;
-  let comErro = 0, pendServ = 0;
-  if (navigator.onLine && S.loja && !S.treino) {
-    const [{ data }, { data: trocas }] = await Promise.all([
-      db.from('pdv_vendas').select('status').eq('loja', S.loja).in('status', ['pendente', 'enviando', 'erro']).gte('data', ontem()),
-      db.from('pdv_trocas').select('status').eq('loja', S.loja).in('status', ['pendente', 'enviando', 'erro']).gte('data', ontem()),
-    ]);
-    for (const v of [...(data || []), ...(trocas || [])]) v.status === 'erro' ? comErro++ : pendServ++;
-  }
   const p = $('pill-rede');
   if (S.treino) { p.className = 'pill warn'; $('pill-rede-t').textContent = 'Modo treino'; $('nav-fila').style.display = 'none'; return; }
   if (!navigator.onLine) { p.className = 'pill warn'; $('pill-rede-t').textContent = naFila ? `Sem internet · ${naFila} na fila` : 'Sem internet'; }
-  else if (comErro) { p.className = 'pill err'; $('pill-rede-t').textContent = `${comErro} com erro no Bling`; }
-  else if (naFila + pendServ) { p.className = 'pill warn'; $('pill-rede-t').textContent = `Enviando ${naFila + pendServ}…`; }
-  else { p.className = 'pill ok'; $('pill-rede-t').textContent = 'Tudo no Bling'; }
-  const b = $('nav-fila'); const n = naFila + comErro;
-  b.style.display = n ? '' : 'none'; b.textContent = n;
+  else if (naFila) { p.className = 'pill warn'; $('pill-rede-t').textContent = `Salvando ${naFila}…`; }
+  else { p.className = 'pill ok'; $('pill-rede-t').textContent = 'Tudo salvo'; }
+  const b = $('nav-fila');
+  b.style.display = naFila ? '' : 'none'; b.textContent = naFila;
 }
 const ontem = () => { const d = new Date(hojeSP() + 'T12:00:00'); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10); };
 
@@ -1478,20 +1458,20 @@ async function trocaLer(lido) {
     if (!achado?.venda) { bip(false); return toast('Venda não encontrada', 'error'); }
     return trocaComVenda(achado.venda, achado.trocas || []);
   }
-  let p = acharPorCodigo(lido) || await buscarNoBling(lido);
+  let p = acharPorCodigo(lido) || await acharRecarregando(lido);
   if (!p) { bip(false); return toast('Etiqueta não encontrada', 'error'); }
   if (troca.venda) {
     // com comprovante: só peças daquela venda, pelo valor pago
-    const idx = troca.venda.itens.findIndex(i => i.bling_id && i.bling_id === p.bling_id);
+    const idx = troca.venda.itens.findIndex(i => i.vid && i.vid === p.vid);
     if (idx < 0) { bip(false); return toast('Essa peça não está nesta venda', 'error'); }
     if (!trocaAddDaVenda(idx)) { bip(false); return; }
   } else {
-    troca.itens.push({ bling_id: p.bling_id, codigo: p.codigo, nome: p.nome, qtd: 1, preco: Number(p.preco) || 0, volta_estoque: true, semComprovante: true });
+    troca.itens.push({ vid: p.vid, codigo: p.codigo, nome: p.nome, qtd: 1, preco: Number(p.preco) || 0, volta_estoque: true, semComprovante: true });
   }
   bip(true); renderTroca();
 }
-// cada peça da venda é contada pela posição dela na venda (peça avulsa não tem código do Bling)
-const chaveItem = (it, idx) => it.bling_id ? 'b' + it.bling_id : 'i' + idx;
+// cada peça da venda é contada pela posição dela na venda (peça avulsa não tem cadastro)
+const chaveItem = (it, idx) => it.vid ? 'b' + it.vid : 'i' + idx;
 async function trocaComVenda(v, trocasAnteriores) {
   if (v.status === 'cancelada' || v.status === 'cancelar') return toast('Essa venda foi cancelada', 'error');
   if (!trocasAnteriores) {
@@ -1505,7 +1485,7 @@ async function trocaComVenda(v, trocasAnteriores) {
   }
   troca = { venda: v, itens: [], destino: null, jaDevolvido: {} };
   for (const t of trocasAnteriores) for (const i of t.itens || []) {
-    const k = i.bling_id ? 'b' + i.bling_id : (i.orig != null ? 'i' + i.orig : null);
+    const k = i.vid ? 'b' + i.vid : (i.orig != null ? 'i' + i.orig : null);
     if (k) troca.jaDevolvido[k] = (troca.jaDevolvido[k] || 0) + (Number(i.qtd) || 1);
   }
   irPara('trocas'); renderTroca();
@@ -1514,7 +1494,7 @@ function trocaAddDaVenda(idx) {
   const it = troca.venda.itens[idx], k = chaveItem(it, idx);
   const ja = troca.itens.filter(x => x.orig === idx).length + (troca.jaDevolvido[k] || 0);
   if (ja >= it.qtd) { toast('Todas as unidades dessa peça já voltaram', 'error'); return false; }
-  troca.itens.push({ bling_id: it.bling_id, codigo: it.codigo, nome: it.nome, qtd: 1, preco: r2((it.pago ?? it.preco * it.qtd) / it.qtd), volta_estoque: !!it.bling_id, orig: idx });
+  troca.itens.push({ vid: it.vid, codigo: it.codigo, nome: it.nome, qtd: 1, preco: r2((it.pago ?? it.preco * it.qtd) / it.qtd), volta_estoque: !!it.vid, orig: idx });
   renderTroca(); bip(true);
   return true;
 }
@@ -1525,11 +1505,11 @@ function renderTroca() {
       const pn = partesNome(it.nome), ja = troca.jaDevolvido[chaveItem(it, idx)] || 0;
       return `<div class="lista-l" style="cursor:pointer" onclick="trocaAddDaVenda(${idx})"><div class="sp"><b>${esc(pn.nome)}</b><small>${pn.tam ? 'Tam ' + esc(pn.tam) + ' · ' : ''}${it.qtd} un · pago ${brl((it.pago ?? it.preco * it.qtd) / it.qtd)} cada${ja ? ` · <span style="color:var(--red)">${ja} já devolvida(s)</span>` : ''}</small></div><i class="ti ti-plus" style="color:var(--accent);font-size:1.3rem"></i></div>`;
     }).join('')}</div>`
-    : `<div class="aviso"><i class="ti ti-info-circle"></i><div>Sem comprovante, a peça volta pelo <b>preço atual</b> do Bling. Com o comprovante, volta pelo valor que a cliente pagou (com desconto).</div></div>`;
+    : `<div class="aviso"><i class="ti ti-info-circle"></i><div>Sem comprovante, a peça volta pelo <b>preço atual</b>. Com o comprovante, volta pelo valor que a cliente pagou (com desconto).</div></div>`;
   $('tr-itens').innerHTML = troca.itens.length ? troca.itens.map((i, idx) => {
     const pn = partesNome(i.nome);
-    return `<div class="troca-item"><input type="checkbox" ${i.volta_estoque ? 'checked' : ''} ${i.bling_id ? '' : 'disabled'} title="Volta para o estoque" onchange="troca.itens[${idx}].volta_estoque=this.checked;renderTroca()">
-      <div><b style="font-size:.92rem">${esc(pn.nome)}</b><small style="display:block;color:var(--text-muted);font-size:.74rem">${pn.tam ? 'Tam ' + esc(pn.tam) + ' · ' : ''}${!i.bling_id ? 'peça avulsa (sem estoque no Bling)' : i.volta_estoque ? 'volta ao estoque da loja' : '<span style="color:var(--red)">não volta ao estoque (defeito)</span>'}</small></div>
+    return `<div class="troca-item"><input type="checkbox" ${i.volta_estoque ? 'checked' : ''} ${i.vid ? '' : 'disabled'} title="Volta para o estoque" onchange="troca.itens[${idx}].volta_estoque=this.checked;renderTroca()">
+      <div><b style="font-size:.92rem">${esc(pn.nome)}</b><small style="display:block;color:var(--text-muted);font-size:.74rem">${pn.tam ? 'Tam ' + esc(pn.tam) + ' · ' : ''}${!i.vid ? 'peça avulsa (sem estoque)' : i.volta_estoque ? 'volta ao estoque da loja' : '<span style="color:var(--red)">não volta ao estoque (defeito)</span>'}</small></div>
       <div class="row" style="gap:4px"><b class="mono">${brl(i.preco)}</b><button class="btn-icon" onclick="troca.itens.splice(${idx},1);renderTroca()"><i class="ti ti-x"></i></button></div></div>`;
   }).join('') : '<div class="empty">Nenhuma peça ainda</div>';
   const total = r2(troca.itens.reduce((s, i) => s + i.preco * i.qtd, 0));
@@ -1572,7 +1552,6 @@ async function confirmarTroca() {
     } else if (troca.forma === 'dinheiro') {
       await db.from('pdv_caixa_movs').insert({ caixa_id: S.caixa.id, loja: S.loja, tipo: 'devolucao', valor: total, descricao: motivo || 'Devolução em dinheiro', troca_id: id });
     }
-    db.functions.invoke('pdv', { body: { acao: 'enviar', troca: id } }).then(atualizarPills);
     const destino = troca.destino;
     novaTroca();
     if (destino === 'troca') {
@@ -1913,9 +1892,8 @@ async function receberParcelas() {
   const ps = window._parcelas.filter(p => window._parcSel.has(p.id));
   const agora = new Date().toISOString();
   for (const p of ps) {
-    const { error } = await db.from('pdv_crediario').update({ pago_em: agora, pago_valor: p.valor, pago_forma: forma, pago_loja: S.loja, pago_caixa_id: S.caixa.id, pago_por: quem, bling_status: 'pendente' }).eq('id', p.id).is('pago_em', null);
+    const { error } = await db.from('pdv_crediario').update({ pago_em: agora, pago_valor: p.valor, pago_forma: forma, pago_loja: S.loja, pago_caixa_id: S.caixa.id, pago_por: quem, bling_status: 'nao_se_aplica' }).eq('id', p.id).is('pago_em', null);
     if (error) return toast('Erro: ' + error.message, 'error');
-    db.functions.invoke('pdv', { body: { acao: 'enviar', parcela: p.id } });
   }
   modalPreso = false; fecharModal();
   const total = r2(ps.reduce((s, p) => s + Number(p.valor), 0));
@@ -2031,46 +2009,32 @@ async function carregarVendas() {
   $('vd-lista').innerHTML = S.vendasDia.length ? S.vendasDia.map((v, idx) => {
     const st = v.status === 'cancelada' || v.status === 'cancelar' ? '<span class="st err">Cancelada</span>'
       : S.treino ? '<span class="st fila">Treino</span>'
-      : v._local ? '<span class="st fila">No aparelho</span>'
-      : v.status === 'enviada' ? `<span class="st ok">Bling${v.bling_numero ? ' nº ' + v.bling_numero : ''}</span>`
-      : v.status === 'erro' ? `<span class="st err" title="${esc(v.erro)}">Erro no Bling</span>`
-      : '<span class="st fila">Enviando</span>';
+      : v._local ? '<span class="st fila">No aparelho</span>' : '';
     const formas = v.pagamentos.map(p => (NOME_FORMA[p.forma] || p.forma).replace('Cartão de ', '')).join(' + ');
     const riscada = v.status === 'cancelada' || v.status === 'cancelar' ? 'style="text-decoration:line-through;opacity:.6"' : '';
     return `<div class="lista-l venda-l" onclick="verVenda(${idx})"><div class="sp" ${riscada}><b>${horaSP(v.criado_em)} · ${brl(v.total)}</b>
       <small>${esc(v.vendedora || 'sem vendedora')} · ${v.itens.reduce((a, i) => a + Number(i.qtd), 0)} peça(s) · ${esc(formas)}${v.cliente?.nome ? ' · ' + esc(v.cliente.nome) : ''}</small>
-      ${v.status === 'erro' ? `<small style="color:var(--red)">${esc(v.erro || '')}</small>` : ''}</div>
+      </div>
       ${st}
       <button class="btn-icon" title="Reimprimir" onclick="event.stopPropagation();imprimirComprovante(S.vendasDia[${idx}],true)"><i class="ti ti-printer"></i></button>
       ${!v._local ? `<button class="btn-icon" title="Troca" onclick="event.stopPropagation();trocaComVenda(S.vendasDia[${idx}])"><i class="ti ti-arrows-exchange"></i></button>` : ''}
-      ${v.status === 'erro' ? `<button class="btn-icon" title="Tentar de novo" onclick="event.stopPropagation();reenviar('${v.id}')"><i class="ti ti-refresh"></i></button>` : ''}
     </div>`;
   }).join('') : '<div class="empty">Nenhuma venda neste dia</div>';
   carregarTrocasDia();
 }
-// trocas do dia com o lançamento no Bling (devolução ao estoque) — erro aparece aqui para não passar batido
+// trocas do dia
 async function carregarTrocasDia() {
   if (!navigator.onLine && !S.treino) { $('vd-trocas-card').style.display = 'none'; return; }
   const { data } = await db.from('pdv_trocas').select('*').eq('loja', S.loja).eq('data', S.diaVendas).order('criado_em', { ascending: false });
   const ts = data || [];
   $('vd-trocas-card').style.display = ts.length ? '' : 'none';
   $('vd-trocas').innerHTML = ts.map(t => {
-    const st = S.treino ? '<span class="st fila">Treino</span>'
-      : t.status === 'enviada' ? '<span class="st ok">No Bling</span>'
-      : t.status === 'erro' ? '<span class="st err">Erro no Bling</span>' : '<span class="st fila">Enviando</span>';
+    const st = S.treino ? '<span class="st fila">Treino</span>' : '';
     const tipo = { troca: 'Troca na hora', vale: 'Vale-troca', dinheiro: 'Devolução de dinheiro' }[t.destino];
     return `<div class="lista-l"><div class="sp"><b>${horaSP(t.criado_em)} · ${tipo} · ${brl(t.valor)}</b>
       <small>${t.itens.map(i => esc(partesNome(i.nome).nome) + (i.volta_estoque ? '' : ' (não volta ao estoque)')).join(', ')}${t.vale_codigo ? ' · vale nº ' + esc(t.vale_codigo) : ''}${t.motivo ? ' · ' + esc(t.motivo) : ''}</small>
-      ${t.status === 'erro' ? `<small style="color:var(--red)">${esc(t.erro || '')}</small>` : ''}</div>${st}
-      ${t.status === 'erro' ? `<button class="btn-icon" title="Tentar de novo" onclick="reenviarTroca('${t.id}')"><i class="ti ti-refresh"></i></button>` : ''}</div>`;
+      </div>${st}</div>`;
   }).join('');
-}
-async function reenviarTroca(id) {
-  toast('Enviando ao Bling…');
-  const { data, error } = await db.functions.invoke('pdv', { body: { acao: 'enviar', troca: id } });
-  if (error || data?.ok === false) toast('Ainda com erro: ' + (data?.erro || error?.message || ''), 'error');
-  else toast('Troca lançada no Bling', 'ok');
-  carregarTrocasDia(); atualizarPills();
 }
 async function verVenda(idx) {
   const v = S.vendasDia[idx]; if (!v) return;
@@ -2084,12 +2048,10 @@ async function verVenda(idx) {
   const pags = v.pagamentos.map(p => linha(
     `${NOME_FORMA[p.forma] || p.forma}${p.parcelas > 1 ? ` (${p.parcelas}x)` : ''}${p.vale ? ' nº ' + esc(p.vale) : ''}${p.recebido ? ` · recebido ${brl(p.recebido)}` : ''}`, brl(p.valor))).join('');
   const cancelada = v.status === 'cancelada' || v.status === 'cancelar';
-  const status = v.status === 'cancelada' ? `<span style="color:var(--red)">Cancelada${v.cancelamento?.motivo ? ' — ' + esc(v.cancelamento.motivo) : ''}</span>`
-    : v.status === 'cancelar' ? `<span style="color:var(--red)">Cancelando no Bling…${v.cancelamento?.erro ? ' erro: ' + esc(v.cancelamento.erro) : ''}</span>`
-    : S.treino ? 'Treino (não vai para o Bling)'
+  const status = cancelada ? `<span style="color:var(--red)">Cancelada${v.cancelamento?.motivo ? ' — ' + esc(v.cancelamento.motivo) : ''}</span>`
+    : S.treino ? 'Treino (não fica gravada de verdade)'
     : v._local ? 'Guardada neste aparelho, esperando internet'
-    : v.status === 'enviada' ? `No Bling${v.bling_numero ? ' — pedido nº ' + v.bling_numero : ''}`
-    : v.status === 'erro' ? `<span style="color:var(--red)">Erro no Bling: ${esc(v.erro || '')}</span>` : 'Enviando ao Bling…';
+    : 'Registrada';
   abrirModal(`Venda das ${horaSP(v.criado_em)}`, `
     <div style="font-size:.86rem;line-height:1.6;margin-bottom:6px">
       <div><span class="muted">Data:</span> ${dataBR(v.data)} às ${horaSP(v.criado_em)}</div>
@@ -2108,7 +2070,7 @@ async function verVenda(idx) {
      <button class="btn so-icone" onclick="enviarWhatsApp(S.vendasDia[${idx}])" title="Mandar pelo WhatsApp"><i class="ti ti-brand-whatsapp"></i></button>
      ${!v._local ? `<button class="btn" onclick="fecharModal();trocaComVenda(S.vendasDia[${idx}])"><i class="ti ti-arrows-exchange"></i>Troca</button>` : ''}
      ${v.data === hojeSP() ? `<button class="btn btn-red" onclick="cancelarVendaUI(${idx})"><i class="ti ti-ban"></i>Cancelar</button>` : ''}
-     ${v.status === 'erro' ? `<button class="btn btn-primary" onclick="fecharModal();reenviar('${v.id}')"><i class="ti ti-refresh"></i>Reenviar</button>` : ''}`);
+     `);
   if (v._local || !(navigator.onLine || S.treino)) return;
   const { data: trocas } = await db.from('pdv_trocas').select('*').eq('venda_origem', v.id);
   if (trocas?.length && $('vv-trocas')) $('vv-trocas').innerHTML = `<div class="card-t" style="margin-top:14px">Trocas desta venda</div>` + trocas.map(t =>
@@ -2120,7 +2082,7 @@ function cancelarVendaUI(idx) {
   const v = S.vendasDia[idx]; if (!v) return;
   abrirModal('Cancelar venda', `
     <p style="font-size:.9rem">Venda das <b>${horaSP(v.criado_em)}</b> de <b>${brl(v.total)}</b> (${esc(v.vendedora || 'sem vendedora')}).</p>
-    <p class="muted" style="font-size:.82rem;margin-top:6px">O estoque volta, o pagamento sai do caixa${v.pagamentos.some(p => p.forma === 'vale') ? ', o saldo do vale volta' : ''} e a venda é desfeita no Bling. Se foi só um erro (forma de pagamento, vendedora, peça), use <b>Cancelar e refazer</b>: as peças voltam para o carrinho.</p>
+    <p class="muted" style="font-size:.82rem;margin-top:6px">O estoque volta, o pagamento sai do caixa${v.pagamentos.some(p => p.forma === 'vale') ? ', o saldo do vale volta' : ''}. Se foi só um erro (forma de pagamento, vendedora, peça), use <b>Cancelar e refazer</b>: as peças voltam para o carrinho.</p>
     <div class="lbl">Motivo</div><input class="inp" id="cv-motivo" placeholder="Ex.: lançou débito, era crédito" autofocus>`,
     `<button class="btn" onclick="verVenda(${idx})">Voltar</button>
      <button class="btn btn-red" onclick="executarCancelamento(${idx},false)">Só cancelar</button>
@@ -2145,13 +2107,14 @@ async function executarCancelamento(idx, refazer) {
     if (v._local) {
       gravar(K.fila, ler(K.fila, []).filter(x => x.id !== v.id)); // nunca saiu do aparelho
     } else {
-      const { error } = await db.from('pdv_vendas').update({ status: 'cancelar', cancelamento: { motivo, em: new Date().toISOString() } }).eq('id', v.id);
+      const agora = new Date().toISOString();
+      const { error } = await db.from('pdv_vendas').update({ status: 'cancelada', cancelada_em: agora, cancelamento: { motivo, em: agora } }).eq('id', v.id);
       if (error) throw error;
-      db.functions.invoke('pdv', { body: { acao: 'cancelar', venda: v.id } }).then(() => { carregarVendas(); atualizarPills(); });
     }
+    ajustarSaldoLocal(v.itens, 1);
     if (refazer) {
       cart = carrinhoVazio();
-      cart.itens = v.itens.map(i => ({ bling_id: i.bling_id, codigo: i.codigo, nome: i.nome, preco: i.preco, qtd: i.qtd, desc: r2(i.desconto || 0), ...(i.bling_id ? {} : { avulso: true }) }));
+      cart.itens = v.itens.map(i => ({ vid: i.vid, codigo: i.codigo, nome: i.nome, preco: i.preco, qtd: i.qtd, desc: r2(i.desconto || 0), ...(i.vid ? {} : { avulso: true }) }));
       cart.vendedora = v.funcionaria_id; cart.cliente = v.cliente;
       cart.autorizadoPct = v.subtotal ? r2(v.desconto / v.subtotal * 100) : 0; // o desconto já tinha sido autorizado
       salvarCart(); renderCarrinho();
@@ -2188,17 +2151,9 @@ function enviarWhatsApp(v) {
   window.open(`https://wa.me/${tel}?text=${encodeURIComponent(textoComprovante(v))}`, '_blank');
 }
 
-async function reenviar(id) {
-  toast('Enviando ao Bling…');
-  const { data, error } = await db.functions.invoke('pdv', { body: { acao: 'enviar', venda: id } });
-  if (error || data?.ok === false) toast('Ainda com erro: ' + (data?.erro || error?.message || ''), 'error');
-  else toast('Venda lançada no Bling', 'ok');
-  carregarVendas(); atualizarPills();
-}
-
 // =====================================================================
 // MODO TREINO — para testar e treinar as vendedoras. Peças de exemplo,
-// tudo guardado só neste aparelho; nada vai para o Supabase nem para o Bling.
+// tudo guardado só neste aparelho; nada vai para o banco.
 // =====================================================================
 const TREINO_FLAG = 'shai-pdv-treino-loja';
 const CATALOGO_TREINO = [
@@ -2208,7 +2163,7 @@ const CATALOGO_TREINO = [
   ['900122', 'CALÇA PANTALONA ALFAIATARIA - VERÃO 2027 TAMANHO:40', 229], ['900131', 'BLUSA TRICÔ CANELADA - VERÃO 2027 TAMANHO:ÚNICO', 139.9],
   ['900141', 'SAIA MIDI CETIM - VERÃO 2027 TAMANHO:M', 179.9], ['900151', 'BLAZER ALONGADO - VERÃO 2027 TAMANHO:M', 349],
   ['900161', 'CINTO COURO FIVELA DOURADA', 79.9], ['900171', 'BOLSA PALHA', 129.9],
-].map(([codigo, nome, preco], i) => ({ bling_id: -(i + 1), codigo, nome, preco, situacao: 'A', saldo_areal: 3 + (i % 4), saldo_tres_rios: 2 + (i % 3), saldo_cd: 5 }));
+].map(([codigo, nome, preco], i) => ({ vid: 'treino-' + (i + 1), codigo, nome, preco, situacao: 'A', saldo_areal: 3 + (i % 4), saldo_tres_rios: 2 + (i % 3), saldo_cd: 5 }));
 const VENDEDORAS_TREINO = {
   'Loja Areal': [['Joana', 'Gerente', 20, true], ['Joelma', 'Vendedora', 0, true], ['Vanessa', 'Vendedora', null, false]],
   'Loja Três Rios': [['Grazielly', 'Vendedora', 0, true], ['Helen', 'Gerente', null, false], ['Thaís', 'Vendedora', 0, true]],
@@ -2379,6 +2334,7 @@ async function iniciarTreino(loja) {
   for (const k of Object.keys(K)) K[k] = 'treino|' + loja + '|' + K[k];
   db = bancoTreino(loja);
   cart = ler(K.cart, null) || carrinhoVazio();
+  cart.itens = (cart.itens || []).filter(i => i.vid || i.avulso);
   document.body.classList.add('treino');
   $('h-loja').textContent = loja + ' · treino';
   $('faixa-treino').style.display = '';
@@ -2389,7 +2345,7 @@ async function iniciarTreino(loja) {
   renderCarrinho(); renderEspera(); atualizarPills();
   setInterval(atualizarCaixaPill, 60000);
 }
-// etiquetas das peças de exemplo, no mesmo formato da etiqueta do Bling (EAN13 = código com zeros + dígito)
+// etiquetas das peças de exemplo, no mesmo formato da etiqueta das lojas (EAN13 = código com zeros + dígito)
 function etiquetaTreinoHtml(p) {
   const pn = partesNome(p.nome);
   return `<div class="etq-teste"><div class="etq-n">${esc(pn.nome)}${pn.tam ? ' · ' + esc(pn.tam) : ''}</div>
